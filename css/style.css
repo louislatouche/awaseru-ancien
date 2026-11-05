@@ -206,11 +206,7 @@ body {
 
 .avis-erreur { background: var(--danger-soft); color: var(--danger); }
 
-.avis-enchainement {
-  background: var(--star-soft);
-  box-shadow: inset 4px 0 0 var(--star);
-  font-weight: 700;
-}
+.avis-enchainement { background: var(--star-soft); font-weight: 700; }
 
 .vide { display: flex; flex-direction: column; gap: 16px; padding-block: 24px; text-align: center; }
 
@@ -286,7 +282,7 @@ rt { font-size: 0.55em; color: var(--ink-soft); }
   padding: 14px 16px;
   background: var(--surface);
   color: inherit;
-  border: 1px solid var(--border);
+  border: 0; /* sans bord : la carte flotte sur son ombre, comme les cartes du kit */
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
   font: inherit;
@@ -297,13 +293,12 @@ button.replique { cursor: pointer; transition: transform 0.18s cubic-bezier(.34,
 button.replique:active { transform: scale(0.985); }
 
 /* Mes répliques : surlignées en ambre, le second accent du kit. */
-.replique.mienne {
-  background: var(--star-soft);
-  border-color: color-mix(in srgb, var(--star) 45%, var(--border));
-  box-shadow: inset 4px 0 0 var(--star), var(--shadow-card);
-}
+.replique.mienne { background: var(--star-soft); }
 
-.replique.en-lecture, .replique.courante { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* La réplique lue passe en sauge pâle. En filage, ma réplique garde son ambre : l'ombre plus
+   profonde suffit à la distinguer, puisqu'elle est au centre de l'écran. */
+.replique.en-lecture, .replique.courante:not(.mienne) { background: var(--accent-soft); }
+.replique.en-lecture, .replique.courante { box-shadow: var(--shadow-soft); }
 
 .replique-tete { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; font-size: 15px; line-height: 1.6; }
 .numero { font-weight: 700; color: var(--accent-dark); font-variant-numeric: tabular-nums; }
@@ -336,14 +331,11 @@ button.replique:active { transform: scale(0.985); }
 .coche-replique {
   padding: 12px 14px;
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
 }
 
-.coche-replique:has(input:checked) {
-  background: var(--star-soft);
-  border-color: color-mix(in srgb, var(--star) 45%, var(--border));
-}
+.coche-replique:has(input:checked) { background: var(--star-soft); }
 
 .ligne-role + .ligne-role { padding-top: 10px; border-top: 1px solid var(--border); }
 .role-total { color: var(--ink-soft); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
