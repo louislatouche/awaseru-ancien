@@ -1,0 +1,378 @@
+/* Replik : les styles propres à l'app, posés sur le design kit, comme dans Faktur.
+   Le kit (dossier design-kit/) donne les couleurs, les polices, les boutons et les cartes. C'est une
+   copie exacte du maître : on n'y touche jamais. Cette feuille ajoute seulement ce qui est propre à
+   Replik, et n'utilise que les variables du kit (var(--...)), jamais une couleur écrite en dur. */
+
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --header-h: 58px;
+  --tabbar-h: 64px;
+  --maxw: 720px;
+  --font-wordmark: 'Poppins', 'Segoe UI', sans-serif; /* le mot « replik », comme « faktur » */
+  --didascalie: color-mix(in srgb, var(--ink-mute) 70%, var(--ink));
+}
+
+/* Sans cette règle, display: flex ou grid l'emporterait sur l'attribut hidden. */
+[hidden] { display: none !important; }
+
+html {
+  font-size: 112.5%; /* 18 px de base : gros texte */
+  overflow-wrap: break-word; /* un mot très long ne doit jamais élargir la page */
+}
+
+/* La page occupe exactement l'écran, en colonne : en-tête, zone qui défile, onglets. */
+body {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Fraunces et Karla n'ont pas de caractères japonais : le japonais passe par la police du système.
+   On impose la famille du texte courant, y compris dans les titres, pour un rendu lisible partout. */
+[lang="ja"] { font-family: var(--font-body); }
+
+/* ---- L'en-tête ---- */
+.app-header {
+  flex: none;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: calc(var(--header-h) + var(--safe-top));
+  padding: var(--safe-top) 8px 0;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: saturate(1.2) blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 8px;
+  line-height: 1.05;
+}
+
+.wordmark {
+  font-family: var(--font-wordmark);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1;
+  color: var(--ink);
+  text-transform: lowercase;
+}
+
+.brand small {
+  overflow: hidden;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink-mute);
+}
+
+.icon-btn {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--ink-soft);
+  border-radius: var(--radius-sm);
+}
+
+.icon-btn svg { display: block; width: 23px; height: 23px; }
+
+/* ---- La zone principale ---- */
+.app-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden auto;
+  /* Évite qu'un glissement vers le bas recharge la page en plein filage. */
+  overscroll-behavior: contain;
+  outline: none;
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .app-main { scroll-behavior: smooth; }
+}
+
+.ecran-contenu {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: var(--maxw);
+  min-height: 100%;
+  margin-inline: auto;
+  padding: 20px;
+}
+
+/* ---- La barre d'onglets ---- */
+.tabbar {
+  flex: none;
+  z-index: 30;
+  display: flex;
+  align-items: stretch;
+  height: calc(var(--tabbar-h) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.tab {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  color: var(--ink-mute);
+}
+
+.tab svg { display: block; width: 23px; height: 23px; }
+.tab.is-active { color: var(--accent-dark); }
+.tab.is-active svg { color: var(--accent); }
+
+/* ---- Message temporaire : en haut, pour ne jamais recouvrir les boutons de répétition ---- */
+.toast {
+  top: calc(var(--safe-top) + var(--header-h) + 8px);
+  bottom: auto;
+  transform: translateX(-50%) translateY(-12px);
+}
+
+.bandeau-maj { flex: none; border-radius: 0; }
+
+/* ---- Boutons : au pouce, ils ont tous la même hauteur et prennent toute la largeur ---- */
+.btn, .btn-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 52px;
+  padding-inline: 12px;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+}
+
+.btn:disabled, .btn-ghost:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
+
+.btn-petit { flex: none; width: auto; min-height: 44px; padding: 8px 16px; font-size: 14px; }
+
+.boutons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ---- Titres ---- */
+.vue-tete { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+.vue-titre {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 6vw, 34px);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.titre-section { font-size: 21px; letter-spacing: -0.01em; }
+
+.eyebrow { margin: 0; line-height: 1.4; }
+
+.ligne-titre { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: -6px; }
+
+/* ---- Blocs communs ---- */
+.pile { display: flex; flex-direction: column; gap: 12px; }
+
+.card { box-shadow: var(--shadow-card); }
+
+.avis {
+  padding: 12px 16px;
+  background: var(--bg-soft);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
+.avis-erreur { background: var(--danger-soft); color: var(--danger); }
+
+.avis-enchainement {
+  background: var(--star-soft);
+  box-shadow: inset 4px 0 0 var(--star);
+  font-weight: 700;
+}
+
+.vide { display: flex; flex-direction: column; gap: 16px; padding-block: 24px; text-align: center; }
+
+.legende { color: var(--ink-soft); font-size: 15px; line-height: 1.4; }
+
+/* ---- Chips : les choix (comme le règlement dans Faktur) et les interrupteurs ---- */
+.chips, .interrupteurs { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.chip { min-height: 44px; font-size: 14px; line-height: 1.25; text-align: start; }
+
+.chip:disabled { opacity: 0.45; cursor: default; }
+
+/* ---- Bibliothèque ---- */
+.liste-pieces { display: flex; flex-direction: column; gap: 16px; }
+.carte-piece { display: flex; flex-direction: column; gap: 12px; }
+.carte-lien { display: flex; flex-direction: column; gap: 2px; }
+.carte-titre { font-size: 26px; font-weight: 700; line-height: 1.9; }
+.carte-sous-titre { font-family: var(--font-display); font-size: 21px; line-height: 1.3; }
+.carte-details { color: var(--ink-soft); font-size: 14px; }
+.carte-progression { font-weight: 700; }
+
+progress {
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  margin-block: 12px 6px;
+  overflow: hidden;
+  background: var(--bg-soft);
+  border: 0;
+  border-radius: 999px;
+}
+
+progress::-webkit-progress-bar { background: var(--bg-soft); }
+progress::-webkit-progress-value { background: var(--accent); border-radius: 999px; }
+progress::-moz-progress-bar { background: var(--accent); }
+
+/* ---- Japonais et furigana ---- */
+.japonais {
+  display: block;
+  font-size: 1.4rem;
+  line-height: 2.05; /* il faut de la place au-dessus des lignes pour les furigana */
+  white-space: pre-line; /* transforme les retours à la ligne du fichier en vrais retours */
+}
+
+.japonais-petit { font-size: 1.15rem; line-height: 1.95; }
+
+rt { font-size: 0.55em; color: var(--ink-soft); }
+
+/* Les interrupteurs : une classe sur <html> et ces trois règles suffisent. */
+.sans-furigana rt { display: none; }
+.sans-furigana .japonais { line-height: 1.7; }
+.sans-traduction .traduction { display: none; }
+
+.didascalie { color: var(--didascalie); font-style: italic; }
+
+/* ---- Script ---- */
+.en-tete-piece { display: flex; flex-direction: column; gap: 2px; }
+.titre-piece { font-size: 1.45rem; font-weight: 700; line-height: 1.9; }
+
+.explication { padding: 4px 20px; }
+.explication summary { display: flex; align-items: center; min-height: 48px; font-weight: 700; cursor: pointer; }
+.explication p { padding-bottom: 16px; color: var(--ink-soft); font-size: 15px; line-height: 1.6; }
+
+.scene { display: flex; flex-direction: column; gap: 10px; }
+
+.titre-scene { display: flex; flex-direction: column; padding-top: 16px; font-size: 21px; line-height: 1.3; }
+.scene-japonais { font-size: 1.1rem; font-weight: 700; line-height: 1.9; }
+.scene-fr { color: var(--ink-soft); font-size: 17px; }
+
+.replique {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--surface);
+  color: inherit;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  font: inherit;
+  text-align: start;
+}
+
+button.replique { cursor: pointer; transition: transform 0.18s cubic-bezier(.34, 1.56, .64, 1); }
+button.replique:active { transform: scale(0.985); }
+
+/* Mes répliques : surlignées en ambre, le second accent du kit. */
+.replique.mienne {
+  background: var(--star-soft);
+  border-color: color-mix(in srgb, var(--star) 45%, var(--border));
+  box-shadow: inset 4px 0 0 var(--star), var(--shadow-card);
+}
+
+.replique.en-lecture, .replique.courante { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.replique-tete { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; font-size: 15px; line-height: 1.6; }
+.numero { font-weight: 700; color: var(--accent-dark); font-variant-numeric: tabular-nums; }
+.role { font-weight: 700; }
+.role-vide { color: var(--ink-soft); }
+.role-fr { color: var(--ink-soft); font-size: 13px; }
+.replique-fr { display: block; margin-top: 4px; color: var(--ink-soft); font-size: 0.9rem; line-height: 1.5; white-space: pre-line; }
+.statut { margin-inline-start: auto; }
+
+/* Une réplique cachée : on remplace le texte par une invitation. */
+.replique-masque { display: none; }
+.est-cachee .replique-masque { display: block; padding-block: 20px; color: var(--ink-soft); font-weight: 700; text-align: center; }
+.est-cachee .japonais, .est-cachee .replique-fr { display: none; }
+
+/* ---- Mes répliques ---- */
+.tete-collante {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: -20px -20px 0;
+  padding: 14px 20px;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.coche { display: flex; align-items: flex-start; gap: 12px; min-height: 48px; padding-block: 6px; cursor: pointer; }
+.coche input { flex: none; width: 26px; height: 26px; margin-top: 2px; accent-color: var(--accent); }
+.coche-texte { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+.coche-replique {
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.coche-replique:has(input:checked) {
+  background: var(--star-soft);
+  border-color: color-mix(in srgb, var(--star) 45%, var(--border));
+}
+
+.ligne-role + .ligne-role { padding-top: 10px; border-top: 1px solid var(--border); }
+.role-total { color: var(--ink-soft); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.role-note { margin-inline-start: 38px; color: var(--ink-soft); font-size: 14px; line-height: 1.4; }
+.role-lien { display: inline-flex; align-items: center; min-height: 44px; margin-inline-start: 38px; color: var(--accent-dark); font-size: 15px; font-weight: 700; text-decoration: underline; }
+
+/* ---- Fiches et filage ---- */
+.journal { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.fin-piece { font-weight: 700; text-align: center; }
+
+/* sticky : les commandes restent collées en bas de la zone qui défile. */
+.commandes {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: auto -20px -20px; /* auto en haut : les colle en bas même si l'écran est peu rempli */
+  padding: 12px 20px;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border);
+}
+
+/* ---- Réglages ---- */
+.champ { display: flex; flex-direction: column; gap: 4px; }
+.champ-ligne { display: flex; justify-content: space-between; gap: 12px; }
+.champ input[type="range"] { width: 100%; height: 44px; accent-color: var(--accent); }
+
+.ligne-remise { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.version { color: var(--ink-mute); font-size: 13px; text-align: center; }

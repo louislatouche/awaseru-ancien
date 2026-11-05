@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- Icône « masquable » : Android la découpe à sa façon (rond, carré arrondi...).
+       Le fond papier remplit tout le carré, et le dessin reste dans le cercle central
+       de rayon 40 %, la seule zone garantie visible. -->
+  <rect width="512" height="512" fill="#faf9f7"/>
+  <path d="M256 118c-85 0-148 53-148 121 0 39 21 74 56 96l-12 57 63-34c13 3 27 4 41 4 85 0 148-53 148-123 0-68-63-121-148-121z" fill="#6f7c6a"/>
+  <path d="M214 165v119c0 15 10 19 23 15 43-16 77-45 100-86" fill="none" stroke="#faf9f7" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

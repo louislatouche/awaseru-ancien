@@ -1,0 +1,85 @@
+/* ════════════════════════════════════════════════════════════
+   Design tokens — l'ADN de la marque « Louis Latouche »
+   ────────────────────────────────────────────────────────────
+   C'est la SEULE couche à toucher pour reskinner une app.
+   Tout le reste (base.css) ne fait que référencer ces variables.
+   Charge ce fichier AVANT base.css.
+
+   Deux jeux de valeurs pour les mêmes rôles :
+   - :root                    → clair (papier, sauge, ambre) — le défaut ;
+   - :root[data-theme="dark"] → sombre, pour les apps où l'on regarde
+     des images (PINPS) : l'interface s'efface, la photo garde ses couleurs.
+   ════════════════════════════════════════════════════════════ */
+:root {
+  color-scheme: light;      /* contrôles natifs (ascenseurs, cases, <select>) accordés au thème */
+
+  /* ── Couleurs ─────────────────────────────────────────────── */
+  --bg: #faf9f7;            /* fond — papier chaud */
+  --surface: #ffffff;       /* cartes, champs, surfaces posées */
+  --bg-soft: #f2f0eb;       /* sections / cartes teintées */
+  --ink: #2b2a27;           /* texte principal */
+  --ink-soft: #57564f;      /* texte secondaire */
+  --ink-mute: #8d8c84;      /* légendes, notes */
+  --accent: #6f7c6a;        /* sauge — boutons, liens forts */
+  --accent-dark: #56624f;   /* sauge foncée — survols, texte accent lisible sur le fond */
+  --accent-soft: #edefe8;   /* fond teinté accent (halo focus, sélection) */
+  --on-accent: #ffffff;     /* texte posé sur --accent (boutons pleins, chips sélectionnées) — jamais de #fff en dur */
+  --border: #e7e4dc;        /* filets, contours de champs */
+  --star: #c8a35f;          /* ambre — 2e accent chaud (badges premium, « offert », étoiles d'avis) */
+  --star-soft: #f6efe0;     /* fond ambre pâle (badges, boutons atténués, pilule douce) */
+  --star-dark: #937330;     /* ambre foncée — texte doré lisible sur le fond */
+  --danger: #b94a48;        /* erreurs, alertes */
+  --danger-soft: #f7e8e7;   /* fond des messages d'erreur, pastilles danger */
+  --overlay: rgba(43, 42, 39, 0.5);   /* voile derrière une modale */
+
+  /* ── Typographie ──────────────────────────────────────────── */
+  /* Polices chargées via fonts.html (Google Fonts). */
+  --font-body: 'Karla', 'Segoe UI', sans-serif;       /* texte courant */
+  --font-display: 'Fraunces', Georgia, serif;         /* titres */
+
+  /* ── Forme ────────────────────────────────────────────────── */
+  --radius-sm: 10px;        /* champs, petits éléments */
+  --radius: 16px;           /* boutons arrondis, éléments moyens */
+  --radius-lg: 26px;        /* grandes cartes — arrondi franc « moderne » */
+  /* Boutons : coins arrondis (--radius), sentence-case — fini la pilule pleine capitales d'avant. */
+  /* Les grandes surfaces flottent sur une ombre plus profonde (plus de relief, plus d'air). */
+  --shadow-soft: 0 2px 12px rgba(43, 42, 39, 0.05), 0 18px 44px rgba(43, 42, 39, 0.10);
+  --shadow-card: 0 2px 8px rgba(43, 42, 39, 0.05), 0 14px 34px rgba(43, 42, 39, 0.09);
+
+  /* ── Rythme vertical ──────────────────────────────────────── */
+  /* Espace entre blocs de contenu. Porté par des MARGES (qui fusionnent
+     entre voisins) → le gap reste constant et ne se cumule jamais. */
+  --gap-block: 64px;        /* sections de contenu */
+  --gap-media: 64px;        /* galeries / carrousels */
+}
+
+/* ── Version sombre ───────────────────────────────────────────
+   Opt-in explicite : <html data-theme="dark"> (voir README, « Version sombre »).
+   Mêmes rôles, valeurs inversées, toujours chaudes — jamais de gris bleuté.
+   Le fond est l'encre du clair à peine assombrie ; les cartes reprennent
+   exactement --ink du clair. Les noms restent des RÔLES : ici --accent-dark
+   (« survols, texte accent lisible ») est une sauge PLUS CLAIRE, --star-dark
+   un doré plus clair. Typo, rayons et rythme ne changent pas. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #1f1e1b;            /* fond — encre chaude */
+  --surface: #2b2a27;       /* cartes, champs — l'--ink du kit clair */
+  --bg-soft: #262522;       /* sections / cartes teintées */
+  --ink: #ece9e2;           /* texte principal — papier */
+  --ink-soft: #b3b0a7;      /* texte secondaire */
+  --ink-mute: #85837b;      /* légendes, notes */
+  --accent: #8a9a84;        /* sauge, relevée pour tenir sur le sombre */
+  --accent-dark: #a3b29c;   /* survols, texte accent lisible sur le fond (plus clair, donc) */
+  --accent-soft: #2e342c;   /* fond teinté accent (sélection, halo) */
+  --on-accent: #1f1e1b;     /* texte posé sur --accent : encre, pas blanc */
+  --border: #3a3935;        /* filets, contours */
+  --star: #d4b06a;          /* ambre */
+  --star-soft: #3a3224;     /* fond ambre sombre */
+  --star-dark: #dcbb74;     /* texte doré lisible sur le fond */
+  --danger: #d46b68;        /* erreurs */
+  --danger-soft: #3d2726;   /* fond des messages d'erreur */
+  --overlay: rgba(0, 0, 0, 0.6);
+  --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.25), 0 18px 44px rgba(0, 0, 0, 0.45);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.25), 0 14px 34px rgba(0, 0, 0, 0.40);
+}

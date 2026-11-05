@@ -1,0 +1,31 @@
+/* Les polices du design kit, servies par l'app elle-même (dossier polices/, licence SIL OFL).
+   Le kit les charge normalement depuis Google Fonts. Ici, ce serait une ressource externe, et l'app
+   perdrait sa typographie hors ligne : on garde donc une copie locale, comme le fait déjà Odoo.
+   Ces trois polices ne contiennent que l'alphabet latin : le japonais reste en police du téléphone.
+   font-display: swap affiche tout de suite le texte, puis passe à la bonne police une fois chargée. */
+
+/* Polices « variables » : un seul fichier couvre toutes les graisses. */
+@font-face {
+  font-family: 'Karla';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('../polices/karla.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 300 600;
+  font-display: swap;
+  src: url('../polices/fraunces.woff2') format('woff2');
+}
+
+/* Uniquement pour le mot « replik » de l'en-tête. */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../polices/poppins-bold.ttf') format('truetype');
+}

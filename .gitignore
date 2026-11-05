@@ -1,0 +1,4 @@
+# Réglages locaux de cet ordinateur : inutiles dans le dépôt.
+# Le reste de .claude/ (le skill nouvelle-piece) doit être conservé.
+.claude/launch.json
+.claude/settings.local.json

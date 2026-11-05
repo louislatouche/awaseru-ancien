@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- Icône « normale » : une bulle de dialogue sauge sur fond transparent, couleurs du design kit. -->
+  <path d="M256 40C127 40 28 121 28 226c0 61 33 114 87 148l-20 96 106-57c18 3 36 5 55 5 129 0 228-82 228-192C484 121 385 40 256 40z" fill="#6f7c6a"/>
+  <!-- Dans la bulle, le katakana レ, première lettre de « Replik » en japonais. -->
+  <path d="M194 112v184c0 22 16 30 35 23 66-25 120-70 155-133" fill="none" stroke="#faf9f7" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
