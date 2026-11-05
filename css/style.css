@@ -342,6 +342,33 @@ button.replique:active { transform: scale(0.985); }
 .role-note { margin-inline-start: 38px; color: var(--ink-soft); font-size: 14px; line-height: 1.4; }
 .role-lien { display: inline-flex; align-items: center; min-height: 44px; margin-inline-start: 38px; color: var(--accent-dark); font-size: 15px; font-weight: 700; text-decoration: underline; }
 
+/* La grille de numéros, et la zone où le pincement remplace le zoom du navigateur. */
+.zone-pincement { touch-action: pan-y; }
+.vue-texte { display: flex; flex-direction: column; gap: 16px; }
+.ligne-aide { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ligne-aide .chip { flex: none; }
+
+.grille-numeros { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 8px; }
+
+.bouton-numero {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  color: var(--ink);
+  border: 0;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.bouton-numero.est-choisi { background: var(--accent); color: var(--on-accent); }
+
 /* ---- Fiches et filage ---- */
 .journal { flex: 1; display: flex; flex-direction: column; gap: 10px; }
 .fin-piece { font-weight: 700; text-align: center; }

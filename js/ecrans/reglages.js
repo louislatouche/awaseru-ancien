@@ -2,12 +2,13 @@
 
 import { el, remplacer, signaler } from '../dom.js';
 import {
-  creerAvisVoix, creerBascule, creerChoixUnique, creerTitreVue, lireReplique,
+  appliquerAffichage, creerAvisVoix, creerBascule, creerChoixUnique, creerTitreVue, lireReplique,
 } from '../affichage.js';
 import { confirmer } from '../modale.js';
+import { lireSauvegarde, telechargerSauvegarde } from '../sauvegarde.js';
 import { toutesLesPieces } from '../pieces.js';
 import { texteBrut } from '../texte.js';
-import { changerReglage, effacerProgression, lireReglages } from '../stockage.js';
+import { changerReglage, effacerProgression, lireReglages, remplacerToutesLesDonnees } from '../stockage.js';
 import { voixJaponaises, voixPretes } from '../voix.js';
 
 const PHRASE_ESSAI = { texte: 'むかしむかし、あるところに、[優|やさ]しいおじいさんがいました。' };
@@ -59,7 +60,7 @@ function creerChoixVoix() {
 function creerVoixEnregistrees() {
   return el('div', { className: 'pile' },
     el('p', { className: 'eyebrow' }, 'Voix des pièces'),
-    el('p', { className: 'legende' }, 'Les pièces fournies ont une voix enregistrée par rôle. Les pièces importées utilisent toujours la voix du téléphone.'),
+    el('p', { className: 'legende' }, "Chaque pièce a une voix enregistrée par rôle. Sans elles, l'app utilise la voix du téléphone, choisie ci-dessous."),
     el('div', { className: 'chips' },
       creerBascule('Utiliser les voix enregistrées', lireReglages().voixEnregistrees, (actif) => {
         changerReglage('voixEnregistrees', actif);
@@ -92,6 +93,58 @@ function creerRemiseAZero(piece) {
     }, 'Remettre à zéro'));
 }
 
+function creerSauvegarde() {
+  const zoneErreur = el('p', { className: 'avis avis-erreur', role: 'alert', hidden: true });
+
+  // Sans filtre accept : sur Android, il peut griser un fichier .json valide.
+  // lireSauvegarde refuse de toute façon ce qui n'est pas une sauvegarde de Replik.
+  const champFichier = el('input', {
+    type: 'file',
+    hidden: true,
+    onchange: async () => {
+      const fichier = champFichier.files[0];
+      // On vide le champ : sinon, rechoisir le même fichier ne déclencherait aucun événement.
+      champFichier.value = '';
+      if (!fichier) return;
+      zoneErreur.hidden = true;
+      try {
+        const sauvegarde = await lireSauvegarde(fichier);
+        const jour = new Date(sauvegarde.date).toLocaleDateString('fr-FR');
+        const accepte = await confirmer({
+          titre: 'Restaurer cette sauvegarde ?',
+          message: `Sauvegarde du ${jour}. Elle remplacera tes répliques choisies, ta progression et tes réglages sur ce téléphone.`,
+          oui: 'Restaurer',
+        });
+        if (!accepte) return;
+        remplacerToutesLesDonnees(sauvegarde.donnees);
+        appliquerAffichage();
+        signaler('Sauvegarde restaurée.');
+        // Redessine l'écran avec les réglages restaurés : le routeur écoute cet événement.
+        window.dispatchEvent(new HashChangeEvent('hashchange'));
+      } catch (erreur) {
+        zoneErreur.textContent = `Restauration impossible : ${erreur.message}`;
+        zoneErreur.hidden = false;
+      }
+    },
+  });
+
+  return el('section', { className: 'card pile' },
+    el('h2', { className: 'titre-section' }, 'Sauvegarde'),
+    el('p', { className: 'legende' }, 'Tes répliques choisies, ta progression et tes réglages restent sur ce téléphone. Garde-en une copie dans un fichier : elle te servira si tu changes de téléphone ou si tu vides les données de Chrome.'),
+    el('div', { className: 'boutons' },
+      el('button', {
+        type: 'button',
+        className: 'btn-ghost',
+        onclick: () => {
+          telechargerSauvegarde();
+          signaler('Sauvegarde enregistrée dans tes téléchargements.');
+        },
+      }, 'Sauvegarder'),
+      el('button', { type: 'button', className: 'btn-ghost', onclick: () => champFichier.click() }, 'Restaurer')),
+    zoneErreur,
+    champFichier);
+}
+
 export async function afficherReglages(racine) {
   const { fournies, importees } = await toutesLesPieces();
 
@@ -117,6 +170,7 @@ export async function afficherReglages(racine) {
     el('section', { className: 'card pile' },
       el('h2', { className: 'titre-section' }, 'Progression'),
       [...fournies, ...importees].map(creerRemiseAZero)),
+    creerSauvegarde(),
     version,
   );
 }

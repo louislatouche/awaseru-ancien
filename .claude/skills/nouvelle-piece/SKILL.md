@@ -14,9 +14,8 @@ PDF à traiter : $ARGUMENTS (si vide, demande-moi le fichier).
    - Annotation par mot ; les lectures irrégulières (熟字訓) en bloc sur le mot entier.
    - Les lectures déjà entre parenthèses dans le PDF, ex. 掘（ほ）, passent en furigana et les parenthèses disparaissent.
    - Didascalies et bruitages restent entre （）.
-4. Demande-moi quelles répliques sont les miennes (rôles et/ou numéros) et remplis mes_repliques.
-5. Vérifie : JSON valide, numéros continus, chaque role existe dans roles, aucun crochet mal fermé. Relis toutes les lectures et liste-moi celles qui ont plusieurs lectures possibles (私, 何, 方…) avec le choix que tu as fait.
-6. Enregistre pieces/<id>.json et ajoute-le à pieces/index.json.
-7. Voix : crée pieces/audio/<id>/voix.json sur le modèle de pieces/audio/hanasaka-jiisan/voix.json, avec une voix par rôle prise sur AivisHub (licence ACML ou CC0, voix bien distinctes entre rôles qui se répondent). Démarre le moteur AivisSpeech si besoin (AppData\Local\Programs\AivisSpeech\AivisSpeech-Engine\run.exe), lance `node outils/generer-audio.mjs <id>`, puis relis le rapport des lectures. Ajoute à la pièce le champ "audio" avec le crédit des voix. Tu ne peux pas écouter : dis-moi quelles voix tu as choisies et demande-moi de vérifier à l'oreille.
-8. Incrémente la version du cache du service worker, puis propose-moi de faire le commit et le push pour mettre en ligne.
-9. Termine par un résumé : titre, nombre de scènes et de répliques, rôles, voix choisies, mes répliques, points à vérifier.
+4. Vérifie : JSON valide, numéros continus, chaque role existe dans roles, aucun crochet mal fermé. Relis toutes les lectures et liste-moi celles qui ont plusieurs lectures possibles (私, 何, 方…) avec le choix que tu as fait.
+5. Enregistre pieces/<id>.json et ajoute-le à pieces/index.json.
+6. Voix : crée pieces/audio/<id>/voix.json sur le modèle de pieces/audio/hanasaka-jiisan/voix.json, avec une voix par rôle prise sur AivisHub (licence ACML ou CC0, voix bien distinctes entre rôles qui se répondent). Démarre le moteur AivisSpeech si besoin (AppData\Local\Programs\AivisSpeech\AivisSpeech-Engine\run.exe), lance `node outils/generer-audio.mjs <id>`, puis relis le rapport des lectures. Ajoute à la pièce le champ "audio" avec le crédit des voix. Tu ne peux pas écouter : dis-moi quelles voix tu as choisies et demande-moi de vérifier à l'oreille.
+7. Incrémente la version du cache du service worker, puis propose-moi de faire le commit et le push pour mettre en ligne.
+8. Termine par un résumé : titre, nombre de scènes et de répliques, rôles, voix choisies, points à vérifier. Chacun choisit ses répliques dans l'app : ne présélectionne rien.

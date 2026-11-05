@@ -1,5 +1,5 @@
 // Vérifie qu'un fichier de pièce est bien formé AVANT de l'accepter.
-// Mieux vaut un message clair à l'import qu'un plantage plus tard au milieu d'une répétition.
+// Mieux vaut un message clair au chargement qu'un plantage plus tard au milieu d'une répétition.
 
 import { erreurDeBalisage } from './texte.js';
 
@@ -91,16 +91,6 @@ export function validerPiece(piece) {
       });
     });
     if (numeros.size === 0) erreurs.push('la pièce ne contient aucune réplique.');
-  }
-
-  if (piece.mes_repliques !== undefined) {
-    if (!Array.isArray(piece.mes_repliques)) {
-      erreurs.push('« mes_repliques » doit être une liste de numéros.');
-    } else {
-      for (const numero of piece.mes_repliques) {
-        if (!numeros.has(numero)) erreurs.push(`« mes_repliques » : la réplique ${numero} n'existe pas.`);
-      }
-    }
   }
 
   if (piece.audio !== undefined && !(estObjet(piece.audio) && typeof piece.audio.credit === 'string')) {

@@ -46,11 +46,9 @@ export function changerReglage(nom, valeur) {
 // (cochée si toutes ses répliques sont choisies). Cela évite que les deux se contredisent.
 
 export function lireSelection(piece) {
-  const enregistree = lire(`selection:${piece.id}`, null);
-  // null veut dire « jamais touché » : on présélectionne. Une liste vide [] est différente :
-  // elle veut dire « tout décoché exprès », et il ne faut surtout pas la remplacer.
-  const numeros = enregistree ?? piece.mes_repliques ?? [];
-  // Après la réimportation d'une pièce corrigée, certains numéros peuvent ne plus exister.
+  // Rien n'est présélectionné : l'app sert à toute la troupe, chacun choisit ses répliques.
+  const numeros = lire(`selection:${piece.id}`, []);
+  // Après la correction d'une pièce, certains numéros peuvent ne plus exister.
   const existants = new Set(piece.scenes.flatMap((scene) => scene.repliques.map((r) => r.numero)));
   return new Set(numeros.filter((numero) => existants.has(numero)));
 }
@@ -86,6 +84,33 @@ export function enregistrerPiecesImportees(pieces) {
   } catch {
     // localStorage a une taille limitée : setItem lève une erreur quand il est plein.
     throw new Error("le stockage du téléphone est plein pour cette app. Supprime une pièce importée puis réessaie.");
+  }
+}
+
+// ---- Sauvegarde : toutes nos données d'un coup, sans le préfixe ----
+
+export function toutesLesDonnees() {
+  const donnees = {};
+  for (let i = 0; i < localStorage.length; i += 1) {
+    const cle = localStorage.key(i);
+    if (cle.startsWith(PREFIXE)) donnees[cle.slice(PREFIXE.length)] = lire(cle.slice(PREFIXE.length), null);
+  }
+  return donnees;
+}
+
+// Remplace tout. Si le stockage est plein en cours de route, on remet ce qu'il y avait avant :
+// il ne faut surtout pas rester avec une moitié d'ancien et une moitié de nouveau.
+export function remplacerToutesLesDonnees(donnees) {
+  const avant = toutesLesDonnees();
+  const toutEcrire = (contenu) => {
+    Object.keys(toutesLesDonnees()).forEach((cle) => localStorage.removeItem(PREFIXE + cle));
+    Object.entries(contenu).forEach(([cle, valeur]) => ecrire(cle, valeur));
+  };
+  try {
+    toutEcrire(donnees);
+  } catch {
+    toutEcrire(avant);
+    throw new Error('le stockage du téléphone est plein : rien n\'a été changé.');
   }
 }
 

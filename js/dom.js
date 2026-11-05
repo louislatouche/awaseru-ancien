@@ -7,7 +7,7 @@ const nettoyerEnfants = (enfants) => enfants.flat(Infinity).filter((e) => e !== 
 // el('button', { className: 'btn', onclick: f }, 'Voir') crée <button class="btn">Voir</button>.
 //
 // Pourquoi ne pas écrire innerHTML = '<button>...' ? Parce que innerHTML interprète son contenu
-// comme du code HTML. Une pièce importée qui contiendrait <img onerror=...> exécuterait du code.
+// comme du code HTML. Un fichier de pièce qui contiendrait <img onerror=...> exécuterait du code.
 // Ici, append() traite les chaînes comme du simple texte : une balise s'afficherait telle quelle.
 export function el(balise, proprietes = {}, ...enfants) {
   const element = document.createElement(balise);

@@ -77,7 +77,7 @@ async function router() {
       afficher = onglet.afficher;
       ongletActif = onglet.chemin;
     } else {
-      // Par exemple un favori vers une pièce importée qui a été supprimée depuis.
+      // Par exemple un favori vers une pièce retirée depuis.
       afficherBarre('Pièce introuvable', { retour: true });
       afficher = (racine) => racine.append(el('p', { className: 'vide' }, "Cette pièce n'est plus sur ce téléphone."));
     }

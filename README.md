@@ -18,11 +18,13 @@ Une application web installable (PWA) pour apprendre ses répliques de théâtre
 | `js/modale.js` | Les demandes de confirmation, en feuille du bas. |
 | `js/texte.js` | Le balisage japonais : `[漢字\|よみ]`, `（…）`, texte à lire à voix haute. |
 | `js/validation.js` | Vérifie qu'un fichier de pièce est correct avant de l'accepter. |
-| `js/stockage.js` | Lit et écrit dans `localStorage` : réglages, sélection, progression, pièces importées. |
+| `js/stockage.js` | Lit et écrit dans `localStorage` : réglages, sélection, progression. |
+| `js/sauvegarde.js` | Copie ces données dans un fichier et les récupère. |
+| `js/pincement.js` | Reconnaît le pincement à deux doigts. |
 | `js/pieces.js` | Charge les pièces, calcule la progression, le signal d'entrée et les enchaînements. |
 | `js/voix.js` | La lecture à voix haute et ses précautions pour Android. |
 | `js/affichage.js` | Les briques communes aux écrans : réplique, interrupteurs, avertissements. |
-| `js/ecrans/bibliotheque.js` | Écran des pièces, import et suppression. |
+| `js/ecrans/bibliotheque.js` | Écran des pièces. |
 | `js/ecrans/script.js` | Écran du texte complet. |
 | `js/ecrans/mes-repliques.js` | Écran du choix des rôles et des répliques. |
 | `js/ecrans/fiches.js` | Répétition en fiches. |
@@ -47,7 +49,7 @@ Le kit charge normalement ses polices depuis Google Fonts. Replik garde les sien
 
 ## Les voix
 
-Les pièces fournies ont une voix enregistrée par rôle : des fichiers MP3 générés à l'avance sur l'ordinateur avec [AivisSpeech](https://aivis-project.com/), gratuit et local. Elles marchent donc hors ligne, avec la même voix sur tous les téléphones. Les pièces importées utilisent la voix du téléphone, et l'app s'en sert aussi si un fichier manque. Un réglage permet de les comparer.
+Les pièces fournies ont une voix enregistrée par rôle : des fichiers MP3 générés à l'avance sur l'ordinateur avec [AivisSpeech](https://aivis-project.com/), gratuit et local. Elles marchent donc hors ligne, avec la même voix sur tous les téléphones. L'app se sert de la voix du téléphone si un fichier manque. Un réglage permet de les comparer.
 
 Pour changer une voix, modifie `pieces/audio/<id>/voix.json`, démarre AivisSpeech, puis :
 
@@ -82,7 +84,7 @@ Puis ouvre <http://localhost:8000> dans Chrome. Il faut passer par ce petit serv
 
 ## Mettre en ligne sur GitHub Pages
 
-GitHub Pages héberge gratuitement l'app en HTTPS. Le dépôt doit être public avec un compte gratuit : le texte de tes pièces fournies sera donc visible par tous. Si tu préfères le garder pour toi, publie l'app sans ta pièce et importe-la depuis le téléphone.
+GitHub Pages héberge gratuitement l'app en HTTPS. Le dépôt doit être public avec un compte gratuit : le texte de tes pièces fournies sera donc visible par tous.
 
 1. Sur <https://github.com/new>, crée un dépôt nommé `replik`, public.
 2. Dans ce dossier, envoie les fichiers (remplace `TONNOM` par ton identifiant GitHub) :
@@ -141,21 +143,28 @@ GitHub Pages héberge gratuitement l'app en HTTPS. Le dépôt doit être public 
 
 ### La voix japonaise
 
-Replik utilise la synthèse vocale du téléphone. Si aucune voix japonaise n'est trouvée, l'app le signale et le filage s'arrête à chaque réplique au lieu de lire. Pour l'installer :
+Replik lit ses pièces avec ses voix enregistrées. La voix du téléphone ne sert que de secours, ou si tu coupes le réglage « Utiliser les voix enregistrées ». Pour l'installer :
 
 **Paramètres Android > Synthèse vocale** (parfois rangée dans Accessibilité ou Gestion globale) **> moteur Google > installer les données vocales > japonais.** Ferme puis rouvre ensuite Replik.
 
+## Choisir ses répliques
+
+Replik sert à toute la troupe : rien n'est présélectionné, chacun coche ses répliques dans l'écran *Mes répliques*. Pour aller plus vite, pince l'écran avec deux doigts : il ne reste qu'une grille de numéros à toucher. Écarte deux doigts pour revenir au texte.
+
+## Tes données
+
+Les répliques choisies, la progression et les réglages restent sur le téléphone, dans le stockage du navigateur. Ils disparaissent si tu vides les « cookies et données de site » de Chrome. Dans les Réglages, *Sauvegarder* en fait une copie dans un fichier, et *Restaurer* la récupère, y compris sur un autre téléphone.
+
 ## Ajouter une nouvelle pièce
 
-**Depuis un PDF du cours :** dans Claude Code, lance `/nouvelle-piece chemin/du/script.pdf`. Le skill convertit le PDF, pose les furigana, te demande tes répliques, vérifie le tout et ajoute la pièce à l'app.
+**Depuis un PDF du cours :** dans Claude Code, lance `/nouvelle-piece chemin/du/script.pdf`. Le skill convertit le PDF, pose les furigana, choisit les voix, génère l'audio, vérifie le tout et ajoute la pièce à l'app.
 
-**Depuis un fichier déjà prêt : l'importer.** Copie le fichier `.json` sur le téléphone, puis dans la bibliothèque, touche *Importer une pièce*. Elle reste sur ce téléphone seulement. Réimporter un fichier de même `id` remplace la pièce et conserve la progression, ce qui permet de corriger un texte.
-
-**Pour la fournir avec l'app :**
+**À la main :**
 
 1. Place le fichier dans `pieces/`.
 2. Ajoute son nom dans `pieces/index.json` : `["hanasaka-jiisan.json", "ma-piece.json"]`.
-3. Augmente `VERSION` dans `sw.js`, puis publie.
+3. Choisis les voix dans `pieces/audio/<id>/voix.json`, puis génère l'audio (voir « Les voix »).
+4. Augmente `VERSION` dans `sw.js`, puis publie.
 
 ### Format d'un fichier de pièce
 
@@ -177,7 +186,6 @@ Replik utilise la synthèse vocale du téléphone. Si aucune voix japonaise n'es
       "lien": "https://exemple.fr/facultatif"
     }
   ],
-  "mes_repliques": [2],
   "scenes": [
     {
       "numero": 1,
@@ -193,7 +201,7 @@ Replik utilise la synthèse vocale du téléphone. Si aucune voix japonaise n'es
 }
 ```
 
-Les règles que l'import vérifie :
+Les règles que l'app vérifie au chargement :
 
 - **Numéros de répliques** : uniques dans toute la pièce, pas seulement dans une scène. La progression y est attachée, évite donc de les renuméroter.
 - **`role`** : l'`id` d'un rôle déclaré, ou `null` pour une réplique sans rôle. Une réplique sans rôle est lue par l'app, sauf si tu la coches dans *Mes répliques*.
@@ -201,4 +209,4 @@ Les règles que l'import vérifie :
 - **`（…）`** : didascalie ou bruitage, en gris italique, non lue par défaut. Seules les parenthèses japonaises comptent.
 - **`\n`** : retour à la ligne.
 - **`lien`** : uniquement une adresse `http` ou `https`.
-- **Facultatifs** : `format`, `id` (sinon le nom du fichier est utilisé), `nom_court`, `note`, `lien`, `mes_repliques`.
+- **Facultatifs** : `format`, `id` (sinon le nom du fichier est utilisé), `nom_court`, `note`, `lien`.

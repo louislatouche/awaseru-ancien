@@ -1,4 +1,4 @@
-// Trouver les pièces (fournies avec l'app ou importées) et en extraire ce dont les écrans ont besoin.
+// Trouver les pièces et en extraire ce dont les écrans ont besoin.
 
 import { validerPiece } from './validation.js';
 import { texteAParler } from './texte.js';
@@ -50,40 +50,6 @@ export async function toutesLesPieces() {
 export async function trouverPiece(id) {
   const { fournies, importees } = await toutesLesPieces();
   return [...fournies, ...importees].find((piece) => piece.id === id) ?? null;
-}
-
-// Lit un fichier choisi par l'utilisateur, le valide et l'enregistre.
-// Lève une erreur au message lisible si quelque chose ne va pas.
-export async function importerFichier(fichier, confirmerRemplacement) {
-  let piece;
-  try {
-    piece = JSON.parse(await fichier.text());
-  } catch {
-    throw new Error("ce fichier n'est pas du JSON valide.");
-  }
-
-  const problemes = validerPiece(piece);
-  if (problemes.length > 0) {
-    const visibles = problemes.slice(0, 6).join('\n');
-    const reste = problemes.length - 6;
-    throw new Error(`${visibles}${reste > 0 ? `\n... et ${reste} autre(s) problème(s).` : ''}`);
-  }
-
-  piece.id ??= fichier.name.replace(/\.json$/i, '');
-  // Les fichiers audio n'existent que pour les pièces fournies avec l'app : une pièce importée
-  // n'est qu'un fichier JSON, elle utilise donc la voix du téléphone.
-  delete piece.audio;
-
-  const { fournies, importees } = await toutesLesPieces();
-  if (fournies.some((p) => p.id === piece.id)) {
-    throw new Error(`une pièce fournie avec l'app porte déjà l'id « ${piece.id} ». Change l'id dans le fichier pour l'importer à côté.`);
-  }
-  const existante = importees.some((p) => p.id === piece.id);
-  // Réimporter la même pièce sert à la corriger : la progression, liée à l'id et aux numéros, est conservée.
-  if (existante && !(await confirmerRemplacement(piece))) return null;
-
-  enregistrerPiecesImportees([...importees.filter((p) => p.id !== piece.id), piece]);
-  return piece;
 }
 
 export function supprimerPieceImportee(id) {

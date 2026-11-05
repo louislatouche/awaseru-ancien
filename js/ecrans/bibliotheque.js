@@ -1,10 +1,10 @@
-// Écran 1 : la liste des pièces, l'import et la suppression.
+// Écran 1 : la liste des pièces et la progression de chacune.
 
-import { el, remplacer, signaler } from '../dom.js';
+import { el, remplacer } from '../dom.js';
 import { creerTitreVue } from '../affichage.js';
 import { confirmer } from '../modale.js';
 import { creerJaponais, texteBrut } from '../texte.js';
-import { importerFichier, lignesDe, progressionDe, supprimerPieceImportee, toutesLesPieces } from '../pieces.js';
+import { lignesDe, progressionDe, supprimerPieceImportee, toutesLesPieces } from '../pieces.js';
 
 function texteProgression({ total, sues, aRevoir }) {
   if (total === 0) return 'Aucune réplique choisie';
@@ -14,8 +14,10 @@ function texteProgression({ total, sues, aRevoir }) {
 
 function creerCarte(piece, surSuppression) {
   const progression = progressionDe(piece);
+  // Tant qu'aucune réplique n'est choisie, on ouvre directement l'écran pour les choisir.
+  const onglet = progression.total > 0 ? 'script' : 'mes-repliques';
   return el('article', { className: 'card carte-piece' },
-    el('a', { className: 'carte-lien', href: `#/piece/${encodeURIComponent(piece.id)}/script` },
+    el('a', { className: 'carte-lien', href: `#/piece/${encodeURIComponent(piece.id)}/${onglet}` },
       creerJaponais(piece.titre, 'carte-titre'),
       el('span', { className: 'carte-sous-titre' }, piece.titre_fr),
       el('span', { className: 'carte-details' }, `${lignesDe(piece).length} répliques, ${piece.scenes.length} scènes`),
@@ -29,13 +31,14 @@ function creerCarte(piece, surSuppression) {
 }
 
 export async function afficherBibliotheque(racine) {
-  const zoneErreur = el('p', { className: 'avis avis-erreur', role: 'alert', hidden: true });
   const zoneListe = el('div', { className: 'liste-pieces' });
 
   async function rafraichir() {
     const { fournies, importees, erreurs } = await toutesLesPieces();
     const cartes = [
       ...fournies.map((piece) => creerCarte(piece, null)),
+      // On ne peut plus importer de pièce. Mais si un téléphone en garde une d'avant, elle reste
+      // accessible : la faire disparaître en silence serait une mauvaise surprise.
       ...importees.map((piece) => creerCarte(piece, async () => {
         const accepte = await confirmer({
           titre: 'Supprimer cette pièce ?',
@@ -53,45 +56,7 @@ export async function afficherBibliotheque(racine) {
     );
   }
 
-  // Volontairement sans attribut accept=".json" : sur Android, ce filtre est mal pris en charge et
-  // peut griser un fichier .json valide, sans aucun moyen de le choisir. La validation qui suit
-  // refuse de toute façon ce qui n'est pas une pièce, avec un message clair.
-  const champFichier = el('input', {
-    type: 'file',
-    hidden: true,
-    onchange: async () => {
-      const fichier = champFichier.files[0];
-      // On vide le champ : sinon, rechoisir le même fichier corrigé ne déclencherait aucun événement.
-      champFichier.value = '';
-      if (!fichier) return;
-      zoneErreur.hidden = true;
-      try {
-        const piece = await importerFichier(fichier, (p) => confirmer({
-          titre: 'Remplacer cette pièce ?',
-          message: `« ${texteBrut(p.titre)} » existe déjà. Ta progression est conservée.`,
-          oui: 'Remplacer',
-        }));
-        if (!piece) return;
-        signaler(`« ${texteBrut(piece.titre)} » est enregistrée sur ce téléphone.`);
-        await rafraichir();
-      } catch (erreur) {
-        zoneErreur.textContent = `Import impossible (${fichier.name}) :\n${erreur.message}`;
-        zoneErreur.hidden = false;
-      }
-    },
-  });
-
   await rafraichir();
 
-  remplacer(racine,
-    creerTitreVue('Mes pièces'),
-    zoneListe,
-    zoneErreur,
-    el('button', {
-      type: 'button',
-      className: 'btn',
-      onclick: () => champFichier.click(),
-    }, 'Importer une pièce'),
-    champFichier,
-  );
+  remplacer(racine, creerTitreVue('Mes pièces'), zoneListe);
 }
