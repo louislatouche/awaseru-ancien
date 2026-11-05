@@ -53,13 +53,65 @@ let terminerEnCours = null;
 // Certains navigateurs oublient un énoncé qu'aucune variable ne retient, et son événement « end »
 // n'arrive alors jamais. On garde donc une référence tant que la lecture dure.
 let enonceEnCours = null;
+// Le fichier audio en cours de lecture, pour pouvoir l'arrêter.
+let audioEnCours = null;
 
 export function arreterVoix() {
+  // D'abord couper le son : l'appel suivant efface la référence au fichier en cours.
+  audioEnCours?.pause();
+  audioEnCours = null;
   // On prévient AVANT cancel() : ainsi, quoi qu'il envoie ensuite (end, error, ou rien),
   // la lecture est déjà marquée « annulée » et personne ne croira qu'elle s'est finie normalement.
   // C'est ce qui empêche le filage de passer à la réplique suivante quand on appuie sur Pause.
   terminerEnCours?.('annule');
   if (lectureDisponible()) window.speechSynthesis.cancel();
+}
+
+// Lit un fichier audio. Renvoie une promesse qui donne : 'fini', 'annule' ou 'erreur:code'.
+//
+// Pourquoi fetch puis un « blob » plutôt que new Audio(url) ? Le lecteur audio du navigateur demande
+// les fichiers par morceaux (requêtes Range), ce qui se marie mal avec les copies du service worker.
+// En téléchargeant nous-mêmes le fichier entier, on obtient le même comportement en ligne et hors ligne.
+export function jouerFichier(url) {
+  arreterVoix();
+
+  return new Promise((resolve) => {
+    const audio = new Audio();
+    let adresse = null;
+
+    const terminer = (resultat) => {
+      if (terminerEnCours !== terminer) return;
+      terminerEnCours = null;
+      audioEnCours = null;
+      if (adresse) URL.revokeObjectURL(adresse); // libère la mémoire occupée par le fichier
+      resolve(resultat);
+    };
+    terminerEnCours = terminer;
+    audioEnCours = audio;
+
+    audio.onended = () => terminer('fini');
+    audio.onerror = () => terminer('erreur:fichier');
+
+    fetch(url)
+      .then((reponse) => {
+        if (!reponse.ok) throw new Error('fichier introuvable');
+        return reponse.blob();
+      })
+      .then((fichier) => {
+        if (terminerEnCours !== terminer) return undefined; // annulée pendant le téléchargement
+        adresse = URL.createObjectURL(fichier);
+        audio.src = adresse;
+        // À régler après src : le chargement d'une source remet la vitesse à sa valeur par défaut.
+        const { vitesse } = lireReglages();
+        audio.defaultPlaybackRate = vitesse;
+        audio.playbackRate = vitesse;
+        return audio.play();
+      })
+      .catch((erreur) => {
+        // NotAllowedError : le navigateur veut d'abord un geste de l'utilisateur.
+        terminer(erreur.name === 'NotAllowedError' ? 'erreur:not-allowed' : 'erreur:fichier');
+      });
+  });
 }
 
 // Lit un texte. Renvoie une promesse qui donne : 'fini', 'annule', 'sans-voix' ou 'erreur:code'.

@@ -103,5 +103,9 @@ export function validerPiece(piece) {
     }
   }
 
+  if (piece.audio !== undefined && !(estObjet(piece.audio) && typeof piece.audio.credit === 'string')) {
+    erreurs.push('« audio » doit être un objet avec un texte « credit ».');
+  }
+
   return erreurs;
 }

@@ -38,7 +38,7 @@ export function afficherFiches(racine, piece) {
 
     remplacer(racine,
       creerTitreVue('Fiches', el('span', { className: 'pill pill--ok' }, `${miennes.length} ${miennes.length > 1 ? 'répliques' : 'réplique'}`)),
-      creerAvisVoix(),
+      creerAvisVoix(piece),
       el('section', { className: 'card pile' },
         el('p', { className: 'eyebrow' }, 'Ordre'),
         creerChoixUnique([

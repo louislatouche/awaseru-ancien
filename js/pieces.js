@@ -70,6 +70,9 @@ export async function importerFichier(fichier, confirmerRemplacement) {
   }
 
   piece.id ??= fichier.name.replace(/\.json$/i, '');
+  // Les fichiers audio n'existent que pour les pièces fournies avec l'app : une pièce importée
+  // n'est qu'un fichier JSON, elle utilise donc la voix du téléphone.
+  delete piece.audio;
 
   const { fournies, importees } = await toutesLesPieces();
   if (fournies.some((p) => p.id === piece.id)) {
@@ -94,7 +97,13 @@ export function supprimerPieceImportee(id) {
 // Indispensable : la réplique précédente de la 29 (début de scène 5) est la 28 (fin de scène 4).
 // Raisonner scène par scène raterait ce genre d'enchaînement.
 export function lignesDe(piece) {
-  return piece.scenes.flatMap((scene) => scene.repliques.map((replique) => ({ ...replique, scene })));
+  // audio : le début du chemin des fichiers de cette réplique, s'ils existent.
+  const dossierAudio = piece.audio ? `pieces/audio/${encodeURIComponent(piece.id)}` : null;
+  return piece.scenes.flatMap((scene) => scene.repliques.map((replique) => ({
+    ...replique,
+    scene,
+    audio: dossierAudio && `${dossierAudio}/${replique.numero}`,
+  })));
 }
 
 export function roleDe(piece, idRole) {

@@ -74,10 +74,10 @@ export function creerJaponais(texte, classe = '') {
   return racine;
 }
 
-// Texte à donner à la synthèse vocale : la lecture à la place du kanji (prononciation garantie),
-// sans les didascalies sauf si le réglage les garde. Renvoie '' s'il n'y a rien à dire.
-export function texteAParler(texte, garderDidascalies = false) {
-  const morceaux = decouperDidascalies(texte.replace(MOTIF_FURIGANA, '$2'));
+// Met en forme pour une voix un texte déjà débarrassé de ses furigana : sans les didascalies,
+// sauf si le réglage les garde. Renvoie '' s'il n'y a rien à dire.
+function preparerPourVoix(texteSansFurigana, garderDidascalies) {
+  const morceaux = decouperDidascalies(texteSansFurigana);
   const resultat = morceaux
     .filter((morceau) => garderDidascalies || !morceau.didascalie)
     .map((morceau) => morceau.texte)
@@ -88,6 +88,27 @@ export function texteAParler(texte, garderDidascalies = false) {
   // \p{L} = une lettre, quelle que soit l'écriture. S'il ne reste que de la ponctuation,
   // il n'y a rien à prononcer, et certains moteurs ne préviennent jamais qu'ils ont fini.
   return /[\p{L}\p{N}]/u.test(resultat) ? resultat : '';
+}
+
+// Le texte pour la voix du téléphone : la lecture à la place du kanji.
+export function texteAParler(texte, garderDidascalies = false) {
+  return preparerPourVoix(texte.replace(MOTIF_FURIGANA, '$2'), garderDidascalies);
+}
+
+// Le texte pour générer les fichiers audio (voir outils/generer-audio.mjs) : on garde les kanji,
+// car ils aident le moteur à reconnaître les mots, donc à bien couper et accentuer. Les kanji de
+// l'ensemble enKana sont remplacés par leur lecture : ce sont ceux que le moteur lit de travers.
+export function texteAvecKanji(texte, garderDidascalies = false, enKana = new Set()) {
+  const sansFurigana = texte.replace(MOTIF_FURIGANA, (_, kanji, lecture) => (enKana.has(kanji) ? lecture : kanji));
+  return preparerPourVoix(sansFurigana, garderDidascalies);
+}
+
+// La liste des furigana d'un texte, dans l'ordre : [{ kanji, lecture }, ...]
+export function furiganaDe(texte, garderDidascalies = false) {
+  return decouperDidascalies(texte)
+    .filter((morceau) => garderDidascalies || !morceau.didascalie)
+    .flatMap((morceau) => [...morceau.texte.matchAll(MOTIF_FURIGANA)])
+    .map((trouve) => ({ kanji: trouve[1], lecture: trouve[2] }));
 }
 
 // Le texte sans balisage, pour les endroits qui n'acceptent pas de <ruby> (menu déroulant, onglet).

@@ -25,6 +25,7 @@ const REGLAGES_PAR_DEFAUT = {
   vitesse: 0.9,
   voix: null, // null = choix automatique
   lireDidascalies: false,
+  voixEnregistrees: true, // les voix par rôle des pièces fournies, plutôt que celle du téléphone
   furigana: true,
   traduction: true,
 };

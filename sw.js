@@ -5,7 +5,7 @@
 // >>> À AUGMENTER à chaque modification de l'app, y compris pour une nouvelle pièce. <<<
 // Le navigateur ne détecte une mise à jour que si ce fichier-ci change d'au moins un octet.
 // Sans cela, le téléphone continuerait de servir l'ancienne copie, indéfiniment.
-const VERSION = 3;
+const VERSION = 5;
 
 // Sur GitHub Pages, tous tes projets partagent le même site, donc le même espace de caches.
 // Le préfixe nous permet de ne jamais toucher à ceux des autres.
@@ -57,9 +57,17 @@ self.addEventListener('install', (evenement) => {
     // La liste des pièces est lue dans pieces/index.json : pas besoin de la tenir à jour ici.
     const reponse = await fetch(requeteFraiche('pieces/index.json'));
     const pieces = await reponse.json();
+    // De même pour l'audio : outils/generer-audio.mjs tient à jour cette liste de fichiers.
+    const reponseAudio = await fetch(requeteFraiche('pieces/audio/index.json'));
+    const audio = await reponseAudio.json();
 
     const cache = await caches.open(CACHE);
-    await cache.addAll([...FICHIERS, ...pieces.map((fichier) => `pieces/${fichier}`)].map(requeteFraiche));
+    await cache.addAll([
+      ...FICHIERS,
+      'pieces/audio/index.json',
+      ...pieces.map((fichier) => `pieces/${fichier}`),
+      ...audio,
+    ].map(requeteFraiche));
 
     // On prend la place de l'ancienne version sans attendre que toutes les pages soient fermées.
     // C'est sans risque ici : la page charge tout son code au démarrage, elle ne redemandera pas

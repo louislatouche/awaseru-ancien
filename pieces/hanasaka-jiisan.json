@@ -51,6 +51,9 @@
     34,
     36
   ],
+  "audio": {
+    "credit": "Voix générées avec AivisSpeech : 阿井田 茂, ろてじん（長老ボイス）, morioki, TANAKA, fumifumi, コハク."
+  },
   "scenes": [
     {
       "numero": 1,

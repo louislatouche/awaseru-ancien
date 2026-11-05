@@ -53,7 +53,17 @@ function creerChoixVoix() {
   remplir();
   // La liste peut arriver après l'affichage de l'écran.
   voixPretes().then(remplir);
-  return el('div', { className: 'pile' }, el('p', { className: 'eyebrow' }, 'Voix japonaise'), zone);
+  return el('div', { className: 'pile' }, el('p', { className: 'eyebrow' }, 'Voix du téléphone'), zone);
+}
+
+function creerVoixEnregistrees() {
+  return el('div', { className: 'pile' },
+    el('p', { className: 'eyebrow' }, 'Voix des pièces'),
+    el('p', { className: 'legende' }, 'Les pièces fournies ont une voix enregistrée par rôle. Les pièces importées utilisent toujours la voix du téléphone.'),
+    el('div', { className: 'chips' },
+      creerBascule('Utiliser les voix enregistrées', lireReglages().voixEnregistrees, (actif) => {
+        changerReglage('voixEnregistrees', actif);
+      })));
 }
 
 function creerDidascalies() {
@@ -100,8 +110,9 @@ export async function afficherReglages(racine) {
     el('section', { className: 'card pile' },
       el('h2', { className: 'titre-section' }, 'Lecture'),
       creerVitesse(),
+      creerVoixEnregistrees(),
       creerChoixVoix(),
-      el('button', { type: 'button', className: 'btn-ghost', onclick: () => lireReplique(PHRASE_ESSAI) }, 'Essayer la voix'),
+      el('button', { type: 'button', className: 'btn-ghost', onclick: () => lireReplique(PHRASE_ESSAI) }, 'Essayer la voix du téléphone'),
       creerDidascalies()),
     el('section', { className: 'card pile' },
       el('h2', { className: 'titre-section' }, 'Progression'),

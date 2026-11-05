@@ -10,7 +10,7 @@
 
 import { el, remplacer } from '../dom.js';
 import {
-  creerAvisEnchainement, creerAvisVoix, creerChoixUnique, creerInterrupteurs, creerReplique,
+  audioActif, creerAvisEnchainement, creerAvisVoix, creerChoixUnique, creerInterrupteurs, creerReplique,
   creerTitreScene, creerTitreVue, lireReplique,
 } from '../affichage.js';
 import { enchainementsDe, lignesDe } from '../pieces.js';
@@ -213,7 +213,7 @@ export function afficherFilage(racine, piece) {
 
     remplacer(racine,
       creerTitreVue('Filage'),
-      creerAvisVoix(),
+      creerAvisVoix(piece),
       el('section', { className: 'card pile' },
         el('p', {}, selection.size > 0
           ? `L'app lit les répliques des autres et s'arrête sur tes ${selection.size} répliques.`
@@ -232,14 +232,18 @@ export function afficherFilage(racine, piece) {
         type: 'button',
         className: 'btn',
         onclick: async () => {
-          await voixPretes();
-          sansVoix = voixJaponaises().length === 0;
+          if (audioActif(piece)) {
+            sansVoix = false;
+          } else {
+            await voixPretes();
+            sansVoix = voixJaponaises().length === 0;
+          }
           position = depart;
           derniereScene = null;
           carteCourante = null;
           remplacer(journal);
           remplacer(racine,
-            sansVoix && creerAvisVoix(),
+            sansVoix && creerAvisVoix(piece),
             creerInterrupteurs(),
             journal,
             commandes,

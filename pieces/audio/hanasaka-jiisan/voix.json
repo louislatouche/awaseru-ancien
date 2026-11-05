@@ -1,0 +1,15 @@
+{
+  "sans_role": "narrateur",
+  "roles": {
+    "narrateur": { "nom": "阿井田 茂", "modele": "47e53151-a378-46f3-abee-ce13aa07feb1", "style": "Calm" },
+    "ojiisan": { "nom": "ろてじん（長老ボイス）", "modele": "696c98a2-c0b7-4fe7-8cf2-c7e9b8a9bd82", "style": "ノーマル" },
+    "obaasan": { "nom": "morioki", "modele": "baaae3c0-7b22-4605-8ba5-80c959b41a48", "style": "ノーマル" },
+    "ijiwaru": { "nom": "TANAKA", "modele": "470a41e2-863f-4bf2-8a20-bf7cde0d8f7b", "style": "Anger" },
+    "shiro": { "nom": "コハク", "modele": "22e8ed77-94fe-4ef2-871f-a86f94e9a579", "style": "ノーマル" },
+    "tono": { "nom": "fumifumi", "modele": "71e72188-2726-4739-9aa9-39567396fb2a", "style": "ノーマル" }
+  },
+  "repliques": {
+    "10": { "style": "せつなめ" },
+    "33": { "style": "Happy" }
+  }
+}

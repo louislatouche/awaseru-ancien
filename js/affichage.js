@@ -6,7 +6,7 @@ import { creerJaponais, texteAParler } from './texte.js';
 import { changerReglage, lireReglages } from './stockage.js';
 import { roleDe } from './pieces.js';
 import {
-  AIDE_INSTALLATION, lectureDisponible, messagePourResultat, parler, voixJaponaises, voixPretes,
+  AIDE_INSTALLATION, jouerFichier, lectureDisponible, messagePourResultat, parler, voixJaponaises, voixPretes,
 } from './voix.js';
 
 // Furigana et traduction se masquent avec une classe sur <html> : le CSS fait le reste.
@@ -77,10 +77,26 @@ export function creerTitreVue(titre, complement = null) {
   return el('div', { className: 'vue-tete' }, el('h1', { className: 'vue-titre' }, titre), complement);
 }
 
-// Lit une réplique en appliquant les réglages, et signale un éventuel problème.
+// Cette pièce sera-t-elle lue avec ses fichiers audio, plutôt qu'avec la voix du téléphone ?
+export function audioActif(piece) {
+  return Boolean(piece?.audio) && lireReglages().voixEnregistrees;
+}
+
+// Lit une réplique : son fichier audio s'il existe, sinon la voix du téléphone.
+// Signale un éventuel problème à l'utilisateur.
 export async function lireReplique(ligne) {
-  const texte = texteAParler(ligne.texte, lireReglages().lireDidascalies);
-  const resultat = await parler(texte);
+  const { lireDidascalies, voixEnregistrees } = lireReglages();
+  const texte = texteAParler(ligne.texte, lireDidascalies);
+  let resultat = 'erreur:fichier';
+
+  if (ligne.audio && voixEnregistrees && texte) {
+    // Si la réplique a une didascalie et que le réglage la garde, il existe une seconde version.
+    const avecDidascalie = texte !== texteAParler(ligne.texte, false);
+    resultat = await jouerFichier(`${ligne.audio}${avecDidascalie ? '-didascalies' : ''}.mp3`);
+  }
+  // Pas de fichier, ou fichier illisible : la voix du téléphone prend le relais.
+  if (resultat === 'erreur:fichier') resultat = await parler(texte);
+
   const message = messagePourResultat(resultat);
   if (message) signaler(message, 9000);
   return resultat;
@@ -88,10 +104,11 @@ export async function lireReplique(ligne) {
 
 // Un encadré qui apparaît seulement s'il n'y a vraiment aucune voix japonaise.
 // Il faut attendre que la liste des voix soit chargée avant de conclure.
-export function creerAvisVoix() {
+// Inutile pour une pièce lue avec ses fichiers audio.
+export function creerAvisVoix(piece = null) {
   const avis = el('p', { className: 'avis', hidden: true });
   voixPretes().then(() => {
-    if (voixJaponaises().length > 0) return;
+    if (voixJaponaises().length > 0 || audioActif(piece)) return;
     avis.textContent = lectureDisponible()
       ? AIDE_INSTALLATION
       : 'Ce navigateur ne sait pas lire à voix haute. Utilise Chrome sur Android.';

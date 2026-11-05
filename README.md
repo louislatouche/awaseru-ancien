@@ -30,6 +30,8 @@ Une application web installable (PWA) pour apprendre ses répliques de théâtre
 | `js/ecrans/reglages.js` | Écran des réglages. |
 | `pieces/index.json` | La liste des pièces fournies avec l'app. |
 | `pieces/hanasaka-jiisan.json` | La pièce d'exemple. |
+| `pieces/audio/` | Les fichiers audio par réplique, et dans chaque dossier `voix.json`, le choix des voix par rôle. |
+| `outils/generer-audio.mjs` | Fabrique ces fichiers audio avec AivisSpeech. Il tourne sur ton ordinateur, pas dans l'app. |
 | `icons/` | Les dessins sources (SVG) et les icônes exportées (PNG). |
 | `.nojekyll` | Fichier vide : dit à GitHub Pages de publier les fichiers tels quels. |
 | `CLAUDE.md` | Les consignes du projet pour Claude. |
@@ -42,6 +44,20 @@ Replik utilise le thème clair du design kit de Louis, comme Faktur et SessionCo
 Le kit fonctionne par copie : le maître est dans `P:\_DEV\design-kit`. Pour reprendre une nouvelle version, recopie `tokens.css` et `base.css` dans `design-kit/`, puis augmente `VERSION` dans `sw.js`.
 
 Le kit charge normalement ses polices depuis Google Fonts. Replik garde les siennes dans `polices/` : aucune ressource externe, et la même typographie hors ligne. Le japonais reste affiché avec la police du téléphone.
+
+## Les voix
+
+Les pièces fournies ont une voix enregistrée par rôle : des fichiers MP3 générés à l'avance sur l'ordinateur avec [AivisSpeech](https://aivis-project.com/), gratuit et local. Elles marchent donc hors ligne, avec la même voix sur tous les téléphones. Les pièces importées utilisent la voix du téléphone, et l'app s'en sert aussi si un fichier manque. Un réglage permet de les comparer.
+
+Pour changer une voix, modifie `pieces/audio/<id>/voix.json`, démarre AivisSpeech, puis :
+
+```bash
+node outils/generer-audio.mjs hanasaka-jiisan
+```
+
+Pour ne refaire que quelques répliques, ajoute leurs numéros à la fin de la commande. Il faut que `ffmpeg` soit installé. Augmente ensuite `VERSION` dans `sw.js`, puis publie.
+
+Le script garde les kanji, car le moteur reconnaît mieux les mots qu'avec des kana seuls. Il compare ensuite la lecture du moteur à tes furigana : là où elle diffère, il remplace ce kanji par sa lecture, puis le signale dans son rapport.
 
 ## Tester sur l'ordinateur
 
