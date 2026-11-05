@@ -3,7 +3,8 @@
 import { validerPiece } from './validation.js';
 import { texteAParler } from './texte.js';
 import {
-  effacerDonneesDePiece, enregistrerPiecesImportees, lirePiecesImportees, lireSelection, lireStatuts,
+  enregistrerPiecesImportees, lirePiecesImportees, lireSelection, lireStatuts,
+  lireUtilisation,
 } from './stockage.js';
 
 // On garde les pièces fournies en mémoire pour ne pas les recharger à chaque écran.
@@ -52,9 +53,15 @@ export async function trouverPiece(id) {
   return [...fournies, ...importees].find((piece) => piece.id === id) ?? null;
 }
 
+// Les plus récemment ouvertes d'abord. Une pièce jamais ouverte vaut 0 : elle passe après, et sort()
+// garde les ex æquo dans leur ordre de départ, celui de pieces/index.json.
+export function trierParUtilisation(pieces) {
+  return [...pieces].sort((a, b) => lireUtilisation(b.id) - lireUtilisation(a.id));
+}
+
+// Seule la pièce part : ses répliques choisies et sa progression restent enregistrées.
 export function supprimerPieceImportee(id) {
   enregistrerPiecesImportees(lirePiecesImportees().filter((piece) => piece.id !== id));
-  effacerDonneesDePiece(id);
 }
 
 // ---- Lecture d'une pièce ----

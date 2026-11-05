@@ -72,6 +72,17 @@ export function effacerProgression(pieceId) {
   localStorage.removeItem(`${PREFIXE}progression:${pieceId}`);
 }
 
+// ---- Dernière utilisation : le moment où une pièce a été ouverte, en millisecondes ----
+// Il sert à remonter les pièces récentes en haut de la liste. Jamais ouverte : 0.
+
+export function lireUtilisation(pieceId) {
+  return lire(`utilisation:${pieceId}`, 0);
+}
+
+export function noterUtilisation(pieceId) {
+  ecrire(`utilisation:${pieceId}`, Date.now());
+}
+
 // ---- Pièces importées ----
 
 export function lirePiecesImportees() {
@@ -112,9 +123,4 @@ export function remplacerToutesLesDonnees(donnees) {
     toutEcrire(avant);
     throw new Error('le stockage du téléphone est plein : rien n\'a été changé.');
   }
-}
-
-export function effacerDonneesDePiece(pieceId) {
-  effacerProgression(pieceId);
-  localStorage.removeItem(`${PREFIXE}selection:${pieceId}`);
 }

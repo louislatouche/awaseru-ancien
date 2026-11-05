@@ -36,6 +36,7 @@ const ICONES = {
   repliques: 'M4 5h16v11H9l-5 4zM9 10.5l2 2 4-4',
   fiches: 'M8 8h12v12H8zM4 16V4h12',
   filage: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM10 8.5v7l6-3.5z',
+  chevron: 'M6 9l6 6 6-6',
 };
 
 // Un dessin SVG n'est pas du HTML ordinaire : createElement ne suffit pas, il faut indiquer
@@ -55,6 +56,93 @@ export function icone(nom) {
   trace.setAttribute('d', ICONES[nom]);
   svg.append(trace);
   return svg;
+}
+
+// Le décollement des tuiles, repris de SessionConnect (Motion.kt) : une carte commence à plat sur
+// le fond, sans ombre, puis monte de 7 pixels pendant que son ombre apparaît. C'est leur
+// simultanéité qui fait lire un décollement plutôt qu'un glissement vers le haut.
+//
+// Seules les tuiles à l'écran jouent la vague, comme dans SessionConnect. Les autres sont déjà
+// levées : aucune animation à chaque coup de pouce, et rien à calculer pour ce qu'on ne voit pas.
+// À appeler une fois, quand l'écran vient de se construire.
+// parRangee : combien de tuiles partent ensemble (les boutons d'une même ligne de la grille).
+const TUILES = '.card, .replique, .coche-replique, .bouton-numero, .btn, .btn-ghost, .chip, .ligne-menu';
+
+export function cascade(conteneur, parRangee = 1) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  // Juste avant le prochain affichage : l'écran est alors dans la page, on peut mesurer ce qui
+  // est visible, et personne n'a encore vu les tuiles dans leur position finale.
+  requestAnimationFrame(() => {
+    const tuiles = [...conteneur.querySelectorAll(TUILES)].filter((tuile) => {
+      if (tuile.parentElement.closest(TUILES)) return false; // une tuile dans une tuile suit sa carte
+      const cadre = tuile.getBoundingClientRect();
+      return cadre.height > 0 && cadre.top < window.innerHeight && cadre.bottom > 0;
+    });
+
+    tuiles.forEach((tuile, rang) => {
+      tuile.style.setProperty('--rang', Math.min(Math.floor(rang / parRangee), 8));
+      tuile.classList.add('cascade');
+      // Retirer la classe à la fin évite de figer quoi que ce soit. Le test sur target ignore
+      // les animations des éléments intérieurs, dont l'événement remonte jusqu'ici.
+      const fin = (evenement) => {
+        if (evenement.target !== tuile) return;
+        tuile.classList.remove('cascade');
+        tuile.style.removeProperty('--rang');
+        tuile.removeEventListener('animationend', fin);
+      };
+      tuile.addEventListener('animationend', fin);
+    });
+  });
+}
+
+// Petit rebond à la sélection d'un élément. Rejouable, même sur le même élément.
+export function rebond(element) {
+  element.classList.remove('rebond');
+  void element.offsetWidth; // force le navigateur à constater le retrait, sinon rien ne rejoue
+  element.classList.add('rebond');
+  element.addEventListener('animationend', () => element.classList.remove('rebond'), { once: true });
+}
+
+// La salve de Faktur, avec des fleurs à la place de ses pièces : le 花丸, la fleur que les
+// professeurs japonais dessinent sur un bon travail. La disposition est désordonnée mais fixe :
+// la « spirale d'or » répartit bien les fleurs, sans jamais les aligner.
+const FLEURS = Array.from({ length: 20 }, (_, i) => ({
+  gauche: (6 + 88 * ((0.5 + i * 0.61803) % 1)).toFixed(1),
+  delai: (((i * 0.41421) % 1) * 0.5).toFixed(2),
+  derive: Math.round(30 * Math.sin(i * 1.7)),
+  montee: -(20 + Math.round(28 * ((i * 0.7548) % 1))),
+  taille: (0.9 + ((i * 0.324) % 1) * 0.45).toFixed(2),
+}));
+
+export function salve() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const zone = el('div', { className: 'salve', 'aria-hidden': 'true' }, FLEURS.map((fleur) => {
+    const element = el('span', { className: 'fleur', lang: 'ja' }, '花');
+    element.style.left = `${fleur.gauche}%`;
+    element.style.animationDelay = `${fleur.delai}s`;
+    element.style.setProperty('--derive', `${fleur.derive}px`);
+    element.style.setProperty('--montee', `${fleur.montee}px`);
+    element.style.setProperty('--taille', fleur.taille);
+    return element;
+  }));
+  document.body.append(zone);
+  setTimeout(() => zone.remove(), 2200);
+}
+
+// Le compteur de Faktur : fait monter un nombre jusqu'à sa valeur, en ralentissant à la fin.
+export function compter(cible, afficher) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    afficher(cible);
+    return;
+  }
+  const depart = performance.now();
+  const image = (maintenant) => {
+    const avance = Math.min(1, (maintenant - depart) / 480);
+    afficher(cible * (1 - (1 - avance) ** 3));
+    if (avance < 1) requestAnimationFrame(image);
+  };
+  requestAnimationFrame(image);
 }
 
 // Remonte en haut de l'écran. La zone qui défile est <main>, pas la fenêtre (voir style.css).

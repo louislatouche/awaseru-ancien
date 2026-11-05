@@ -228,6 +228,41 @@ body {
 .carte-details { color: var(--ink-soft); font-size: 14px; }
 .carte-progression { font-weight: 700; }
 
+/* Une action rare : un simple texte à l'écart, qui garde quand même une zone de toucher confortable. */
+.action-discrete {
+  align-self: flex-end;
+  min-height: 44px;
+  margin-block-end: -14px;
+  margin-inline-end: -8px;
+  padding-inline: 8px;
+  background: none;
+  border: 0;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* La ligne en bas de Mes pièces, qui ouvre le menu de téléchargement. */
+.ligne-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 20px;
+  background: none;
+  border: 0;
+  color: var(--accent-dark);
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+}
+
+/* Une pièce de ce menu, comme une extension de navigateur. Les coins arrondis servent à l'anneau pendant le téléchargement. */
+.coche.ligne-telechargement { align-items: center; margin-inline: -10px; padding: 8px 10px; border-radius: var(--radius); }
+
 progress {
   appearance: none;
   width: 100%;
@@ -266,9 +301,9 @@ rt { font-size: 0.55em; color: var(--ink-soft); }
 .en-tete-piece { display: flex; flex-direction: column; gap: 2px; }
 .titre-piece { font-size: 1.45rem; font-weight: 700; line-height: 1.9; }
 
-.explication { padding: 4px 20px; }
-.explication summary { display: flex; align-items: center; min-height: 48px; font-weight: 700; cursor: pointer; }
-.explication p { padding-bottom: 16px; color: var(--ink-soft); font-size: 15px; line-height: 1.6; }
+.acc-header { padding: 12px 20px; font-size: 17px; }
+.acc-pad { display: flex; flex-direction: column; gap: 10px; padding: 0 20px 18px; }
+.acc-pad p { color: var(--ink-soft); font-size: 15px; line-height: 1.6; }
 
 .scene { display: flex; flex-direction: column; gap: 10px; }
 
@@ -395,3 +430,100 @@ button.replique:active { transform: scale(0.985); }
 
 .ligne-remise { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .version { color: var(--ink-mute); font-size: 13px; text-align: center; }
+
+/* ---- Les animations : les mêmes que Faktur et SessionConnect ----
+   Valeurs reprises de Faktur (styles/app.css) et de SessionConnect (Motion.kt). */
+:root { --feutre: cubic-bezier(.22, 1, .36, 1); } /* la courbe « Settle » de SessionConnect */
+
+/* Faktur retire le rectangle de surbrillance qu'Android pose sur tout ce qu'on touche. */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* Changer d'écran : un fondu court. On sent le changement sans l'attendre. */
+@keyframes fondu { from { opacity: 0; } }
+.ecran-contenu { animation: fondu .18s ease; }
+
+/* Les tuiles d'un écran : le décollement de SessionConnect (voir cascade dans dom.js).
+   Seul le départ est décrit : l'arrivée est l'état normal de la tuile, avec sa propre ombre.
+   « backwards » la garde à plat pendant qu'elle attend son tour.
+   130 ms d'écart pour 400 ms de course : une tuile a fait un tiers du chemin quand la suivante
+   démarre. Plus serré, la pile se soulève d'un bloc ; plus lâche, les départs paraissent saccadés. */
+@keyframes decollement { from { transform: translateY(7px); box-shadow: none; } }
+.cascade {
+  animation: decollement .4s var(--feutre) backwards;
+  animation-delay: calc(var(--rang, 0) * 130ms);
+  will-change: transform;
+}
+
+/* Une nouvelle fiche, une nouvelle réplique du filage, des boutons qui arrivent. */
+@keyframes wizfade { from { opacity: 0; transform: translateY(8px); } }
+.etape, .journal > *, .boutons-apparition { animation: wizfade .25s ease; }
+
+/* Sélectionner quelque chose : un petit rebond (voir rebond dans dom.js). */
+@keyframes pop-bounce { 40% { transform: scale(1.09); } }
+.rebond { animation: pop-bounce .28s ease; }
+
+/* Le toucher : l'élément s'enfonce, et les boutons foncent. */
+.btn:active, .btn-ghost:active { filter: brightness(.92); }
+.chip { transition: background .2s, border-color .2s, color .2s, transform .09s; }
+.chip:active { transform: scale(.94); }
+button.replique, .coche-replique, .bouton-numero { transition: background .28s, box-shadow .28s, color .2s, transform .09s; }
+button.replique:active, .coche-replique:active, .bouton-numero:active { transform: scale(.965); }
+
+/* L'onglet actif : sa couleur change en douceur et son icône se soulève un peu. */
+.tab { transition: color .28s; }
+.tab svg { transition: color .28s, transform .28s var(--feutre); }
+.tab.is-active svg { transform: translateY(-2px); }
+.tab:active svg { transform: scale(.9); }
+
+/* Pincer : quand les doigts lâchent sans aller au bout, l'affichage revient en douceur. */
+.vue-texte, .grille-numeros { transition: transform .28s var(--feutre), filter .28s var(--feutre), opacity .18s; }
+.en-pincement { transition: none; will-change: transform, filter, opacity; }
+
+/* Le zoom flou du pincement. Pendant le geste, mes-repliques.js règle le zoom et le flou au fil
+   des doigts. Ensuite, la vue qui arrive prolonge le mouvement : pincer fait reculer le texte, la
+   grille arrive donc de plus près ; écarter l'agrandit, le texte revient donc de plus loin. */
+@keyframes zoom-depuis-grand { from { opacity: 0; transform: scale(1.15); filter: blur(10px); } }
+@keyframes zoom-depuis-petit { from { opacity: 0; transform: scale(.85); filter: blur(10px); } }
+.zoom-depuis-grand { animation: zoom-depuis-grand .28s var(--feutre); }
+.zoom-depuis-petit { animation: zoom-depuis-petit .28s var(--feutre); }
+
+/* Sans rien de choisi, le compteur clignote : le « champ obligatoire » de Faktur. */
+@keyframes clignote {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--danger) 0%, transparent); }
+  50% { color: var(--danger); box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger) 22%, transparent); }
+}
+.clignote { animation: clignote .5s ease-in-out 3; }
+
+/* La salve de fleurs quand une réplique est sue : les pièces de Faktur, montée désordonnée. */
+.salve { position: fixed; inset: 0; z-index: 60; overflow: hidden; pointer-events: none; }
+.fleur { position: absolute; bottom: 26%; color: var(--star); font-size: 26px; font-weight: 700; opacity: 0; animation: fleur-monte 1.5s ease-out forwards; }
+@keyframes fleur-monte {
+  0% { opacity: 0; transform: translate(0, 24px) scale(.7); }
+  14% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(var(--derive, 0px) * 1.5), calc(var(--montee, -70px) * 2.6)) scale(var(--taille, 1.2)); }
+}
+
+/* Le reflet qui balaie une carte pendant un chargement. */
+.chargement { position: relative; overflow: hidden; }
+.chargement::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface) 45%, transparent), transparent);
+  transform: translateX(-100%);
+  animation: reflet 1.4s ease-in-out infinite;
+}
+@keyframes reflet { to { transform: translateX(100%); } }
+
+/* La pulsation douce : c'est à toi de parler. */
+@keyframes pulsation { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+.courante .replique-masque { animation: pulsation 1.2s ease-in-out infinite; }
+
+/* Si le téléphone demande de réduire les animations, on les coupe toutes. */
+@media (prefers-reduced-motion: reduce) {
+  .ecran-contenu, .vue-texte, .grille-numeros, .cascade, .etape, .journal > *, .boutons-apparition, .rebond,
+  .clignote, .chargement::after, .courante .replique-masque { animation: none; }
+  .chip:active, button.replique:active, .coche-replique:active, .bouton-numero:active, .tab:active svg { transform: none; }
+  .vue-texte, .grille-numeros { transition: none; }
+}

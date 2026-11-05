@@ -5,7 +5,7 @@
 // >>> À AUGMENTER à chaque modification de l'app, y compris pour une nouvelle pièce. <<<
 // Le navigateur ne détecte une mise à jour que si ce fichier-ci change d'au moins un octet.
 // Sans cela, le téléphone continuerait de servir l'ancienne copie, indéfiniment.
-const VERSION = 12;
+const VERSION = 26;
 
 // Sur GitHub Pages, tous tes projets partagent le même site, donc le même espace de caches.
 // Le préfixe nous permet de ne jamais toucher à ceux des autres.
@@ -33,6 +33,7 @@ const FICHIERS = [
   'js/pincement.js',
   'js/sauvegarde.js',
   'js/stockage.js',
+  'js/telechargement.js',
   'js/texte.js',
   'js/validation.js',
   'js/voix.js',
@@ -62,13 +63,17 @@ self.addEventListener('install', (evenement) => {
     // De même pour l'audio : outils/generer-audio.mjs tient à jour cette liste de fichiers.
     const reponseAudio = await fetch(requeteFraiche('pieces/audio/index.json'));
     const audio = await reponseAudio.json();
+    // Sauf les voix des pièces retirées de ce téléphone : une mise à jour ne doit pas les ramener
+    // (voir js/telechargement.js). Un chemin s'écrit pieces/audio/<id de la pièce>/<fichier>.
+    const notees = await (await caches.open('replik-retirees')).match('retirees.json');
+    const retirees = new Set(notees ? await notees.json() : []);
 
     const cache = await caches.open(CACHE);
     await cache.addAll([
       ...FICHIERS,
       'pieces/audio/index.json',
       ...pieces.map((fichier) => `pieces/${fichier}`),
-      ...audio,
+      ...audio.filter((chemin) => !retirees.has(decodeURIComponent(chemin.split('/')[2]))),
     ].map(requeteFraiche));
 
     // On prend la place de l'ancienne version sans attendre que toutes les pages soient fermées.

@@ -1,12 +1,12 @@
 // Écran 6 : vitesse, voix, didascalies et remise à zéro de la progression.
 
-import { el, remplacer, signaler } from '../dom.js';
+import { cascade, el, remplacer, signaler } from '../dom.js';
 import {
   appliquerAffichage, creerAvisVoix, creerBascule, creerChoixUnique, creerTitreVue, lireReplique,
 } from '../affichage.js';
 import { confirmer } from '../modale.js';
 import { lireSauvegarde, telechargerSauvegarde } from '../sauvegarde.js';
-import { toutesLesPieces } from '../pieces.js';
+import { toutesLesPieces, trierParUtilisation } from '../pieces.js';
 import { texteBrut } from '../texte.js';
 import { changerReglage, effacerProgression, lireReglages, remplacerToutesLesDonnees } from '../stockage.js';
 import { voixJaponaises, voixPretes } from '../voix.js';
@@ -96,37 +96,65 @@ function creerRemiseAZero(piece) {
 function creerSauvegarde() {
   const zoneErreur = el('p', { className: 'avis avis-erreur', role: 'alert', hidden: true });
 
-  // Sans filtre accept : sur Android, il peut griser un fichier .json valide.
-  // lireSauvegarde refuse de toute façon ce qui n'est pas une sauvegarde de Replik.
+  async function restaurer(fichier) {
+    zoneErreur.hidden = true;
+    try {
+      const sauvegarde = await lireSauvegarde(fichier);
+      const jour = new Date(sauvegarde.date).toLocaleDateString('fr-FR');
+      const accepte = await confirmer({
+        titre: 'Restaurer cette sauvegarde ?',
+        message: `Sauvegarde du ${jour}. Elle remplacera tes répliques choisies, ta progression et tes réglages sur ce téléphone.`,
+        oui: 'Restaurer',
+      });
+      if (!accepte) return;
+      remplacerToutesLesDonnees(sauvegarde.donnees);
+      appliquerAffichage();
+      signaler('Sauvegarde restaurée.');
+      // Redessine l'écran avec les réglages restaurés : le routeur écoute cet événement.
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    } catch (erreur) {
+      zoneErreur.textContent = `Restauration impossible : ${erreur.message}`;
+      zoneErreur.hidden = false;
+      zoneErreur.scrollIntoView({ block: 'center' });
+    }
+  }
+
+  // accept : sans lui, le navigateur croit que tout convient et propose aussi l'appareil photo et
+  // les images. Avec lui, seuls les fichiers JSON se choisissent, et une sauvegarde en est un.
   const champFichier = el('input', {
     type: 'file',
+    accept: 'application/json,.json',
     hidden: true,
     onchange: async () => {
       const fichier = champFichier.files[0];
+      if (fichier) await restaurer(fichier);
       // On vide le champ : sinon, rechoisir le même fichier ne déclencherait aucun événement.
       champFichier.value = '';
-      if (!fichier) return;
-      zoneErreur.hidden = true;
-      try {
-        const sauvegarde = await lireSauvegarde(fichier);
-        const jour = new Date(sauvegarde.date).toLocaleDateString('fr-FR');
-        const accepte = await confirmer({
-          titre: 'Restaurer cette sauvegarde ?',
-          message: `Sauvegarde du ${jour}. Elle remplacera tes répliques choisies, ta progression et tes réglages sur ce téléphone.`,
-          oui: 'Restaurer',
-        });
-        if (!accepte) return;
-        remplacerToutesLesDonnees(sauvegarde.donnees);
-        appliquerAffichage();
-        signaler('Sauvegarde restaurée.');
-        // Redessine l'écran avec les réglages restaurés : le routeur écoute cet événement.
-        window.dispatchEvent(new HashChangeEvent('hashchange'));
-      } catch (erreur) {
-        zoneErreur.textContent = `Restauration impossible : ${erreur.message}`;
-        zoneErreur.hidden = false;
-      }
     },
   });
+
+  // Chrome sait ouvrir directement le gestionnaire de fichiers, sans menu d'applications.
+  // Brave n'a pas cette fonction par défaut : on passe alors par le champ ci-dessus.
+  // startIn ne joue que sur ordinateur : sur Android, c'est le gestionnaire de fichiers qui décide
+  // où il s'ouvre.
+  async function choisirFichier() {
+    if (!('showOpenFilePicker' in window)) {
+      champFichier.click();
+      return;
+    }
+    let poignees;
+    try {
+      poignees = await window.showOpenFilePicker({
+        startIn: 'downloads',
+        types: [{ description: 'Sauvegarde Replik', accept: { 'application/json': ['.json'] } }],
+      });
+    } catch (erreur) {
+      // AbortError : tu as simplement refermé le sélecteur. Sinon, on essaie l'autre voie.
+      if (erreur.name !== 'AbortError') champFichier.click();
+      return;
+    }
+    await restaurer(await poignees[0].getFile());
+  }
 
   return el('section', { className: 'card pile' },
     el('h2', { className: 'titre-section' }, 'Sauvegarde'),
@@ -140,7 +168,7 @@ function creerSauvegarde() {
           signaler('Sauvegarde enregistrée dans tes téléchargements.');
         },
       }, 'Sauvegarder'),
-      el('button', { type: 'button', className: 'btn-ghost', onclick: () => champFichier.click() }, 'Restaurer')),
+      el('button', { type: 'button', className: 'btn-ghost', onclick: choisirFichier }, 'Restaurer')),
     zoneErreur,
     champFichier);
 }
@@ -152,7 +180,7 @@ export async function afficherReglages(racine) {
   // Le numéro du cache est le numéro de version : pratique pour vérifier qu'une mise à jour est arrivée.
   if ('caches' in window) {
     caches.keys().then((noms) => {
-      const cache = noms.find((nom) => nom.startsWith('replik-'));
+      const cache = noms.find((nom) => nom.startsWith('replik-v'));
       if (cache) version.textContent = `Replik, version ${cache.replace('replik-v', '')}`;
     });
   }
@@ -169,8 +197,9 @@ export async function afficherReglages(racine) {
       creerDidascalies()),
     el('section', { className: 'card pile' },
       el('h2', { className: 'titre-section' }, 'Progression'),
-      [...fournies, ...importees].map(creerRemiseAZero)),
+      trierParUtilisation([...fournies, ...importees]).map(creerRemiseAZero)),
     creerSauvegarde(),
     version,
   );
+  cascade(racine);
 }

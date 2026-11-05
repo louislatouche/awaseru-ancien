@@ -10,15 +10,17 @@ const VERSION_DU_FORMAT = 1;
 const estObjet = (valeur) => typeof valeur === 'object' && valeur !== null && !Array.isArray(valeur);
 
 export function telechargerSauvegarde() {
-  const maintenant = new Date().toISOString();
-  const contenu = { type: TYPE, version: VERSION_DU_FORMAT, date: maintenant, donnees: toutesLesDonnees() };
+  const maintenant = new Date();
+  const contenu = { type: TYPE, version: VERSION_DU_FORMAT, date: maintenant.toISOString(), donnees: toutesLesDonnees() };
 
   // Un « blob » est un fichier qui n'existe qu'en mémoire. Un lien avec l'attribut download
   // demande au navigateur de l'enregistrer plutôt que de l'ouvrir.
   const adresse = URL.createObjectURL(new Blob([JSON.stringify(contenu)], { type: 'application/json' }));
   const lien = document.createElement('a');
   lien.href = adresse;
-  lien.download = `replik-sauvegarde-${maintenant.slice(0, 10)}.json`;
+  // sv-SE écrit les dates en AAAA-MM-JJ, à l'heure du téléphone. toISOString donnerait l'heure de
+  // Londres : juste après minuit, le fichier porterait encore la date de la veille.
+  lien.download = `replik-sauvegarde-${maintenant.toLocaleDateString('sv-SE')}.json`;
   lien.click();
   setTimeout(() => URL.revokeObjectURL(adresse), 30000); // le temps que le téléchargement démarre
 }
@@ -36,6 +38,9 @@ function erreurDansDonnee(cle, valeur) {
   if (cle.startsWith('progression:')) {
     const valide = estObjet(valeur) && Object.values(valeur).every((statut) => statut === 'su' || statut === 'a_revoir');
     return valide ? null : 'une progression est illisible.';
+  }
+  if (cle.startsWith('utilisation:')) {
+    return Number.isFinite(valeur) ? null : "une date d'utilisation est illisible.";
   }
   return `donnée inconnue (${cle}).`;
 }

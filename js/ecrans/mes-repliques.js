@@ -6,7 +6,7 @@
 // Deux affichages de la même liste : le texte complet, et une grille de numéros pour aller vite.
 // Pincer l'écran passe à la grille, écarter les doigts revient au texte.
 
-import { el, hautDePage, remplacer } from '../dom.js';
+import { cascade, el, rebond, remplacer } from '../dom.js';
 import { surPincement } from '../pincement.js';
 import { creerJaponais } from '../texte.js';
 import { creerNomRole, creerTitreScene, creerTitreVue } from '../affichage.js';
@@ -51,6 +51,7 @@ export function afficherMesRepliques(racine, piece) {
   function surChangement() {
     enregistrerSelection(piece.id, selection);
     actualiser();
+    rebond(compteur);
   }
 
   function creerLigneRole(role) {
@@ -109,8 +110,12 @@ export function afficherMesRepliques(racine, piece) {
       className: 'bouton-numero',
       'aria-label': `Réplique ${ligne.numero}`,
       onclick: () => {
-        if (selection.has(ligne.numero)) selection.delete(ligne.numero);
-        else selection.add(ligne.numero);
+        if (selection.has(ligne.numero)) {
+          selection.delete(ligne.numero);
+        } else {
+          selection.add(ligne.numero);
+          rebond(bouton);
+        }
         surChangement();
       },
     }, String(ligne.numero));
@@ -130,30 +135,105 @@ export function afficherMesRepliques(racine, piece) {
       creerTitreScene(scene),
       lignes.filter((l) => l.scene === scene).map(creerLigneReplique))));
 
-  const vueGrille = el('div', { className: 'grille-numeros', hidden: true }, lignes.map(creerBoutonGrille));
+  const vueGrille = el('div', { className: 'grille-numeros', hidden: true }, lignes.map((ligne) => creerBoutonGrille(ligne)));
 
   // Un geste ne se devine pas : on l'annonce, et le bouton sert aussi sans écran tactile.
   const aide = el('p', { className: 'legende' });
   const bascule = el('button', { type: 'button', className: 'chip', onclick: () => montrerGrille(vueGrille.hidden) });
 
-  function montrerGrille(oui) {
-    vueGrille.hidden = !oui;
-    vueTexte.hidden = oui;
-    aide.textContent = oui
+  const mouvementReduit = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // On zoome autour du milieu de ce qui est visible, pas autour du haut de la page.
+  function centrerLeZoom(vue) {
+    const zone = document.getElementById('ecran').getBoundingClientRect();
+    vue.style.transformOrigin = `50% ${zone.top + zone.height / 2 - vue.getBoundingClientRect().top}px`;
+  }
+
+  // Pendant le geste, l'affichage suit les doigts : il se zoome et devient flou. Il ne réagit qu'au
+  // geste utile : rapprocher quand on voit le texte, écarter quand on voit la grille.
+  function suivreLesDoigts(rapport) {
+    if (mouvementReduit()) return;
+    const surLeTexte = vueGrille.hidden;
+    const vue = surLeTexte ? vueTexte : vueGrille;
+    const effet = surLeTexte ? Math.min(rapport, 1) : Math.max(rapport, 1);
+    const ecart = Math.abs(effet - 1);
+    if (!vue.classList.contains('en-pincement')) {
+      centrerLeZoom(vue); // une seule fois, au début du geste : ensuite, la vue est déjà déformée
+      vue.classList.add('en-pincement');
+    }
+    vue.style.transform = `scale(${1 + (effet - 1) * 0.8})`;
+    vue.style.filter = `blur(${ecart * 32}px)`;
+    vue.style.opacity = 1 - ecart;
+  }
+
+  // Sans le style écrit à la main, le CSS reprend la main : la vue revient en souplesse.
+  function relacher() {
+    for (const vue of [vueTexte, vueGrille]) {
+      vue.classList.remove('en-pincement');
+      vue.style.transform = '';
+      vue.style.filter = '';
+      vue.style.opacity = '';
+    }
+  }
+
+  function afficherVue(grille) {
+    vueGrille.hidden = !grille;
+    vueTexte.hidden = grille;
+    aide.textContent = grille
       ? 'Écarte deux doigts pour revoir le texte.'
       : "Pince l'écran avec deux doigts pour n'afficher que les numéros.";
-    bascule.textContent = oui ? 'Texte' : 'Grille';
-    hautDePage();
+    bascule.textContent = grille ? 'Texte' : 'Grille';
+  }
+
+  // La vue qui arrive continue le mouvement des doigts, et sa netteté revient en même temps.
+  function arriverEnZoomFlou(vue, classe) {
+    centrerLeZoom(vue);
+    vue.classList.add(classe);
+    const fin = (evenement) => {
+      if (evenement.target !== vue) return; // l'animation d'un bouton intérieur, pas la nôtre
+      vue.classList.remove(classe);
+      vue.removeEventListener('animationend', fin);
+    };
+    vue.addEventListener('animationend', fin);
+  }
+
+  // Où on en était dans le texte, pour y revenir en quittant la grille.
+  let positionTexte = 0;
+  let grilleDejaVue = false;
+
+  function montrerGrille(oui) {
+    if (oui === !vueGrille.hidden) return; // déjà sur cette vue
+    const zone = document.getElementById('ecran');
+    if (oui) positionTexte = zone.scrollTop;
+    afficherVue(oui);
+    // behavior: 'instant' : la zone défile en douceur d'habitude, mais ici le saut doit être invisible.
+    zone.scrollTo({ top: oui ? 0 : positionTexte, behavior: 'instant' });
+    if (!mouvementReduit()) arriverEnZoomFlou(oui ? vueGrille : vueTexte, oui ? 'zoom-depuis-grand' : 'zoom-depuis-petit');
+    // La vague de boutons ne se joue qu'une fois, comme les tuiles de Faktur. Ensuite, un simple
+    // fondu : on vient ici pour aller vite, on ne va pas attendre l'animation à chaque pincement.
+    if (oui && !grilleDejaVue) {
+      grilleDejaVue = true;
+      cascade(vueGrille, getComputedStyle(vueGrille).gridTemplateColumns.split(' ').length);
+    }
   }
 
   racine.classList.add('zone-pincement');
   surPincement(racine, {
     surRapprochement: () => montrerGrille(true),
     surEcartement: () => montrerGrille(false),
+    surSuivi: suivreLesDoigts,
+    surRelache: relacher,
   });
 
   remplacer(racine, titre, el('div', { className: 'ligne-aide' }, aide, bascule), vueTexte, vueGrille);
 
-  montrerGrille(false);
+  afficherVue(false);
   actualiser();
+  cascade(vueTexte);
+  // Rien de choisi : le compteur clignote pour montrer que tout commence ici, comme un champ
+  // obligatoire resté vide dans Faktur.
+  if (selection.size === 0) {
+    compteur.classList.add('clignote');
+    compteur.addEventListener('animationend', () => compteur.classList.remove('clignote'), { once: true });
+  }
 }

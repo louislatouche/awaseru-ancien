@@ -1,6 +1,6 @@
 // Écran 4 : répétition en fiches. Le signal d'entrée est lu, ma réplique est cachée, je m'évalue.
 
-import { el, hautDePage, remplacer } from '../dom.js';
+import { cascade, el, hautDePage, remplacer, salve } from '../dom.js';
 import {
   creerAvisEnchainement, creerAvisSansSelection, creerAvisVoix, creerBascule, creerChoixUnique,
   creerInterrupteurs, creerReplique, creerTitreVue, lireReplique,
@@ -60,6 +60,7 @@ export function afficherFiches(racine, piece) {
         },
       }, 'Commencer'),
     );
+    cascade(racine);
   }
 
   function lancer(paquet) {
@@ -68,6 +69,7 @@ export function afficherFiches(racine, piece) {
 
     function noter(ligne, statut) {
       changerStatut(piece.id, ligne.numero, statut);
+      if (statut === 'su') salve();
       resultats[statut].push(ligne);
       position += 1;
       if (position < paquet.length) montrerFiche();
@@ -87,7 +89,7 @@ export function afficherFiches(racine, piece) {
       });
 
       // On ne peut s'évaluer qu'après avoir vu ou entendu la réplique.
-      const boutonsNote = el('div', { className: 'boutons', hidden: true },
+      const boutonsNote = el('div', { className: 'boutons boutons-apparition', hidden: true },
         el('button', { type: 'button', className: 'btn', onclick: () => noter(ligne, 'su') }, 'Je savais'),
         el('button', { type: 'button', className: 'btn btn--muted', onclick: () => noter(ligne, 'a_revoir') }, 'À revoir'));
 
@@ -128,6 +130,8 @@ export function afficherFiches(racine, piece) {
             }, 'Écouter ma réplique')),
           boutonsNote),
       );
+      // Passer à la fiche suivante : un fondu court, comme les étapes de Faktur.
+      for (const bloc of racine.children) bloc.classList.add('etape');
       hautDePage();
       if (signal) lireReplique(signal);
     }
@@ -149,6 +153,7 @@ export function afficherFiches(racine, piece) {
       }, nbARevoir > 1 ? `Retravailler les ${nbARevoir} à revoir` : 'Retravailler celle à revoir'),
       el('button', { type: 'button', className: 'btn-ghost', onclick: ecranDepart }, 'Revenir au choix des fiches'),
     );
+    cascade(racine);
     hautDePage();
   }
 

@@ -8,9 +8,16 @@ const ECARTEMENT = 1.35;    // l'écart a augmenté d'un tiers
 
 const ecartEntre = ([a, b]) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 
-export function surPincement(element, { surRapprochement, surEcartement }) {
+// surSuivi(rapport) est appelée à chaque mouvement : l'écran peut suivre les doigts.
+// surRelache() est appelée quand le geste s'arrête, reconnu ou non.
+export function surPincement(element, { surRapprochement, surEcartement, surSuivi, surRelache }) {
   let ecartDeDepart = null;
-  const oublier = () => { ecartDeDepart = null; };
+
+  const terminer = () => {
+    if (ecartDeDepart === null) return;
+    ecartDeDepart = null;
+    surRelache();
+  };
 
   element.addEventListener('touchstart', (evenement) => {
     if (evenement.touches.length === 2) ecartDeDepart = ecartEntre(evenement.touches);
@@ -23,16 +30,17 @@ export function surPincement(element, { surRapprochement, surEcartement }) {
     if (evenement.cancelable) evenement.preventDefault();
 
     const rapport = ecartEntre(evenement.touches) / ecartDeDepart;
+    surSuivi(rapport);
     // Une fois le geste reconnu, on oublie le départ : un seul changement par geste.
     if (rapport < RAPPROCHEMENT) {
-      oublier();
+      terminer();
       surRapprochement();
     } else if (rapport > ECARTEMENT) {
-      oublier();
+      terminer();
       surEcartement();
     }
   }, { passive: false });
 
-  element.addEventListener('touchend', oublier);
-  element.addEventListener('touchcancel', oublier);
+  element.addEventListener('touchend', terminer);
+  element.addEventListener('touchcancel', terminer);
 }

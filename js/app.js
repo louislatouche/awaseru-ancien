@@ -6,6 +6,8 @@
 // recharger, garder des chemins relatifs, et le bouton Retour d'Android fonctionne tout seul.
 
 import { el, hautDePage, icone, remplacer } from './dom.js';
+import { noterUtilisation } from './stockage.js';
+import { piecesRetirees } from './telechargement.js';
 import { appliquerAffichage } from './affichage.js';
 import { trouverPiece } from './pieces.js';
 import { texteBrut } from './texte.js';
@@ -39,16 +41,28 @@ function afficherBarre(sousTitre, { retour = false, reglages = false } = {}) {
   );
 }
 
+let baseOnglets = null;
+
 function afficherOnglets(piece, actif) {
   zoneOnglets.hidden = !piece;
   if (!piece) return;
   const base = `#/piece/${encodeURIComponent(piece.id)}`;
-  remplacer(zoneOnglets, ONGLETS.map((onglet) => el('a', {
-    className: onglet.chemin === actif ? 'tab is-active' : 'tab',
-    href: `${base}/${onglet.chemin}`,
+  // On garde les mêmes éléments d'un écran à l'autre : sans cela, la couleur et le léger
+  // soulèvement de l'onglet actif sauteraient au lieu de s'animer.
+  if (base !== baseOnglets) {
+    baseOnglets = base;
+    remplacer(zoneOnglets, ONGLETS.map((onglet) => el('a', {
+      className: 'tab',
+      href: `${base}/${onglet.chemin}`,
+    }, icone(onglet.icone), el('span', {}, onglet.libelle))));
+  }
+  ONGLETS.forEach((onglet, rang) => {
+    const lien = zoneOnglets.children[rang];
+    lien.classList.toggle('is-active', onglet.chemin === actif);
     // aria-current indique l'onglet actif aux lecteurs d'écran.
-    ...(onglet.chemin === actif ? { 'aria-current': 'page' } : {}),
-  }, icone(onglet.icone), el('span', {}, onglet.libelle))));
+    if (onglet.chemin === actif) lien.setAttribute('aria-current', 'page');
+    else lien.removeAttribute('aria-current');
+  });
 }
 
 // Numéro de l'affichage en cours et nettoyage de l'écran précédent (minuteurs, écouteurs...).
@@ -61,6 +75,13 @@ async function router() {
   nettoyer?.();
   nettoyer = null;
 
+  // Si le chargement traîne (premier lancement, réseau lent), on l'annonce avec le reflet de Faktur.
+  const attente = setTimeout(() => {
+    if (moi !== numeroAffichage) return;
+    zoneEcran.replaceChildren(el('div', { className: 'ecran-contenu' },
+      el('div', { className: 'card vide chargement' }, el('p', {}, 'Chargement...'))));
+  }, 150);
+
   const morceaux = location.hash.replace(/^#\/?/, '').split('/');
   let afficher;
   let piece = null;
@@ -71,8 +92,10 @@ async function router() {
     afficher = afficherReglages;
   } else if (morceaux[0] === 'piece' && morceaux[1]) {
     piece = await trouverPiece(decodeURIComponent(morceaux[1]));
+    if (piece && (await piecesRetirees()).has(piece.id)) piece = null; // par exemple un vieux favori
     const onglet = ONGLETS.find((o) => o.chemin === morceaux[2]) ?? ONGLETS[0];
     if (piece) {
+      noterUtilisation(piece.id); // pour la remonter en haut de la liste des pièces
       afficherBarre(piece.titre_fr, { retour: true, reglages: true });
       afficher = onglet.afficher;
       ongletActif = onglet.chemin;
@@ -86,7 +109,10 @@ async function router() {
     afficher = afficherBibliotheque;
   }
 
-  if (moi !== numeroAffichage) return;
+  if (moi !== numeroAffichage) {
+    clearTimeout(attente);
+    return;
+  }
   afficherOnglets(piece, ongletActif);
   document.title = piece ? `${texteBrut(piece.titre)} · Replik` : 'Replik';
 
@@ -95,6 +121,7 @@ async function router() {
   // des pièces), le numéro aura changé et on jette ce résultat devenu inutile.
   const racine = el('div', { className: 'ecran-contenu' });
   const nettoyage = await afficher(racine, piece);
+  clearTimeout(attente);
   if (moi !== numeroAffichage) {
     nettoyage?.();
     return;

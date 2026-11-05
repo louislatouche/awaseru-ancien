@@ -8,7 +8,7 @@
 //   pause    : arrêté par l'utilisateur (ou parce que l'écran s'est éteint)
 //   fin      : la pièce est terminée
 
-import { el, remplacer } from '../dom.js';
+import { cascade, el, remplacer } from '../dom.js';
 import {
   audioActif, creerAvisEnchainement, creerAvisVoix, creerChoixUnique, creerInterrupteurs, creerReplique,
   creerTitreScene, creerTitreVue, lireReplique,
@@ -76,7 +76,7 @@ export function afficherFilage(racine, piece) {
         },
       }, 'Voir');
       voir.disabled = !carteCourante.classList.contains('est-cachee');
-      boutons.push(el('div', { className: 'boutons' },
+      boutons.push(el('div', { className: 'boutons boutons-apparition' },
         voir,
         el('button', { type: 'button', className: 'btn-ghost', onclick: () => lireReplique(lignes[position]) }, 'Écouter ma réplique')));
     }
@@ -93,6 +93,7 @@ export function afficherFilage(racine, piece) {
       el('button', { type: 'button', className: 'btn', onclick: avancer }, 'Suivant')));
 
     remplacer(commandes, boutons);
+    carteCourante.classList.toggle('is-syncing', etat === 'lecture');
     // Après les boutons, et pas avant : leur hauteur change, et la carte pourrait se retrouver dessous.
     carteCourante.scrollIntoView({ block: 'center' });
   }
@@ -152,7 +153,7 @@ export function afficherFilage(racine, piece) {
     jeton += 1;
     arreterVoix();
     if (!verrouEcran) garderEcranAllume(); // « Suivant » peut être touché pendant une pause
-    carteCourante?.classList.remove('est-cachee', 'courante');
+    carteCourante?.classList.remove('est-cachee', 'courante', 'is-syncing');
     position += 1;
     if (position >= lignes.length) terminer();
     else jouerEtape();
@@ -253,6 +254,7 @@ export function afficherFilage(racine, piece) {
         },
       }, 'Lancer le filage'),
     );
+    cascade(racine);
   }
 
   ecranDepart();

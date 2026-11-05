@@ -1,7 +1,7 @@
 // Les briques d'affichage réutilisées par plusieurs écrans.
 // Les noms de classes (btn, card, chip, pill, eyebrow...) sont ceux du design kit.
 
-import { el, signaler } from './dom.js';
+import { el, rebond, signaler } from './dom.js';
 import { creerJaponais, texteAParler } from './texte.js';
 import { changerReglage, lireReglages } from './stockage.js';
 import { roleDe } from './pieces.js';
@@ -28,6 +28,7 @@ export function creerBascule(libelle, actif, surChangement, { desactive = false 
       actif = !actif;
       chip.classList.toggle('is-selected', actif);
       chip.setAttribute('aria-pressed', String(actif));
+      if (actif) rebond(chip);
       surChangement(actif);
     },
   }, libelle);
@@ -52,6 +53,7 @@ export function creerChoixUnique(options, valeurInitiale, surChoix) {
 
   function choisir(valeur) {
     marquer(valeur);
+    rebond(chips.find((element) => element.valeur === valeur).chip);
     surChoix(valeur);
   }
 

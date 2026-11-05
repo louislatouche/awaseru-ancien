@@ -20,6 +20,7 @@ Une application web installable (PWA) pour apprendre ses répliques de théâtre
 | `js/validation.js` | Vérifie qu'un fichier de pièce est correct avant de l'accepter. |
 | `js/stockage.js` | Lit et écrit dans `localStorage` : réglages, sélection, progression. |
 | `js/sauvegarde.js` | Copie ces données dans un fichier et les récupère. |
+| `js/telechargement.js` | Retire une pièce du téléphone et la retélécharge. |
 | `js/pincement.js` | Reconnaît le pincement à deux doigts. |
 | `js/pieces.js` | Charge les pièces, calcule la progression, le signal d'entrée et les enchaînements. |
 | `js/voix.js` | La lecture à voix haute et ses précautions pour Android. |
@@ -154,6 +155,8 @@ Replik sert à toute la troupe : rien n'est présélectionné, chacun coche ses 
 ## Tes données
 
 Les répliques choisies, la progression et les réglages restent sur le téléphone, dans le stockage du navigateur. Ils disparaissent si tu vides les « cookies et données de site » de Chrome. Dans les Réglages, *Sauvegarder* en fait une copie dans un fichier, et *Restaurer* la récupère, y compris sur un autre téléphone.
+
+*Supprimer du téléphone*, sur la carte d'une pièce, efface ses voix de ce téléphone pour libérer de la place, sans rien changer sur le site. La ligne *Télécharger des pièces*, en bas de *Mes pièces*, ouvre la liste des pièces du site, comme celle des extensions d'un navigateur : on coche celles qui manquent, puis *Télécharger* les récupère (il faut alors du réseau). Une suppression ne touche jamais aux répliques choisies ni à la progression, et les mises à jour de l'app ne réinstallent pas une pièce retirée.
 
 ## Ajouter une nouvelle pièce
 
