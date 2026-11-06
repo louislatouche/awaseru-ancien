@@ -319,6 +319,8 @@ rt { font-size: 0.55em; color: var(--ink-soft); }
 .en-tete-piece { display: flex; flex-direction: column; gap: 2px; }
 .titre-piece { font-size: 1.45rem; font-weight: 700; line-height: 1.9; }
 
+/* .card.acc-card : sur téléphone, le kit redonne une marge à .card, et elle s'ajoutait à celle du titre. */
+.card.acc-card { padding: 0; }
 .acc-header { padding: 12px 20px; font-size: 17px; }
 .acc-pad { display: flex; flex-direction: column; gap: 10px; padding: 0 20px 18px; }
 .acc-pad p { color: var(--ink-soft); font-size: 15px; line-height: 1.6; }
@@ -447,6 +449,8 @@ button.replique:active { transform: scale(0.985); }
 .champ input[type="range"] { width: 100%; height: 44px; accent-color: var(--accent); }
 
 .ligne-remise { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+/* La ligne Langue est une carte d'une seule ligne : la marge d'une carte de texte la rendrait énorme. */
+.card.ligne-remise { padding: 8px 20px; }
 .credit { display: flex; flex-direction: column; gap: 2px; }
 .version { color: var(--ink-mute); font-size: 13px; text-align: center; }
 
