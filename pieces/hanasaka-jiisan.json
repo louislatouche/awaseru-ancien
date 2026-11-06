@@ -3,89 +3,107 @@
   "id": "hanasaka-jiisan",
   "titre": "[花|はな]さかじいさん",
   "titre_fr": "Le Vieux Monsieur aux fleurs",
+  "titre_en": "The Old Man Who Made Trees Bloom",
   "explication": "Ce conte s'est structuré à l'époque d'Edo et fait partie des « Cinq grands contes traditionnels du Japon ». Depuis l'Antiquité, le chien est considéré comme un messager des dieux ou un esprit de la terre. Le passage où le chien déterre des trésors symbolise « les bienfaits de la terre et de l'agriculture ». Ce récit repose également sur des valeurs morales d'encouragement au bien et de châtiment du mal, enseignant que les personnes honnêtes sont récompensées tandis que les avares sont punis.",
+  "explication_en": "This tale took shape in the Edo period and is one of the \"Five Great Traditional Tales of Japan\". Since ancient times, the dog has been seen as a messenger of the gods or a spirit of the earth. The passage where the dog digs up treasure symbolises \"the blessings of the land and of farming\". The story also rests on the moral values of rewarding good and punishing evil, teaching that honest people are rewarded while the greedy are punished.",
   "roles": [
     {
       "id": "narrateur",
       "nom": "ナレーター",
-      "nom_fr": "Narrateur"
+      "nom_fr": "Narrateur",
+      "nom_en": "Narrator"
     },
     {
       "id": "ojiisan",
       "nom": "[正直|しょうじき]なおじいさん",
       "nom_court": "[正直|しょうじき]おじい",
-      "nom_fr": "Gentil Vieux Monsieur"
+      "nom_fr": "Gentil Vieux Monsieur",
+      "nom_en": "Kind Old Man"
     },
     {
       "id": "obaasan",
       "nom": "おばあさん",
-      "nom_fr": "Gentille Vieille Dame"
+      "nom_fr": "Gentille Vieille Dame",
+      "nom_en": "Kind Old Woman"
     },
     {
       "id": "ijiwaru",
       "nom": "[意地悪|いじわる]なおじいさん",
       "nom_court": "[意地悪|いじわる]おじい",
-      "nom_fr": "Méchant Voisin (toujours de mauvaise humeur)"
+      "nom_fr": "Méchant Voisin (toujours de mauvaise humeur)",
+      "nom_en": "Mean Neighbour (always in a bad mood)"
     },
     {
       "id": "shiro",
       "nom": "[犬|いぬ]のシロ",
       "nom_fr": "Shiro, le chien",
+      "nom_en": "Shiro, the dog",
       "note": "Même acteur que le Seigneur",
+      "note_en": "Same actor as the Lord",
       "lien": "https://www.youtube.com/watch?v=GXalVnORAo4"
     },
     {
       "id": "tono",
       "nom": "[殿様|とのさま]",
       "nom_fr": "Seigneur",
+      "nom_en": "Lord",
       "note": "Même acteur que Shiro",
+      "note_en": "Same actor as Shiro",
       "lien": "https://www.youtube.com/watch?v=0DSODZzVgnM"
     }
   ],
   "audio": {
-    "credit": "Voix générées avec AivisSpeech : 阿井田 茂, ろてじん（長老ボイス）, morioki, TANAKA, fumifumi, コハク."
+    "credit": "Voix générées avec AivisSpeech : 阿井田 茂, ろてじん（長老ボイス）, morioki, TANAKA, fumifumi, コハク.",
+    "credit_en": "Voices generated with AivisSpeech: 阿井田 茂, ろてじん（長老ボイス）, morioki, TANAKA, fumifumi, コハク."
   },
   "scenes": [
     {
       "numero": 1,
       "titre": "[畑|はたけ]とシロ",
       "titre_fr": "Le champ et Shiro",
+      "titre_en": "The field and Shiro",
       "repliques": [
         {
           "numero": 1,
           "role": "narrateur",
           "texte": "むかしむかし、あるところに、[優|やさ]しいおじいさんとおばあさんが[住|す]んでいました。（えさにおもちをあげる）\n[二人|ふたり]は、[白|しろ]い[犬|いぬ]のシロをとても[可愛|かわい]がっていました。",
-          "fr": "Il y avait autrefois un gentil vieil homme et une gentille vieille dame. (Ils donnent du Mochi à manger) Tous les deux chérissaient énormément leur chien blanc, Shiro."
+          "fr": "Il y avait autrefois un gentil vieil homme et une gentille vieille dame. (Ils donnent du Mochi à manger) Tous les deux chérissaient énormément leur chien blanc, Shiro.",
+          "en": "Once upon a time, there lived a kind old man and a kind old woman. (They feed him Mochi) The two of them adored their white dog, Shiro."
         },
         {
           "numero": 2,
           "role": "narrateur",
           "texte": "ある[日|ひ]、[畑仕事|はたけしごと]に[行|い]くとき、シロが[畑|はたけ]で[吠|ほ]えました。",
-          "fr": "Un jour, sur le chemin des champs, Shiro se mit à aboyer."
+          "fr": "Un jour, sur le chemin des champs, Shiro se mit à aboyer.",
+          "en": "One day, on the way to the fields, Shiro began to bark."
         },
         {
           "numero": 3,
           "role": "shiro",
           "texte": "ワンワン！ ここを[掘|ほ]ってください！ ワンワン！",
-          "fr": "Ouaf ! Ouaf ! Creusez ici, s'il vous plaît ! Ouaf ! Ouaf !"
+          "fr": "Ouaf ! Ouaf ! Creusez ici, s'il vous plaît ! Ouaf ! Ouaf !",
+          "en": "Woof! Woof! Please dig here! Woof! Woof!"
         },
         {
           "numero": 4,
           "role": "ojiisan",
           "texte": "おや、シロ。ここに[何|なに]かあるのか？ よし、[掘|ほ]ってみよう。\n（ザクザク、ザクザク……。）",
-          "fr": "Tiens, Shiro ? Y a-t-il quelque chose ici ? D'accord, voyons voir ! (Zak-zak, zak-zak... / Bruit de bêche)"
+          "fr": "Tiens, Shiro ? Y a-t-il quelque chose ici ? D'accord, voyons voir ! (Zak-zak, zak-zak... / Bruit de bêche)",
+          "en": "Well now, Shiro? Is there something here? All right, let's see! (Zak-zak, zak-zak... / Sound of a spade)"
         },
         {
           "numero": 5,
           "role": "obaasan",
           "texte": "わあ、おじいさん！ [見|み]てください。[土|つち]の[中|なか]から、お[金|かね]がたくさん[出|で]てきましたよ！",
-          "fr": "Oh, mon mari ! Regardez ! Beaucoup de pièces d'or (Oban, Koban) sortent de la terre !"
+          "fr": "Oh, mon mari ! Regardez ! Beaucoup de pièces d'or (Oban, Koban) sortent de la terre !",
+          "en": "Oh, dear! Look! So many gold coins (Oban, Koban) are coming out of the ground!"
         },
         {
           "numero": 6,
           "role": "ojiisan",
           "texte": "シロ、ありがとう。お[前|まえ]はまほうのような[犬|いぬ]だね。",
-          "fr": "Merci, Shiro. Tu es un chien magicien !"
+          "fr": "Merci, Shiro. Tu es un chien magicien !",
+          "en": "Thank you, Shiro. You're a magic dog!"
         }
       ]
     },
@@ -93,48 +111,56 @@
       "numero": 2,
       "titre": "[意地悪|いじわる]なおじいさんのよく",
       "titre_fr": "La cupidité du mauvais voisin",
+      "titre_en": "The mean neighbour's greed",
       "repliques": [
         {
           "numero": 7,
           "role": "narrateur",
           "texte": "となりの[家|いえ]に、よくばりで[意地悪|いじわる]なおじいさんが[住|す]んでいました。\n[犬|いぬ]のおかげで[金持|かねも]ちになったのを[見|み]て、シロがほしくなりました。",
-          "fr": "Dans la maison voisine habitait un vieil homme avare et méchant.\nEn voyant qu'ils étaient devenus riches grâce au chien, il voulut avoir Shiro."
+          "fr": "Dans la maison voisine habitait un vieil homme avare et méchant.\nEn voyant qu'ils étaient devenus riches grâce au chien, il voulut avoir Shiro.",
+          "en": "In the house next door lived a greedy, mean old man.\nSeeing that they had grown rich thanks to the dog, he wanted Shiro for himself."
         },
         {
           "numero": 8,
           "role": "ijiwaru",
           "texte": "おい、シロをちょっと[貸|か]してくれ。\n（シロを[無理|むり]やり[連|つ]れていきました。）",
-          "fr": "Hé, prête-moi Shiro un moment ! (Il emmène Shiro de force.)"
+          "fr": "Hé, prête-moi Shiro un moment ! (Il emmène Shiro de force.)",
+          "en": "Hey, lend me Shiro for a while! (He takes Shiro away by force.)"
         },
         {
           "numero": 9,
           "role": "ijiwaru",
           "texte": "おい、[汚|きたな]い[犬|いぬ]！ [俺|おれ]にも[金|かね]を[出|だ]せ！ どこを[掘|ほ]ればいいんだ？ えい、ここか！",
-          "fr": "Hé, sale chien ! Donne-moi de l'argent à moi aussi ! Où dois-je creuser ? Hein, c'est ici ?"
+          "fr": "Hé, sale chien ! Donne-moi de l'argent à moi aussi ! Où dois-je creuser ? Hein, c'est ici ?",
+          "en": "Hey, dirty dog! Give me money too! Where do I dig? Huh, is it here?"
         },
         {
           "numero": 10,
           "role": "shiro",
           "texte": "（[悲|かな]しそうに）クーン、クーン……。",
-          "fr": "(Tristement) Ouin... ouin..."
+          "fr": "(Tristement) Ouin... ouin...",
+          "en": "(Sadly) Whimper... whimper..."
         },
         {
           "numero": 11,
           "role": "ijiwaru",
           "texte": "よし、[掘|ほ]るぞ。ザクザク、ザクザク……。うわあ！ なんだこれは！ [汚|きたな]いゴミばかりだ！",
-          "fr": "Allez, je creuse ! Zak-zak, zak-zak... Argh ! Mais qu'est-ce que c'est que ça ?! Ce ne sont que des ordures sales !"
+          "fr": "Allez, je creuse ! Zak-zak, zak-zak... Argh ! Mais qu'est-ce que c'est que ça ?! Ce ne sont que des ordures sales !",
+          "en": "Right, I'm digging! Zak-zak, zak-zak... Argh! What on earth is this?! Nothing but filthy garbage!"
         },
         {
           "numero": 12,
           "role": "narrateur",
           "texte": "[意地悪|いじわる]なおじいさんはとても[怒|おこ]って、クワでシロを[叩|たた]きました。",
-          "fr": "Le méchant homme se mit dans une colère noire et frappa Shiro avec sa houe."
+          "fr": "Le méchant homme se mit dans une colère noire et frappa Shiro avec sa houe.",
+          "en": "The mean old man flew into a rage and struck Shiro with his hoe."
         },
         {
           "numero": 13,
           "role": null,
           "texte": "[可哀想|かわいそう]に、シロは[死|し]んでしまいました。",
-          "fr": "Pauvre Shiro, il en mourut."
+          "fr": "Pauvre Shiro, il en mourut.",
+          "en": "Poor Shiro died of it."
         }
       ]
     },
@@ -142,60 +168,70 @@
       "numero": 3,
       "titre": "[不思議|ふしぎ]なうす",
       "titre_fr": "Le mortier magique",
+      "titre_en": "The magic mortar",
       "repliques": [
         {
           "numero": 14,
           "role": "narrateur",
           "texte": "[正直|しょうじき]なおじいさんとおばあさんは、たくさん[泣|な]いて、\nシロを[庭|にわ]にうめました。",
-          "fr": "Le gentil vieil homme et sa femme pleurèrent beaucoup et enterrèrent Shiro dans le jardin."
+          "fr": "Le gentil vieil homme et sa femme pleurèrent beaucoup et enterrèrent Shiro dans le jardin.",
+          "en": "The kind old man and his wife wept and wept, and buried Shiro in the garden."
         },
         {
           "numero": 15,
           "role": null,
           "texte": "すると、そこから[大|おお]きな[木|き]が、あっという[間|ま]に[育|そだ]ちました。",
-          "fr": "Alors, à cet endroit précis, un grand arbre poussa en un clin d'œil."
+          "fr": "Alors, à cet endroit précis, un grand arbre poussa en un clin d'œil.",
+          "en": "Then, on that very spot, a great tree grew up in the blink of an eye."
         },
         {
           "numero": 16,
           "role": "obaasan",
           "texte": "おじいさん、この[木|き]でうすを[作|つく]りましょう。\nシロが[好|す]きだったおもちを[作|つく]りましょう。",
-          "fr": "Mon mari, fabriquons un mortier à Mochi (Usu) avec cet arbre.\nFaisons du Mochi, ce que Shiro aimait tant."
+          "fr": "Mon mari, fabriquons un mortier à Mochi (Usu) avec cet arbre.\nFaisons du Mochi, ce que Shiro aimait tant.",
+          "en": "Dear, let's make a Mochi mortar (Usu) from this tree.\nLet's make Mochi, the thing Shiro loved so much."
         },
         {
           "numero": 17,
           "role": "ojiisan",
           "texte": "そうだね。シロもよろこぶよ。（[木|き]を[切|き]ってうすを[作|つく]る）",
-          "fr": "Tu as raison. Shiro sera content lui aussi. (Il coupe l'arbre et fabrique le mortier)"
+          "fr": "Tu as raison. Shiro sera content lui aussi. (Il coupe l'arbre et fabrique le mortier)",
+          "en": "You're right. Shiro will be happy too. (He cuts the tree and makes the mortar)"
         },
         {
           "numero": 18,
           "role": "ojiisan",
           "texte": "おもちをつきましょう。（ペッタン、ペッタン）",
-          "fr": "Pilons le Mochi ! (Pettan, pettan / Bruit du pilon)"
+          "fr": "Pilons le Mochi ! (Pettan, pettan / Bruit du pilon)",
+          "en": "Let's pound the Mochi! (Pettan, pettan / Sound of the pestle)"
         },
         {
           "numero": 19,
           "role": "narrateur",
           "texte": "[二人|ふたり]がお[餅|もち]をつくと、[不思議|ふしぎ]なことに、\nうすの[中|なか]からまた たくさんのお[金|かね]が[出|で]てきました。",
-          "fr": "Alors qu'ils pillaient le Mochi, par magie, une immense quantité d'or sortit à nouveau du mortier."
+          "fr": "Alors qu'ils pillaient le Mochi, par magie, une immense quantité d'or sortit à nouveau du mortier.",
+          "en": "As they pounded the Mochi, as if by magic, a huge amount of gold came out of the mortar once again."
         },
         {
           "numero": 20,
           "role": "narrateur",
           "texte": "それを[見|み]た[意地悪|いじわる]なおじいさんは、ある[夜|よる]、うすをぬすんで、\nおもちをつきましたが...",
-          "fr": "En voyant cela, une nuit, le méchant voisin vola le mortier et pila du Mochi, mais..."
+          "fr": "En voyant cela, une nuit, le méchant voisin vola le mortier et pila du Mochi, mais...",
+          "en": "Seeing this, one night the mean neighbour stole the mortar and pounded Mochi, but..."
         },
         {
           "numero": 21,
           "role": "narrateur",
           "texte": "[出|で]てきたのはゴミや[動物|どうぶつ]の[死骸|しがい]ばかりでした。",
-          "fr": "Ce qui en sortit ne fut que des ordures et des cadavres d'animaux."
+          "fr": "Ce qui en sortit ne fut que des ordures et des cadavres d'animaux.",
+          "en": "All that came out was garbage and dead animals."
         },
         {
           "numero": 22,
           "role": "narrateur",
           "texte": "[怒|おこ]った[意地悪|いじわる]なおじいさんは、おのでうすをバラバラにこわして、もやしてしまいました。",
-          "fr": "Fou de rage, le méchant homme brisa le mortier en morceaux avec une hache et le brûla."
+          "fr": "Fou de rage, le méchant homme brisa le mortier en morceaux avec une hache et le brûla.",
+          "en": "Mad with rage, the mean old man smashed the mortar to pieces with an axe and burned it."
         }
       ]
     },
@@ -203,42 +239,49 @@
       "numero": 4,
       "titre": "[枯|か]れ[木|き]に[花|はな]を",
       "titre_fr": "Des fleurs sur les arbres morts",
+      "titre_en": "Flowers on dead trees",
       "repliques": [
         {
           "numero": 23,
           "role": "narrateur",
           "texte": "[正直|しょうじき]なおじいさんは[悲|かな]しんで、うすの[灰|はい]をもらって[帰|かえ]りました。",
-          "fr": "Le gentil vieil homme fut très attristé, ramassa les cendres du mortier et rentra chez lui."
+          "fr": "Le gentil vieil homme fut très attristé, ramassa les cendres du mortier et rentra chez lui.",
+          "en": "The kind old man, deeply saddened, gathered the ashes of the mortar and went home."
         },
         {
           "numero": 24,
           "role": "narrateur",
           "texte": "そして、[庭|にわ]の[枯|か]れた[木|き]に、その[灰|はい]をまきました。",
-          "fr": "Puis, il dispersa ces cendres sur un arbre mort dans son jardin."
+          "fr": "Puis, il dispersa ces cendres sur un arbre mort dans son jardin.",
+          "en": "Then he scattered the ashes on a dead tree in his garden."
         },
         {
           "numero": 25,
           "role": "ojiisan",
           "texte": "シロ、お[前|まえ]のうすが[灰|はい]になってしまったよ。……えい。",
-          "fr": "Shiro, ton mortier est devenu de la cendre... Hop !"
+          "fr": "Shiro, ton mortier est devenu de la cendre... Hop !",
+          "en": "Shiro, your mortar has turned to ash... Here goes!"
         },
         {
           "numero": 26,
           "role": "narrateur",
           "texte": "おじいさんが[灰|はい]をまくと、[不思議|ふしぎ]なことが[起|お]こりました。\n[枯|か]れた[木|き]に、ピンクの[桜|さくら]の[花|はな]がいっしゅんでたくさん[咲|さ]きました。",
-          "fr": "Lorsque le vieil homme dispersa les cendres, une chose merveilleuse se produisit. Sur l'arbre mort, de nombreuses fleurs de cerisier roses s'épanouirent en un instant."
+          "fr": "Lorsque le vieil homme dispersa les cendres, une chose merveilleuse se produisit. Sur l'arbre mort, de nombreuses fleurs de cerisier roses s'épanouirent en un instant.",
+          "en": "When the old man scattered the ashes, something wonderful happened. On the dead tree, countless pink cherry blossoms bloomed in an instant."
         },
         {
           "numero": 27,
           "role": "ojiisan",
           "texte": "すごい！ [枯|か]れ[木|き]に[花|はな]が[咲|さ]いた！ もっとまこう。",
-          "fr": "C'est incroyable ! Des fleurs ont poussé sur un arbre mort ! Dispersons-en encore plus !"
+          "fr": "C'est incroyable ! Des fleurs ont poussé sur un arbre mort ! Dispersons-en encore plus !",
+          "en": "Incredible! Flowers have bloomed on a dead tree! Let's scatter some more!"
         },
         {
           "numero": 28,
           "role": "obaasan",
           "texte": "[枯|か]れ[木|き]に[花|はな]を[咲|さ]かせましょう！",
-          "fr": "Faisons fleurir les arbres morts !"
+          "fr": "Faisons fleurir les arbres morts !",
+          "en": "Let's make the dead trees bloom!"
         }
       ]
     },
@@ -246,60 +289,70 @@
       "numero": 5,
       "titre": "[殿様|とのさま]のご[褒美|ほうび]",
       "titre_fr": "La récompense du Seigneur",
+      "titre_en": "The Lord's reward",
       "repliques": [
         {
           "numero": 29,
           "role": "narrateur",
           "texte": "そこへ、えらい[殿様|とのさま]が[通|とお]りかかりました。",
-          "fr": "C'est alors que passa par là un grand Seigneur."
+          "fr": "C'est alors que passa par là un grand Seigneur.",
+          "en": "Just then, a great Lord came passing by."
         },
         {
           "numero": 30,
           "role": "tono",
           "texte": "おお、[素晴|すば]らしい！ [冬|ふゆ]なのに[美|うつく]しい[桜|さくら]が[咲|さ]いている。\nこれをやったのは[誰|だれ]だ？",
-          "fr": "Oh, c'est magnifique ! Des cerisiers si somptueux fleurissent alors que c’est l’hiver. Qui a fait cela ?"
+          "fr": "Oh, c'est magnifique ! Des cerisiers si somptueux fleurissent alors que c’est l’hiver. Qui a fait cela ?",
+          "en": "Oh, how wonderful! Such splendid cherry trees in bloom, in the middle of winter. Who did this?"
         },
         {
           "numero": 31,
           "role": "ojiisan",
           "texte": "[私|わたくし]でございます、[殿様|とのさま]。",
-          "fr": "C'est moi, votre Seigneurie."
+          "fr": "C'est moi, votre Seigneurie.",
+          "en": "It was I, my Lord."
         },
         {
           "numero": 32,
           "role": "tono",
           "texte": "たいした[知恵|ちえ]だ。お[前|まえ]にたくさんのほうびをあげよう。\n（ほうびをあげる）",
-          "fr": "C'est un savoir-faire extraordinaire. Je vais te donner une grande récompense. (Il lui donne la récompense)"
+          "fr": "C'est un savoir-faire extraordinaire. Je vais te donner une grande récompense. (Il lui donne la récompense)",
+          "en": "What remarkable skill. I shall give you a great reward. (He gives him the reward)"
         },
         {
           "numero": 33,
           "role": "ijiwaru",
           "texte": "（[走|はし]ってきて）[殿様|とのさま]！ [私|わたし]もできます！\n[私|わたし]も[灰|はい]をまきます！ えい！",
-          "fr": "(Arrivant en courant) Mon Seigneur ! Moi aussi je peux le faire ! Moi aussi je vais disperser des cendres ! Hop !"
+          "fr": "(Arrivant en courant) Mon Seigneur ! Moi aussi je peux le faire ! Moi aussi je vais disperser des cendres ! Hop !",
+          "en": "(Running up) My Lord! I can do it too! I'll scatter ashes too! Here goes!"
         },
         {
           "numero": 34,
           "role": "narrateur",
           "texte": "[意地悪|いじわる]なおじいさんが[灰|はい]をまくと、[風|かぜ]が[吹|ふ]いて、[灰|はい]が[殿様|とのさま]の[目|め]に[入|はい]ってしまいました。",
-          "fr": "Lorsque le méchant homme dispersa les cendres, le vent se leva et les cendres entrèrent dans les yeux du Seigneur."
+          "fr": "Lorsque le méchant homme dispersa les cendres, le vent se leva et les cendres entrèrent dans les yeux du Seigneur.",
+          "en": "When the mean old man scattered the ashes, the wind blew and the ashes got into the Lord's eyes."
         },
         {
           "numero": 35,
           "role": "tono",
           "texte": "いたい！ [目|め]が[痛|いた]い！ [無礼者|ぶれいもの]！\nこの[男|おとこ]をつかまえろ！",
-          "fr": "Aïe ! Mes yeux me font mal ! Insolent ! Arrêtez cet homme !"
+          "fr": "Aïe ! Mes yeux me font mal ! Insolent ! Arrêtez cet homme !",
+          "en": "Ow! My eyes hurt! You insolent man! Seize him!"
         },
         {
           "numero": 36,
           "role": "narrateur",
           "texte": "[意地悪|いじわる]なおじいさんは[罰|ばっ]せられました。",
-          "fr": "Le méchant voisin fut sévèrement puni."
+          "fr": "Le méchant voisin fut sévèrement puni.",
+          "en": "The mean neighbour was severely punished."
         },
         {
           "numero": 37,
           "role": "narrateur",
           "texte": "[正直|しょうじき]なおじいさんとおばあさんは、\nシロの[咲|さ]かせる[美|うつく]しい[花|はな]を、[年中|ねんじゅう][眺|なが]めながら、\nシロの[思|おも]い[出|で]と[一緒|いっしょ]に、ずっと[幸|しあわ]せに[暮|く]らしました。",
-          "fr": "Le gentil vieil homme et sa femme vécurent heureux pour toujours, chérissant le souvenir de Shiro tout en admirant, tout au long de l'année, les magnifiques fleurs que Shiro faisait épanouir."
+          "fr": "Le gentil vieil homme et sa femme vécurent heureux pour toujours, chérissant le souvenir de Shiro tout en admirant, tout au long de l'année, les magnifiques fleurs que Shiro faisait épanouir.",
+          "en": "The kind old man and his wife lived happily ever after, cherishing their memories of Shiro as they gazed, all year round, at the beautiful flowers Shiro made bloom."
         }
       ]
     }

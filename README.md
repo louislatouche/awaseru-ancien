@@ -21,6 +21,7 @@ Une application web installable (PWA) pour apprendre ses répliques de théâtre
 | `js/stockage.js` | Lit et écrit dans `localStorage` : réglages, sélection, progression. |
 | `js/sauvegarde.js` | Copie ces données dans un fichier et les récupère. |
 | `js/telechargement.js` | Retire une pièce du téléphone et la retélécharge. |
+| `js/langues.js` et `js/langues/` | La langue de l'app et ses dictionnaires, un fichier par langue. |
 | `js/pincement.js` | Reconnaît le pincement à deux doigts. |
 | `js/pieces.js` | Charge les pièces, calcule la progression, le signal d'entrée et les enchaînements. |
 | `js/voix.js` | La lecture à voix haute et ses précautions pour Android. |
@@ -211,5 +212,6 @@ Les règles que l'app vérifie au chargement :
 - **`[漢字|よみ]`** : affiche le kanji avec sa lecture, et c'est la lecture qui est prononcée.
 - **`（…）`** : didascalie ou bruitage, en gris italique, non lue par défaut. Seules les parenthèses japonaises comptent.
 - **`\n`** : retour à la ligne.
-- **`lien`** : uniquement une adresse `http` ou `https`.
+- **`lien`** : uniquement une adresse `http` ou `https`. Il s'affiche dans *À propos de cette pièce*, à côté du nom du rôle. Son libellé suit l'adresse : *Voir la vidéo* pour YouTube ou Vimeo, sinon *Ouvrir le lien*.
 - **Facultatifs** : `format`, `id` (sinon le nom du fichier est utilisé), `nom_court`, `note`, `lien`.
+- **Anglais** : `titre_en`, `explication_en`, `nom_en`, `note_en`, `credit_en`, et `en` sur chaque réplique. Toutes les langues autres que le français les affichent. S'il en manque un, le français s'affiche à sa place.

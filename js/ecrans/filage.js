@@ -13,6 +13,7 @@ import {
   audioActif, creerAvisEnchainement, creerAvisVoix, creerChoixUnique, creerInterrupteurs, creerReplique,
   creerTitreScene, creerTitreVue, lireReplique,
 } from '../affichage.js';
+import { t, traduire } from '../langues.js';
 import { enchainementsDe, lignesDe } from '../pieces.js';
 import { lireReglages, lireSelection, lireStatuts } from '../stockage.js';
 import { creerJaponais, texteAParler } from '../texte.js';
@@ -74,11 +75,11 @@ export function afficherFilage(racine, piece) {
           voir.disabled = true;
           carteCourante.scrollIntoView({ block: 'center' }); // la carte vient de grandir
         },
-      }, 'Voir');
+      }, t('Voir'));
       voir.disabled = !carteCourante.classList.contains('est-cachee');
       boutons.push(el('div', { className: 'boutons boutons-apparition' },
         voir,
-        el('button', { type: 'button', className: 'btn-ghost', onclick: () => lireReplique(lignes[position]) }, 'Écouter ma réplique')));
+        el('button', { type: 'button', className: 'btn-ghost', onclick: () => lireReplique(lignes[position]) }, t('Écouter ma réplique'))));
     }
 
     const enPause = etat === 'pause';
@@ -89,8 +90,8 @@ export function afficherFilage(racine, piece) {
         // Pause n'a de sens que si l'app est en train de lire.
         disabled: !(etat === 'lecture' || enPause),
         onclick: enPause ? reprendre : mettreEnPause,
-      }, enPause ? 'Reprendre' : 'Pause'),
-      el('button', { type: 'button', className: 'btn', onclick: avancer }, 'Suivant')));
+      }, enPause ? t('Reprendre') : t('Pause')),
+      el('button', { type: 'button', className: 'btn', onclick: avancer }, t('Suivant'))));
 
     remplacer(commandes, boutons);
     carteCourante.classList.toggle('is-syncing', etat === 'lecture');
@@ -178,8 +179,8 @@ export function afficherFilage(racine, piece) {
   function terminer() {
     etat = 'fin';
     libererEcran();
-    journal.append(el('p', { className: 'avis fin-piece' }, 'Fin de la pièce.'));
-    remplacer(commandes, el('button', { type: 'button', className: 'btn', onclick: ecranDepart }, 'Recommencer un filage'));
+    journal.append(el('p', { className: 'avis fin-piece' }, t('Fin de la pièce.')));
+    remplacer(commandes, el('button', { type: 'button', className: 'btn', onclick: ecranDepart }, t('Recommencer un filage')));
     journal.lastChild.scrollIntoView({ block: 'center' });
   }
 
@@ -208,21 +209,21 @@ export function afficherFilage(racine, piece) {
     const legende = el('p', { className: 'legende' });
     const montrerLegende = () => {
       const { scene } = lignes[depart];
-      remplacer(legende, creerJaponais(scene.titre), ' ', scene.titre_fr);
+      remplacer(legende, creerJaponais(scene.titre), ' ', traduire(scene, 'titre_fr'));
     };
     montrerLegende();
 
     remplacer(racine,
-      creerTitreVue('Filage'),
+      creerTitreVue(t('Filage')),
       creerAvisVoix(piece),
       el('section', { className: 'card pile' },
         el('p', {}, selection.size > 0
-          ? `L'app lit les répliques des autres et s'arrête sur tes ${selection.size} répliques.`
-          : "Tu n'as choisi aucune réplique : l'app lira toute la pièce."),
-        el('p', { className: 'eyebrow' }, 'Commencer à partir de'),
+          ? t("L'app lit les répliques des autres et s'arrête sur tes {n} répliques.", { n: selection.size })
+          : t("Tu n'as choisi aucune réplique : l'app lira toute la pièce.")),
+        el('p', { className: 'eyebrow' }, t('Commencer à partir de')),
         creerChoixUnique(piece.scenes.map((scene, rang) => ({
           valeur: lignes.findIndex((l) => l.scene === scene),
-          libelle: rang === 0 ? 'Le début' : `Scène ${scene.numero}`,
+          libelle: rang === 0 ? t('Le début') : t('Scène {n}', { n: scene.numero }),
         })), 0, (valeur) => {
           depart = valeur;
           montrerLegende();
@@ -252,7 +253,7 @@ export function afficherFilage(racine, piece) {
           garderEcranAllume();
           jouerEtape();
         },
-      }, 'Lancer le filage'),
+      }, t('Lancer le filage')),
     );
     cascade(racine);
   }

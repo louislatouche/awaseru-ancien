@@ -5,7 +5,7 @@
 // >>> À AUGMENTER à chaque modification de l'app, y compris pour une nouvelle pièce. <<<
 // Le navigateur ne détecte une mise à jour que si ce fichier-ci change d'au moins un octet.
 // Sans cela, le téléphone continuerait de servir l'ancienne copie, indéfiniment.
-const VERSION = 26;
+const VERSION = 34;
 
 // Sur GitHub Pages, tous tes projets partagent le même site, donc le même espace de caches.
 // Le préfixe nous permet de ne jamais toucher à ceux des autres.
@@ -28,6 +28,26 @@ const FICHIERS = [
   'js/affichage.js',
   'js/app.js',
   'js/dom.js',
+  'js/langues.js',
+  'js/langues/en.js',
+  'js/langues/de.js',
+  'js/langues/es.js',
+  'js/langues/it.js',
+  'js/langues/pt.js',
+  'js/langues/nl.js',
+  'js/langues/pl.js',
+  'js/langues/sv.js',
+  'js/langues/da.js',
+  'js/langues/no.js',
+  'js/langues/fi.js',
+  'js/langues/cs.js',
+  'js/langues/hu.js',
+  'js/langues/ro.js',
+  'js/langues/el.js',
+  'js/langues/uk.js',
+  'js/langues/ru.js',
+  'js/langues/ja.js',
+  'js/langues/ko.js',
   'js/modale.js',
   'js/pieces.js',
   'js/pincement.js',

@@ -2,8 +2,9 @@
 
 import { cascade, el, icone, remplacer } from '../dom.js';
 import {
-  creerAvisVoix, creerInterrupteurs, creerReplique, creerTitreScene, lireReplique,
+  creerAvisVoix, creerInterrupteurs, creerReplique, creerTitreScene, libelleLien, lireReplique,
 } from '../affichage.js';
+import { t, traduire } from '../langues.js';
 import { arreterVoix } from '../voix.js';
 import { lignesDe } from '../pieces.js';
 import { creerJaponais } from '../texte.js';
@@ -39,6 +40,8 @@ export function afficherScript(racine, piece) {
 
   const lignes = lignesDe(piece);
 
+  const rolesAvecLien = piece.roles.filter((role) => role.lien);
+
   // L'accordéon du design kit : son corps s'ouvre en glissant, ce qu'un simple <details> ne fait pas.
   const apropos = el('div', { className: 'card acc-card' },
     el('button', {
@@ -49,18 +52,23 @@ export function afficherScript(racine, piece) {
         const ouvert = apropos.classList.toggle('is-open');
         evenement.currentTarget.setAttribute('aria-expanded', String(ouvert));
       },
-    }, el('span', { className: 'acc-title' }, 'À propos de cette pièce'), el('span', { className: 'acc-chevron' }, icone('chevron'))),
+    }, el('span', { className: 'acc-title' }, t('À propos de cette pièce')), el('span', { className: 'acc-chevron' }, icone('chevron'))),
     el('div', { className: 'acc-collapse' },
       el('div', { className: 'acc-inner' },
         el('div', { className: 'acc-pad' },
-          piece.explication && el('p', {}, piece.explication),
-          piece.audio && el('p', {}, piece.audio.credit)))));
+          piece.explication && el('p', {}, traduire(piece, 'explication')),
+          rolesAvecLien.map((role) => el('div', { className: 'lien-role' },
+            el('span', { className: 'coche-texte' },
+              creerJaponais(role.nom, 'role'),
+              el('span', { className: 'role-fr' }, traduire(role, 'nom_fr'))),
+            // noopener empêche la page ouverte d'agir sur notre app.
+            el('a', { className: 'btn-ghost btn-petit', href: role.lien, target: '_blank', rel: 'noopener noreferrer' }, libelleLien(role.lien))))))));
 
   remplacer(racine,
     el('div', { className: 'en-tete-piece' },
       creerJaponais(piece.titre, 'titre-piece'),
-      el('h1', { className: 'vue-titre' }, piece.titre_fr)),
-    (piece.explication || piece.audio) && apropos,
+      el('h1', { className: 'vue-titre' }, traduire(piece, 'titre_fr'))),
+    (piece.explication || rolesAvecLien.length > 0) && apropos,
     creerAvisVoix(piece),
     creerInterrupteurs(),
     piece.scenes.map((scene) => el('section', { className: 'scene' },

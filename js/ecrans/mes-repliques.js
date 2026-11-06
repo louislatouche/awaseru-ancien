@@ -8,6 +8,7 @@
 
 import { cascade, el, rebond, remplacer } from '../dom.js';
 import { surPincement } from '../pincement.js';
+import { t, traduire } from '../langues.js';
 import { creerJaponais } from '../texte.js';
 import { creerNomRole, creerTitreScene, creerTitreVue } from '../affichage.js';
 import { lignesDe } from '../pieces.js';
@@ -44,7 +45,7 @@ export function afficherMesRepliques(racine, piece) {
     }
 
     const nombre = selection.size;
-    compteur.textContent = `${nombre} ${nombre > 1 ? 'choisies' : 'choisie'}`;
+    compteur.textContent = t(nombre > 1 ? '{n} choisies' : '{n} choisie', { n: nombre });
   }
 
   // Appelée seulement quand l'utilisateur change quelque chose.
@@ -75,12 +76,9 @@ export function afficherMesRepliques(racine, piece) {
         caseRole,
         el('span', { className: 'coche-texte' },
           creerJaponais(role.nom, 'role'),
-          el('span', { className: 'role-fr' }, role.nom_fr)),
+          el('span', { className: 'role-fr' }, traduire(role, 'nom_fr'))),
         total),
-      role.note && el('p', { className: 'role-note' }, role.note),
-      // Le lien reste hors du <label> : le toucher ne doit pas cocher la case.
-      // noopener empêche la page ouverte d'agir sur notre app.
-      role.lien && el('a', { className: 'role-lien', href: role.lien, target: '_blank', rel: 'noopener noreferrer' }, 'Ouvrir le lien'));
+      role.note && el('p', { className: 'role-note' }, traduire(role, 'note')));
   }
 
   function creerLigneReplique(ligne) {
@@ -101,14 +99,14 @@ export function afficherMesRepliques(racine, piece) {
           el('span', { className: 'numero' }, String(ligne.numero)),
           creerNomRole(piece, ligne.role)),
         creerJaponais(ligne.texte, 'japonais japonais-petit'),
-        el('span', { className: 'replique-fr traduction' }, ligne.fr)));
+        el('span', { className: 'replique-fr traduction' }, traduire(ligne, 'fr'))));
   }
 
   function creerBoutonGrille(ligne) {
     const bouton = el('button', {
       type: 'button',
       className: 'bouton-numero',
-      'aria-label': `Réplique ${ligne.numero}`,
+      'aria-label': t('Réplique {n}', { n: ligne.numero }),
       onclick: () => {
         if (selection.has(ligne.numero)) {
           selection.delete(ligne.numero);
@@ -123,14 +121,14 @@ export function afficherMesRepliques(racine, piece) {
     return bouton;
   }
 
-  const titre = creerTitreVue('Mes répliques', compteur);
+  const titre = creerTitreVue(t('Mes répliques'), compteur);
   titre.classList.add('tete-collante'); // le compteur reste visible pendant qu'on fait défiler
 
   const vueTexte = el('div', { className: 'vue-texte' },
     el('section', { className: 'card pile' },
-      el('h2', { className: 'titre-section' }, 'Des rôles entiers'),
+      el('h2', { className: 'titre-section' }, t('Des rôles entiers')),
       piece.roles.map(creerLigneRole)),
-    el('h2', { className: 'titre-section' }, 'Ou réplique par réplique'),
+    el('h2', { className: 'titre-section' }, t('Réplique par réplique')),
     piece.scenes.map((scene) => el('section', { className: 'scene' },
       creerTitreScene(scene),
       lignes.filter((l) => l.scene === scene).map(creerLigneReplique))));
@@ -180,9 +178,9 @@ export function afficherMesRepliques(racine, piece) {
     vueGrille.hidden = !grille;
     vueTexte.hidden = grille;
     aide.textContent = grille
-      ? 'Écarte deux doigts pour revoir le texte.'
-      : "Pince l'écran avec deux doigts pour n'afficher que les numéros.";
-    bascule.textContent = grille ? 'Texte' : 'Grille';
+      ? t('Écarte deux doigts pour revoir le texte.')
+      : t("Pince l'écran avec deux doigts pour n'afficher que les numéros.");
+    bascule.textContent = grille ? t('Texte') : t('Grille');
   }
 
   // La vue qui arrive continue le mouvement des doigts, et sa netteté revient en même temps.

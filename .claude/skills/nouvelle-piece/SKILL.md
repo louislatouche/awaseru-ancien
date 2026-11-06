@@ -14,6 +14,7 @@ PDF à traiter : $ARGUMENTS (si vide, demande-moi le fichier).
    - Annotation par mot ; les lectures irrégulières (熟字訓) en bloc sur le mot entier.
    - Les lectures déjà entre parenthèses dans le PDF, ex. 掘（ほ）, passent en furigana et les parenthèses disparaissent.
    - Didascalies et bruitages restent entre （）.
+   - Anglais : ajoute la traduction anglaise à côté du français (`titre_en`, `explication_en`, `nom_en`, `note_en`, `credit_en`, `titre_en` sur chaque scène, `en` sur chaque réplique). L'app l'affiche dans toutes les langues autres que le français.
 4. Vérifie : JSON valide, numéros continus, chaque role existe dans roles, aucun crochet mal fermé. Relis toutes les lectures et liste-moi celles qui ont plusieurs lectures possibles (私, 何, 方…) avec le choix que tu as fait.
 5. Enregistre pieces/<id>.json et ajoute-le à pieces/index.json.
 6. Voix : crée pieces/audio/<id>/voix.json sur le modèle de pieces/audio/hanasaka-jiisan/voix.json, avec une voix par rôle prise sur AivisHub (licence ACML ou CC0, voix bien distinctes entre rôles qui se répondent). Démarre le moteur AivisSpeech si besoin (AppData\Local\Programs\AivisSpeech\AivisSpeech-Engine\run.exe), lance `node outils/generer-audio.mjs <id>`, puis relis le rapport des lectures. Ajoute à la pièce le champ "audio" avec le crédit des voix. Tu ne peux pas écouter : dis-moi quelles voix tu as choisies et demande-moi de vérifier à l'oreille.

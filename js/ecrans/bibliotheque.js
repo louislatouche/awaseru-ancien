@@ -3,6 +3,7 @@
 
 import { cascade, compter, el, remplacer, signaler } from '../dom.js';
 import { creerTitreVue } from '../affichage.js';
+import { t, traduire } from '../langues.js';
 import { confirmer, ouvrirFeuille } from '../modale.js';
 import { creerJaponais, texteBrut } from '../texte.js';
 import {
@@ -12,16 +13,16 @@ import { noterUtilisation } from '../stockage.js';
 import { peutRetirer, piecesRetirees, retelechargerPiece, retirerPiece } from '../telechargement.js';
 
 function texteProgression({ total, sues, aRevoir }) {
-  if (total === 0) return 'Aucune réplique choisie';
-  const base = `${sues}/${total} ${sues > 1 ? 'sues' : 'sue'}`;
-  return aRevoir > 0 ? `${base}, ${aRevoir} à revoir` : base;
+  if (total === 0) return t('Aucune réplique choisie');
+  const base = t(sues > 1 ? '{sues}/{total} sues' : '{sues}/{total} sue', { sues, total });
+  return aRevoir > 0 ? t('{base}, {aRevoir} à revoir', { base, aRevoir }) : base;
 }
 
 function creerCarte(piece, libelleSuppression, surSuppression) {
   const progression = progressionDe(piece);
   // Tant qu'aucune réplique n'est choisie, on ouvre directement l'écran pour les choisir.
   const onglet = progression.total > 0 ? 'script' : 'mes-repliques';
-  const barre = el('progress', { value: 0, max: Math.max(progression.total, 1), 'aria-label': 'Répliques sues' });
+  const barre = el('progress', { value: 0, max: Math.max(progression.total, 1), 'aria-label': t('Répliques sues') });
   const resume = el('span', { className: 'carte-progression' }, texteProgression({ ...progression, sues: 0 }));
   compter(progression.sues, (valeur) => {
     barre.value = valeur;
@@ -30,8 +31,8 @@ function creerCarte(piece, libelleSuppression, surSuppression) {
   return el('article', { className: 'card carte-piece' },
     el('a', { className: 'carte-lien', href: `#/piece/${encodeURIComponent(piece.id)}/${onglet}` },
       creerJaponais(piece.titre, 'carte-titre'),
-      el('span', { className: 'carte-sous-titre' }, piece.titre_fr),
-      el('span', { className: 'carte-details' }, `${lignesDe(piece).length} répliques, ${piece.scenes.length} scènes`),
+      el('span', { className: 'carte-sous-titre' }, traduire(piece, 'titre_fr')),
+      el('span', { className: 'carte-details' }, t('{lignes} répliques, {scenes} scènes', { lignes: lignesDe(piece).length, scenes: piece.scenes.length })),
       barre,
       resume),
     surSuppression && el('button', {
@@ -45,13 +46,13 @@ function creerCarte(piece, libelleSuppression, surSuppression) {
 // Renvoie la ligne à afficher, et deux fonctions pour la piloter depuis le menu.
 function creerLigneATelecharger(piece, dejaLa, surChangement) {
   const caseACocher = el('input', { type: 'checkbox', checked: dejaLa, disabled: dejaLa, onchange: surChangement });
-  const etat = el('span', { className: 'role-total' }, dejaLa ? 'Téléchargée' : '');
+  const etat = el('span', { className: 'role-total' }, dejaLa ? t('Téléchargée') : '');
 
   const ligne = el('label', { className: 'coche ligne-telechargement' },
     caseACocher,
     el('span', { className: 'coche-texte' },
       creerJaponais(piece.titre, 'role'),
-      el('span', { className: 'legende' }, piece.titre_fr)),
+      el('span', { className: 'legende' }, traduire(piece, 'titre_fr'))),
     etat);
 
   return {
@@ -64,7 +65,7 @@ function creerLigneATelecharger(piece, dejaLa, surChangement) {
       try {
         await retelechargerPiece(piece.id, (fait, total) => { etat.textContent = `${fait}/${total}`; });
         noterUtilisation(piece.id); // tu viens de la demander : elle remonte en haut de la liste
-        etat.textContent = 'Téléchargée';
+        etat.textContent = t('Téléchargée');
         return true;
       } catch {
         caseACocher.disabled = false;
@@ -83,9 +84,9 @@ export async function afficherBibliotheque(racine) {
   // Une pièce du site : elle reste disponible, on peut la reprendre à tout moment.
   async function retirer(piece) {
     const accepte = await confirmer({
-      titre: 'Supprimer du téléphone ?',
-      message: `« ${texteBrut(piece.titre)} » et ses voix seront retirées de ce téléphone, pas du site. Tu pourras la retélécharger en bas de cette liste, et tu retrouveras tes répliques choisies et ta progression.`,
-      oui: 'Supprimer',
+      titre: t('Supprimer du téléphone ?'),
+      message: t('« {titre} » et ses voix seront retirées de ce téléphone, pas du site. Tu pourras la retélécharger en bas de cette liste, et tu retrouveras tes répliques choisies et ta progression.', { titre: texteBrut(piece.titre) }),
+      oui: t('Supprimer'),
     });
     if (!accepte) return;
     await retirerPiece(piece.id);
@@ -95,9 +96,9 @@ export async function afficherBibliotheque(racine) {
   // Une ancienne pièce importée : elle n'existe que sur ce téléphone, la supprimer est définitif.
   async function supprimerImportee(piece) {
     const accepte = await confirmer({
-      titre: 'Supprimer cette pièce ?',
-      message: `« ${texteBrut(piece.titre)} » sera effacée de ce téléphone. Tes répliques choisies et ta progression sont conservées.`,
-      oui: 'Supprimer',
+      titre: t('Supprimer cette pièce ?'),
+      message: t('« {titre} » sera effacée de ce téléphone. Tes répliques choisies et ta progression sont conservées.', { titre: texteBrut(piece.titre) }),
+      oui: t('Supprimer'),
     });
     if (!accepte) return;
     supprimerPieceImportee(piece.id);
@@ -115,7 +116,7 @@ export async function afficherBibliotheque(racine) {
       className: 'btn btn-petit',
       disabled: true,
       onclick: telechargerLesPiecesCochees,
-    }, 'Télécharger');
+    }, t('Télécharger'));
 
     function actualiserBouton() {
       bouton.disabled = enCours || !choix.some(({ aTelecharger }) => aTelecharger());
@@ -128,7 +129,7 @@ export async function afficherBibliotheque(racine) {
       for (const { aTelecharger, telecharger } of choix) {
         if (!aTelecharger()) continue;
         if (!(await telecharger())) {
-          signaler('Téléchargement impossible : vérifie ta connexion.');
+          signaler(t('Téléchargement impossible : vérifie ta connexion.'));
           break;
         }
         rafraichir(); // la pièce revient dans la liste, derrière le menu
@@ -138,10 +139,10 @@ export async function afficherBibliotheque(racine) {
     }
 
     ouvrirFeuille({
-      titre: 'Télécharger des pièces',
+      titre: t('Télécharger des pièces'),
       corps: el('div', { className: 'pile' }, choix.map(({ ligne }) => ligne)),
       actions: (fermer) => [
-        el('button', { type: 'button', className: 'btn-ghost btn-petit', onclick: fermer }, 'Fermer'),
+        el('button', { type: 'button', className: 'btn-ghost btn-petit', onclick: fermer }, t('Fermer')),
         bouton,
       ],
     });
@@ -156,19 +157,19 @@ export async function afficherBibliotheque(racine) {
       // On ne peut plus importer de pièce. Mais si un téléphone en garde une d'avant, elle reste
       // accessible : la faire disparaître en silence serait une mauvaise surprise.
       presentes.map((piece) => (importees.includes(piece)
-        ? creerCarte(piece, 'Supprimer cette pièce', () => supprimerImportee(piece))
-        : creerCarte(piece, 'Supprimer du téléphone', peutRetirer ? () => retirer(piece) : null))),
-      erreurs.map((erreur) => el('p', { className: 'avis avis-erreur' }, `Pièce illisible : ${erreur}`)),
+        ? creerCarte(piece, t('Supprimer cette pièce'), () => supprimerImportee(piece))
+        : creerCarte(piece, t('Supprimer du téléphone'), peutRetirer ? () => retirer(piece) : null))),
+      erreurs.map((erreur) => el('p', { className: 'avis avis-erreur' }, t('Pièce illisible : {erreur}', { erreur }))),
       peutRetirer && el('button', {
         type: 'button',
         className: 'ligne-menu',
         onclick: () => ouvrirMenu(fournies, retirees),
-      }, 'Télécharger des pièces'),
+      }, t('Télécharger des pièces')),
     );
   }
 
   await rafraichir();
 
-  remplacer(racine, creerTitreVue('Mes pièces'), zoneListe);
+  remplacer(racine, creerTitreVue(t('Mes pièces')), zoneListe);
   cascade(zoneListe);
 }

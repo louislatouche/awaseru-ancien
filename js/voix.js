@@ -1,9 +1,10 @@
 // La lecture à voix haute, avec l'API speechSynthesis du navigateur.
 // Cette API a des particularités sur Android : les commentaires expliquent chaque précaution.
 
+import { t } from './langues.js';
 import { lireReglages } from './stockage.js';
 
-export const AIDE_INSTALLATION = "Aucune voix japonaise sur ce téléphone. Pour l'installer : Paramètres Android > Synthèse vocale (parfois rangée dans Accessibilité ou Gestion globale) > moteur Google > installer les données vocales > japonais. Ferme puis rouvre ensuite Replik.";
+export const aideInstallation = () => t("Aucune voix japonaise sur ce téléphone. Pour l'installer : Paramètres Android > Synthèse vocale (parfois rangée dans Accessibilité ou Gestion globale) > moteur Google > installer les données vocales > japonais. Ferme puis rouvre ensuite Replik.");
 
 let voix = [];
 
@@ -163,10 +164,10 @@ export function parler(texte) {
 
 // Transforme un résultat de lecture en phrase pour l'utilisateur (ou null si tout va bien).
 export function messagePourResultat(resultat) {
-  if (resultat === 'sans-voix') return AIDE_INSTALLATION;
+  if (resultat === 'sans-voix') return aideInstallation();
   if (!resultat.startsWith('erreur:')) return null;
   const code = resultat.slice('erreur:'.length);
-  if (code === 'not-allowed') return 'Le navigateur a bloqué la lecture : touche à nouveau un bouton pour la lancer.';
-  if (code === 'language-unavailable' || code === 'voice-unavailable') return AIDE_INSTALLATION;
-  return `La lecture a échoué (${code}).`;
+  if (code === 'not-allowed') return t('Le navigateur a bloqué la lecture : touche à nouveau un bouton pour la lancer.');
+  if (code === 'language-unavailable' || code === 'voice-unavailable') return aideInstallation();
+  return t('La lecture a échoué ({code}).', { code });
 }

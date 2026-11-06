@@ -6,6 +6,7 @@
 // recharger, garder des chemins relatifs, et le bouton Retour d'Android fonctionne tout seul.
 
 import { el, hautDePage, icone, remplacer } from './dom.js';
+import { chargerLangue, langueActive, t, traduire } from './langues.js';
 import { noterUtilisation } from './stockage.js';
 import { piecesRetirees } from './telechargement.js';
 import { appliquerAffichage } from './affichage.js';
@@ -20,10 +21,10 @@ import { afficherReglages } from './ecrans/reglages.js';
 import { afficherScript } from './ecrans/script.js';
 
 const ONGLETS = [
-  { chemin: 'script', libelle: 'Script', icone: 'script', afficher: afficherScript },
-  { chemin: 'mes-repliques', libelle: 'Mes répliques', icone: 'repliques', afficher: afficherMesRepliques },
-  { chemin: 'fiches', libelle: 'Fiches', icone: 'fiches', afficher: afficherFiches },
-  { chemin: 'filage', libelle: 'Filage', icone: 'filage', afficher: afficherFilage },
+  { chemin: 'script', libelle: () => t('Script'), icone: 'script', afficher: afficherScript },
+  { chemin: 'mes-repliques', libelle: () => t('Mes répliques'), icone: 'repliques', afficher: afficherMesRepliques },
+  { chemin: 'fiches', libelle: () => t('Fiches'), icone: 'fiches', afficher: afficherFiches },
+  { chemin: 'filage', libelle: () => t('Filage'), icone: 'filage', afficher: afficherFilage },
 ];
 
 const zoneBarre = document.getElementById('barre');
@@ -33,11 +34,11 @@ const zoneOnglets = document.getElementById('onglets');
 // L'en-tête, comme dans Faktur : le mot-symbole, avec en dessous le nom de la pièce ouverte.
 function afficherBarre(sousTitre, { retour = false, reglages = false } = {}) {
   remplacer(zoneBarre,
-    retour && el('a', { className: 'icon-btn', href: '#/', 'aria-label': 'Retour aux pièces' }, icone('retour')),
+    retour && el('a', { className: 'icon-btn', href: '#/', 'aria-label': t('Retour aux pièces') }, icone('retour')),
     el('a', { className: 'brand', href: '#/' },
       el('strong', { className: 'wordmark' }, 'replik'),
       sousTitre && el('small', {}, sousTitre)),
-    reglages && el('a', { className: 'icon-btn', href: '#/reglages', 'aria-label': 'Réglages' }, icone('reglages')),
+    reglages && el('a', { className: 'icon-btn', href: '#/reglages', 'aria-label': t('Réglages') }, icone('reglages')),
   );
 }
 
@@ -48,13 +49,15 @@ function afficherOnglets(piece, actif) {
   if (!piece) return;
   const base = `#/piece/${encodeURIComponent(piece.id)}`;
   // On garde les mêmes éléments d'un écran à l'autre : sans cela, la couleur et le léger
-  // soulèvement de l'onglet actif sauteraient au lieu de s'animer.
-  if (base !== baseOnglets) {
-    baseOnglets = base;
+  // soulèvement de l'onglet actif sauteraient au lieu de s'animer. Sauf si la langue change.
+  const version = `${base}/${langueActive()}`;
+  if (version !== baseOnglets) {
+    baseOnglets = version;
+    zoneOnglets.setAttribute('aria-label', t('Sections de la pièce'));
     remplacer(zoneOnglets, ONGLETS.map((onglet) => el('a', {
       className: 'tab',
       href: `${base}/${onglet.chemin}`,
-    }, icone(onglet.icone), el('span', {}, onglet.libelle))));
+    }, icone(onglet.icone), el('span', {}, onglet.libelle()))));
   }
   ONGLETS.forEach((onglet, rang) => {
     const lien = zoneOnglets.children[rang];
@@ -79,7 +82,7 @@ async function router() {
   const attente = setTimeout(() => {
     if (moi !== numeroAffichage) return;
     zoneEcran.replaceChildren(el('div', { className: 'ecran-contenu' },
-      el('div', { className: 'card vide chargement' }, el('p', {}, 'Chargement...'))));
+      el('div', { className: 'card vide chargement' }, el('p', {}, t('Chargement...')))));
   }, 150);
 
   const morceaux = location.hash.replace(/^#\/?/, '').split('/');
@@ -96,13 +99,13 @@ async function router() {
     const onglet = ONGLETS.find((o) => o.chemin === morceaux[2]) ?? ONGLETS[0];
     if (piece) {
       noterUtilisation(piece.id); // pour la remonter en haut de la liste des pièces
-      afficherBarre(piece.titre_fr, { retour: true, reglages: true });
+      afficherBarre(traduire(piece, 'titre_fr'), { retour: true, reglages: true });
       afficher = onglet.afficher;
       ongletActif = onglet.chemin;
     } else {
       // Par exemple un favori vers une pièce retirée depuis.
-      afficherBarre('Pièce introuvable', { retour: true });
-      afficher = (racine) => racine.append(el('p', { className: 'vide' }, "Cette pièce n'est plus sur ce téléphone."));
+      afficherBarre(t('Pièce introuvable'), { retour: true });
+      afficher = (racine) => racine.append(el('p', { className: 'vide' }, t("Cette pièce n'est plus sur ce téléphone.")));
     }
   } else {
     afficherBarre(null, { reglages: true });
@@ -153,7 +156,7 @@ function enregistrerServiceWorker() {
       type: 'button',
       className: 'btn bandeau-maj',
       onclick: () => location.reload(),
-    }, 'Nouvelle version prête : toucher pour recharger');
+    }, t('Nouvelle version prête : toucher pour recharger'));
     document.body.append(bandeau);
   });
 }
@@ -163,6 +166,7 @@ function enregistrerServiceWorker() {
 // Sur Chrome, une lecture peut survivre à un rechargement de page : on repart du silence.
 if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
+await chargerLangue(); // avant tout affichage : le premier écran est déjà dans la bonne langue
 appliquerAffichage();
 voixPretes();
 enregistrerServiceWorker();
@@ -174,7 +178,7 @@ navigator.storage?.persist?.();
 function changerEcran() {
   router().catch((erreur) => {
     console.error(erreur);
-    zoneEcran.replaceChildren(el('p', { className: 'vide' }, `Cet écran n'a pas pu s'afficher : ${erreur.message}`));
+    zoneEcran.replaceChildren(el('p', { className: 'vide' }, t("Cet écran n'a pas pu s'afficher : {erreur}", { erreur: erreur.message })));
   });
 }
 

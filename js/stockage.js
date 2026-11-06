@@ -23,6 +23,7 @@ function ecrire(cle, valeur) {
 
 const REGLAGES_PAR_DEFAUT = {
   vitesse: 0.9,
+  langue: null, // null = la langue du téléphone
   voix: null, // null = choix automatique
   lireDidascalies: false,
   voixEnregistrees: true, // les voix par rôle des pièces fournies, plutôt que celle du téléphone
@@ -99,6 +100,8 @@ export function enregistrerPiecesImportees(pieces) {
 }
 
 // ---- Sauvegarde : toutes nos données d'un coup, sans le préfixe ----
+// (Les messages d'erreur de ce fichier sont traduits au moment de les afficher : langues.js a besoin
+// de ce fichier pour lire le réglage de langue, il ne peut donc pas être importé ici.)
 
 export function toutesLesDonnees() {
   const donnees = {};

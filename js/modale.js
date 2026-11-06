@@ -2,6 +2,7 @@
 // confirm() du navigateur (même principe que dans Faktur), et les petits menus.
 
 import { el } from './dom.js';
+import { t } from './langues.js';
 
 // Ouvre une feuille et renvoie la fonction qui la referme.
 // actions reçoit cette même fonction, pour que ses boutons puissent refermer la feuille.
@@ -48,7 +49,7 @@ export function ouvrirFeuille({ titre, corps, actions, surFermeture }) {
 }
 
 // Renvoie une promesse : on écrit « if (await confirmer({...})) ... », et le code attend la réponse.
-export function confirmer({ titre, message, oui = 'Confirmer', non = 'Annuler' }) {
+export function confirmer({ titre, message, oui = t('Confirmer'), non = t('Annuler') }) {
   return new Promise((resolve) => {
     let accepte = false; // reste faux si on referme autrement qu'avec le bouton « oui »
     ouvrirFeuille({

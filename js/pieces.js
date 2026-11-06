@@ -1,5 +1,6 @@
 // Trouver les pièces et en extraire ce dont les écrans ont besoin.
 
+import { t } from './langues.js';
 import { validerPiece } from './validation.js';
 import { texteAParler } from './texte.js';
 import {
@@ -16,7 +17,7 @@ async function chargerFournies() {
   if (memoFournies) return memoFournies;
 
   const reponse = await fetch('pieces/index.json');
-  if (!reponse.ok) throw new Error('la liste des pièces est introuvable.');
+  if (!reponse.ok) throw new Error(t('la liste des pièces est introuvable.'));
   const fichiers = await reponse.json();
 
   const pieces = [];
@@ -24,7 +25,7 @@ async function chargerFournies() {
   for (const fichier of fichiers) {
     try {
       const reponsePiece = await fetch(`pieces/${fichier}`);
-      if (!reponsePiece.ok) throw new Error('fichier introuvable.');
+      if (!reponsePiece.ok) throw new Error(t('fichier introuvable.'));
       const piece = await reponsePiece.json();
       const problemes = validerPiece(piece);
       if (problemes.length > 0) throw new Error(problemes[0]);

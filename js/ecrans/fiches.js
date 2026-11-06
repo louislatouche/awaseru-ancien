@@ -5,6 +5,7 @@ import {
   creerAvisEnchainement, creerAvisSansSelection, creerAvisVoix, creerBascule, creerChoixUnique,
   creerInterrupteurs, creerReplique, creerTitreVue, lireReplique,
 } from '../affichage.js';
+import { t } from '../langues.js';
 import { enchainementsDe, lignesDe, signalDe } from '../pieces.js';
 import { changerStatut, lireSelection, lireStatuts } from '../stockage.js';
 
@@ -37,17 +38,17 @@ export function afficherFiches(racine, piece) {
     let seulementARevoir = false;
 
     remplacer(racine,
-      creerTitreVue('Fiches', el('span', { className: 'pill pill--ok' }, `${miennes.length} ${miennes.length > 1 ? 'répliques' : 'réplique'}`)),
+      creerTitreVue(t('Fiches'), el('span', { className: 'pill pill--ok' }, t(miennes.length > 1 ? '{n} répliques' : '{n} réplique', { n: miennes.length }))),
       creerAvisVoix(piece),
       el('section', { className: 'card pile' },
-        el('p', { className: 'eyebrow' }, 'Ordre'),
+        el('p', { className: 'eyebrow' }, t('Ordre')),
         creerChoixUnique([
-          { valeur: false, libelle: "Dans l'ordre" },
-          { valeur: true, libelle: 'Mélangées' },
+          { valeur: false, libelle: t("Dans l'ordre") },
+          { valeur: true, libelle: t('Mélangées') },
         ], false, (valeur) => { melangees = valeur; }),
-        el('p', { className: 'eyebrow' }, 'Répliques'),
+        el('p', { className: 'eyebrow' }, t('Répliques')),
         el('div', { className: 'chips' },
-          creerBascule(`Seulement les À revoir (${aRevoir.length})`, false, (actif) => { seulementARevoir = actif; }, {
+          creerBascule(t('Seulement les À revoir ({n})', { n: aRevoir.length }), false, (actif) => { seulementARevoir = actif; }, {
             desactive: aRevoir.length === 0,
           }))),
       // Ce bouton est indispensable : le navigateur n'accepte de parler qu'après un geste de l'utilisateur.
@@ -58,7 +59,7 @@ export function afficherFiches(racine, piece) {
           const base = seulementARevoir ? aRevoir : miennes;
           lancer(melangees ? melanger(base) : base);
         },
-      }, 'Commencer'),
+      }, t('Commencer')),
     );
     cascade(racine);
   }
@@ -90,8 +91,8 @@ export function afficherFiches(racine, piece) {
 
       // On ne peut s'évaluer qu'après avoir vu ou entendu la réplique.
       const boutonsNote = el('div', { className: 'boutons boutons-apparition', hidden: true },
-        el('button', { type: 'button', className: 'btn', onclick: () => noter(ligne, 'su') }, 'Je savais'),
-        el('button', { type: 'button', className: 'btn btn--muted', onclick: () => noter(ligne, 'a_revoir') }, 'À revoir'));
+        el('button', { type: 'button', className: 'btn', onclick: () => noter(ligne, 'su') }, t('Je savais')),
+        el('button', { type: 'button', className: 'btn btn--muted', onclick: () => noter(ligne, 'a_revoir') }, t('À revoir')));
 
       const boutonVoir = el('button', {
         type: 'button',
@@ -102,18 +103,18 @@ export function afficherFiches(racine, piece) {
           boutonsNote.hidden = false;
           carteMoi.scrollIntoView({ block: 'center' }); // la carte vient de grandir
         },
-      }, 'Voir');
+      }, t('Voir'));
 
       remplacer(racine,
-        el('p', { className: 'eyebrow fiche-compteur' }, `Fiche ${position + 1} sur ${paquet.length}`),
+        el('p', { className: 'eyebrow fiche-compteur' }, t('Fiche {position} sur {total}', { position: position + 1, total: paquet.length })),
         creerAvisEnchainement(piece, ligne, enchainementsDe(lignes, index, selection)),
         el('div', { className: 'ligne-titre' },
-          el('h2', { className: 'titre-section' }, 'Ton signal'),
-          signal && el('button', { type: 'button', className: 'btn-ghost btn-petit', onclick: () => lireReplique(signal) }, 'Réécouter')),
+          el('h2', { className: 'titre-section' }, t('Ton signal')),
+          signal && el('button', { type: 'button', className: 'btn-ghost btn-petit', onclick: () => lireReplique(signal) }, t('Réécouter'))),
         signal
           ? creerReplique(signal, piece, { mienne: selection.has(signal.numero), statut: lireStatuts(piece.id)[signal.numero] })
-          : el('p', { className: 'avis' }, 'Début de la pièce : pas de réplique avant la tienne.'),
-        el('h2', { className: 'titre-section' }, 'À toi'),
+          : el('p', { className: 'avis' }, t('Début de la pièce : pas de réplique avant la tienne.')),
+        el('h2', { className: 'titre-section' }, t('À toi')),
         carteMoi,
         creerInterrupteurs(),
         // Collés en bas de l'écran : on répète le téléphone à la main, sans avoir à faire défiler.
@@ -127,7 +128,7 @@ export function afficherFiches(racine, piece) {
                 boutonsNote.hidden = false;
                 lireReplique(ligne);
               },
-            }, 'Écouter ma réplique')),
+            }, t('Écouter ma réplique'))),
           boutonsNote),
       );
       // Passer à la fiche suivante : un fondu court, comme les étapes de Faktur.
@@ -143,15 +144,19 @@ export function afficherFiches(racine, piece) {
     const nbSues = resultats.su.length;
     const nbARevoir = resultats.a_revoir.length;
     remplacer(racine,
-      creerTitreVue('Série terminée'),
+      creerTitreVue(t('Série terminée')),
       el('section', { className: 'card' },
-        el('p', {}, `${total} ${total > 1 ? 'fiches' : 'fiche'} : ${nbSues} ${nbSues > 1 ? 'sues' : 'sue'}, ${nbARevoir} à revoir.`)),
+        el('p', {}, t('{fiches} : {sues}, {aRevoir} à revoir.', {
+          fiches: t(total > 1 ? '{n} fiches' : '{n} fiche', { n: total }),
+          sues: t(nbSues > 1 ? '{n} sues' : '{n} sue', { n: nbSues }),
+          aRevoir: nbARevoir,
+        }))),
       nbARevoir > 0 && el('button', {
         type: 'button',
         className: 'btn',
         onclick: () => lancer(resultats.a_revoir),
-      }, nbARevoir > 1 ? `Retravailler les ${nbARevoir} à revoir` : 'Retravailler celle à revoir'),
-      el('button', { type: 'button', className: 'btn-ghost', onclick: ecranDepart }, 'Revenir au choix des fiches'),
+      }, nbARevoir > 1 ? t('Retravailler les {n} à revoir', { n: nbARevoir }) : t('Retravailler celle à revoir')),
+      el('button', { type: 'button', className: 'btn-ghost', onclick: ecranDepart }, t('Revenir au choix des fiches')),
     );
     cascade(racine);
     hautDePage();

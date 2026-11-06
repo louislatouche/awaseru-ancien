@@ -8,6 +8,9 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --header-h: 58px;
   --tabbar-h: 64px;
+  /* La place que les barres prennent par-dessus la zone qui défile, en haut et en bas. */
+  --place-haut: calc(var(--header-h) + var(--safe-top));
+  --place-bas: 0px;
   --maxw: 720px;
   --font-wordmark: 'Poppins', 'Segoe UI', sans-serif; /* le mot « replik », comme « faktur » */
   --didascalie: color-mix(in srgb, var(--ink-mute) 70%, var(--ink));
@@ -21,13 +24,18 @@ html {
   overflow-wrap: break-word; /* un mot très long ne doit jamais élargir la page */
 }
 
-/* La page occupe exactement l'écran, en colonne : en-tête, zone qui défile, onglets. */
+/* La page occupe exactement l'écran, en colonne : en-tête, zone qui défile, onglets.
+   Les deux barres sont transparentes, comme sur le site : le contenu doit donc passer dessous.
+   Leur marge négative annule la place qu'elles occupent, et la zone qui défile s'étend sous elles. */
 body {
   height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
+
+/* Les onglets ne sont là que dans une pièce : ailleurs, rien à laisser libre en bas. */
+body:has(.tabbar:not([hidden])) { --place-bas: calc(var(--tabbar-h) + var(--safe-bottom)); }
 
 /* Fraunces et Karla n'ont pas de caractères japonais : le japonais passe par la police du système.
    On impose la famille du texte courant, y compris dans les titres, pour un rendu lisible partout. */
@@ -40,11 +48,14 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
-  height: calc(var(--header-h) + var(--safe-top));
+  height: var(--place-haut);
+  margin-bottom: calc(-1 * var(--place-haut));
   padding: var(--safe-top) 8px 0;
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
-  backdrop-filter: saturate(1.2) blur(10px);
-  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  /* Une barre translucide n'a pas besoin de peser : seule la partie courte de l'ombre des cartes. */
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 5%, transparent);
 }
 
 .brand {
@@ -95,6 +106,10 @@ body {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden auto;
+  /* Le contenu commence sous l'en-tête et finit au-dessus des onglets, mais il défile derrière eux.
+     scroll-padding : scrollIntoView centre une réplique dans la partie vraiment dégagée. */
+  padding-block: var(--place-haut) var(--place-bas);
+  scroll-padding-block: var(--place-haut) var(--place-bas);
   /* Évite qu'un glissement vers le bas recharge la page en plein filage. */
   overscroll-behavior: contain;
   outline: none;
@@ -121,10 +136,13 @@ body {
   z-index: 30;
   display: flex;
   align-items: stretch;
-  height: calc(var(--tabbar-h) + var(--safe-bottom));
+  height: var(--place-bas);
+  margin-top: calc(-1 * var(--place-bas));
   padding-bottom: var(--safe-bottom);
-  background: var(--surface);
-  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 -2px 8px color-mix(in srgb, var(--ink) 5%, transparent); /* la même, vers le haut */
 }
 
 .tab {
@@ -304,6 +322,7 @@ rt { font-size: 0.55em; color: var(--ink-soft); }
 .acc-header { padding: 12px 20px; font-size: 17px; }
 .acc-pad { display: flex; flex-direction: column; gap: 10px; padding: 0 20px 18px; }
 .acc-pad p { color: var(--ink-soft); font-size: 15px; line-height: 1.6; }
+.lien-role { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 
 .scene { display: flex; flex-direction: column; gap: 10px; }
 
@@ -351,7 +370,7 @@ button.replique:active { transform: scale(0.985); }
 /* ---- Mes répliques ---- */
 .tete-collante {
   position: sticky;
-  top: 0;
+  top: 0; /* compté depuis l'intérieur de la marge de .app-main : donc juste sous l'en-tête */
   z-index: 2;
   margin: -20px -20px 0;
   padding: 14px 20px;
@@ -375,7 +394,6 @@ button.replique:active { transform: scale(0.985); }
 .ligne-role + .ligne-role { padding-top: 10px; border-top: 1px solid var(--border); }
 .role-total { color: var(--ink-soft); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .role-note { margin-inline-start: 38px; color: var(--ink-soft); font-size: 14px; line-height: 1.4; }
-.role-lien { display: inline-flex; align-items: center; min-height: 44px; margin-inline-start: 38px; color: var(--accent-dark); font-size: 15px; font-weight: 700; text-decoration: underline; }
 
 /* La grille de numéros, et la zone où le pincement remplace le zoom du navigateur. */
 .zone-pincement { touch-action: pan-y; }
@@ -411,7 +429,7 @@ button.replique:active { transform: scale(0.985); }
 /* sticky : les commandes restent collées en bas de la zone qui défile. */
 .commandes {
   position: sticky;
-  bottom: 0;
+  bottom: 0; /* compté depuis l'intérieur de la marge de .app-main : donc juste au-dessus des onglets */
   z-index: 2;
   display: flex;
   flex-direction: column;
@@ -429,6 +447,7 @@ button.replique:active { transform: scale(0.985); }
 .champ input[type="range"] { width: 100%; height: 44px; accent-color: var(--accent); }
 
 .ligne-remise { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.credit { display: flex; flex-direction: column; gap: 2px; }
 .version { color: var(--ink-mute); font-size: 13px; text-align: center; }
 
 /* ---- Les animations : les mêmes que Faktur et SessionConnect ----
