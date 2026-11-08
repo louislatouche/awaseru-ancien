@@ -1,12 +1,14 @@
 // Écran 2 : la pièce complète, scène par scène. Toucher une réplique lance la lecture à voix haute :
 // celle-ci, puis toutes les suivantes, l'une après l'autre, jusqu'à la fin de la pièce.
+// Toucher la réplique lue la met en pause, puis la reprend ; garder le doigt sur une carte arrête tout.
 
 import { cascade, el, icone, remplacer } from '../dom.js';
 import {
   creerAvisVoix, creerInterrupteurs, creerReplique, creerTitreScene, libelleLien, lireReplique, suivreLecture,
 } from '../affichage.js';
 import { t, traduire } from '../langues.js';
-import { arreterVoix } from '../voix.js';
+import { arreterVoix, mettreEnPauseVoix, reprendreVoix } from '../voix.js';
+import { brancherGestes } from '../gestes.js';
 import { lignesDe } from '../pieces.js';
 import { creerJaponais, texteAParler } from '../texte.js';
 import { lireReglages, lireSelection, lireStatuts } from '../stockage.js';
@@ -24,16 +26,36 @@ export function afficherScript(racine, piece) {
   const lignes = lignesDe(piece);
   const cartes = new Map(); // chaque réplique -> sa carte, pour avancer de carte en carte
 
-  // La carte en train d'être lue, pour la mettre en évidence et pouvoir l'arrêter.
+  // La carte en train d'être lue, pour la mettre en évidence et pouvoir la piloter.
   let carteActive = null;
+  let etat = 'arret'; // 'arret', 'lecture' ou 'pause'
+  let temoin = null;  // la petite icône lecture / pause dans l'en-tête de la carte lue
   // Le jeton change à chaque arrêt ou nouveau départ : une lecture en continu abandonnée
   // le voit en se réveillant, et s'arrête d'elle-même au lieu d'enchaîner.
   let jeton = 0;
   let verrouEcran = null;
 
+  // L'icône montre ce que fera le prochain toucher : ⏸ pendant la lecture, ▶ pendant la pause.
+  function dessinerTemoin() {
+    if (temoin) remplacer(temoin, icone(etat === 'lecture' ? 'pause' : 'lecture'));
+  }
+
+  function activer(carte) {
+    eteindre();
+    carteActive = carte;
+    etat = 'lecture';
+    carte.classList.add('en-lecture');
+    temoin = el('span', { className: 'temoin-lecture', 'aria-hidden': 'true' });
+    carte.querySelector('.replique-tete')?.append(temoin);
+    dessinerTemoin();
+  }
+
   function eteindre() {
     carteActive?.classList.remove('en-lecture');
+    temoin?.remove();
+    temoin = null;
     carteActive = null;
+    etat = 'arret';
   }
 
   // Garder l'écran allumé pendant la lecture : sinon le téléphone se verrouille au bout d'une
@@ -66,9 +88,7 @@ export function afficherScript(racine, piece) {
     for (let rang = depart; rang < lignes.length; rang += 1) {
       const ligne = lignes[rang];
       const carte = cartes.get(ligne);
-      eteindre();
-      carteActive = carte;
-      carte.classList.add('en-lecture');
+      activer(carte);
       if (rang === depart) garderEcranAllume();
       // L'écran suit la lecture (la première carte, on vient de la toucher : elle est déjà visible).
       else carte.scrollIntoView({ block: 'center' });
@@ -85,22 +105,45 @@ export function afficherScript(racine, piece) {
       if (moi !== jeton) return; // arrêtée, ou une autre réplique a été touchée entre-temps
       if (resultat !== 'fini') break; // lecture impossible (lireReplique l'a déjà signalé)
       await attendre(SILENCE_ENTRE_REPLIQUES);
+      // Mise en pause entre deux répliques : on attend la reprise avant de passer à la suivante.
+      while (etat === 'pause' && moi === jeton) await attendre(150);
       if (moi !== jeton) return;
     }
     eteindre();
     libererEcran();
   }
 
-  function surTouche(evenement, ligne) {
-    // Toucher la réplique en cours de lecture arrête tout. Une autre : la lecture repart de celle-là.
-    if (evenement.currentTarget === carteActive) arreter();
-    else lireAPartirDe(lignes.indexOf(ligne));
+  // Pause : avec les voix enregistrées, la réplique garde sa place. La voix du téléphone, elle,
+  // ne sait pas faire de pause sur Android : la lecture s'arrête, et un nouveau toucher repart
+  // du début de la réplique.
+  function mettreEnPause() {
+    mettreEnPauseVoix();
+    etat = 'pause';
+    dessinerTemoin();
+    libererEcran();
   }
 
-  // Quitter l'app ou éteindre l'écran arrête la lecture, comme le filage se met en pause :
-  // elle ne doit pas continuer dans une poche.
+  function reprendre() {
+    etat = 'lecture';
+    // Un fichier mis en pause repart d'où il était. Entre deux répliques, rien à relancer :
+    // la boucle de lireAPartirDe voit la reprise et passe d'elle-même à la suivante.
+    reprendreVoix();
+    dessinerTemoin();
+    garderEcranAllume();
+  }
+
+  function surTouche(evenement, ligne) {
+    // Une autre réplique que celle en cours : la lecture repart de celle-là.
+    if (evenement.currentTarget !== carteActive) lireAPartirDe(lignes.indexOf(ligne));
+    // La réplique en cours : pause, puis reprise, comme le bouton lecture des fiches.
+    else if (etat === 'lecture') mettreEnPause();
+    else reprendre();
+  }
+
+  // Quitter l'app ou éteindre l'écran met la lecture en pause, comme le filage :
+  // elle ne doit pas continuer dans une poche, mais on doit pouvoir la reprendre.
   function surVisibilite() {
-    if (document.hidden && carteActive) arreter();
+    if (document.hidden && etat === 'lecture') mettreEnPause();
   }
   document.addEventListener('visibilitychange', surVisibilite);
 
@@ -143,6 +186,8 @@ export function afficherScript(racine, piece) {
           statut: statuts[ligne.numero],
           surTouche: (evenement) => surTouche(evenement, ligne),
         });
+        // Garder le doigt sur une carte arrête toute la lecture, comme sur le bouton lecture.
+        brancherGestes(carte, { maintenir: () => { if (carteActive) arreter(); } });
         cartes.set(ligne, carte);
         return carte;
       }))),
