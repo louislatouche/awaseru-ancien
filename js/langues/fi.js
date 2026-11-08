@@ -146,7 +146,6 @@ export default {
   Crédits: 'Tekijät',
   'Replik, version {n}': 'Replik, versio {n}',
   'Navigation': 'Navigointi',
-  "Mode d'emploi": 'Käyttöohje',
   'Affichage': 'Näyttö',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'Kaikille näytelmille. Jokainen näytelmä voi pitää oman valintansa omista näkymistään.',
   'Icônes': 'Kuvakkeet',

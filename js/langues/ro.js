@@ -145,7 +145,6 @@ export default {
   Crédits: 'Credite',
   'Replik, version {n}': 'Replik, versiunea {n}',
   'Navigation': 'Navigare',
-  "Mode d'emploi": 'Instrucțiuni',
   'Affichage': 'Afișare',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'Pentru toate piesele. Fiecare piesă își poate păstra propria alegere, din ecranele ei.',
   'Icônes': 'Pictograme',

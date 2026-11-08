@@ -11,6 +11,7 @@ import { toutesLesPieces, trierParUtilisation } from '../pieces.js';
 import { texteBrut } from '../texte.js';
 import { changerReglage, effacerProgression, lireReglages, remplacerToutesLesDonnees } from '../stockage.js';
 import { voixJaponaises, voixPretes } from '../voix.js';
+import { nouvelleVersionEnAttente, proposerRechargement, versionEnCours } from '../version.js';
 
 const PHRASE_ESSAI = { texte: 'むかしむかし、あるところに、[優|やさ]しいおじいさんがいました。' };
 
@@ -94,7 +95,6 @@ function creerVoixEnregistrees() {
 }
 
 // Comment on commande les fiches et le filage : des boutons (avec ou sans leur nom), ou des gestes.
-// Le mode d'emploi, en images, montre ce que fait chaque choix.
 function creerNavigation() {
   return el('section', { className: 'card pile' },
     el('h2', { className: 'titre-section' }, t('Navigation')),
@@ -104,8 +104,7 @@ function creerNavigation() {
       { valeur: 'gestes', libelle: t('Gestes') },
     ], lireReglages().navigation, (choix) => {
       changerReglage('navigation', choix);
-    }),
-    el('a', { className: 'btn-ghost', href: '#/mode-emploi' }, t("Mode d'emploi")));
+    }));
 }
 
 // Furigana et traduction pour toutes les pièces. Sur les écrans d'une pièce, les mêmes
@@ -257,11 +256,17 @@ function creerMiseAJour() {
       try {
         const inscription = await navigator.serviceWorker.getRegistration();
         await inscription.update(); // relit sw.js sur le site et le compare à celui du téléphone
-        // installing : le fichier a changé, le navigateur commence à copier la nouvelle version.
-        // Une fois la copie finie, app.js affiche le bandeau « Nouvelle version prête ».
-        message = inscription.installing || inscription.waiting
-          ? t('Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.')
-          : t('Tu as déjà la dernière version.');
+        if (inscription.installing || inscription.waiting) {
+          // Le fichier a changé : le navigateur copie la nouvelle version. Une fois la copie finie,
+          // app.js affiche le bandeau « Nouvelle version prête ».
+          message = t('Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.');
+        } else if (await nouvelleVersionEnAttente()) {
+          // Déjà téléchargée, mais cette page tourne encore avec l'ancien code : le bandeau suffit.
+          message = null;
+          proposerRechargement();
+        } else {
+          message = t('Tu as déjà la dernière version.');
+        }
       } catch {
         message = t('Impossible de vérifier : es-tu bien connecté à Internet ?');
       }
@@ -269,7 +274,7 @@ function creerMiseAJour() {
       await new Promise((resolve) => { setTimeout(resolve, Math.max(0, 1000 - (Date.now() - debut))); });
       bouton.classList.remove('is-syncing');
       enCours = false;
-      signaler(message);
+      if (message) signaler(message);
     },
   }, t('Chercher une mise à jour'));
   return bouton;
@@ -279,13 +284,14 @@ export async function afficherReglages(racine) {
   const { fournies, importees } = await toutesLesPieces();
 
   const version = el('p', { className: 'version' });
-  // Le numéro du cache est le numéro de version : pratique pour vérifier qu'une mise à jour est arrivée.
-  if ('caches' in window) {
-    caches.keys().then((noms) => {
-      const cache = noms.find((nom) => nom.startsWith('replik-v'));
-      if (cache) version.textContent = t('Replik, version {n}', { n: cache.replace('replik-v', '') });
-    });
-  }
+  // La version du code qui tourne vraiment (voir version.js). Si une plus récente est déjà
+  // téléchargée et attend un rechargement, le bandeau le propose.
+  versionEnCours().then((numero) => {
+    if (numero !== null) version.textContent = t('Replik, version {n}', { n: numero });
+  });
+  nouvelleVersionEnAttente().then((enAttente) => {
+    if (enAttente) proposerRechargement();
+  });
 
   remplacer(racine,
     creerTitreVue(t('Réglages')),

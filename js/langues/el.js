@@ -146,7 +146,6 @@ export default {
   Crédits: 'Συντελεστές',
   'Replik, version {n}': 'Replik, έκδοση {n}',
   'Navigation': 'Πλοήγηση',
-  "Mode d'emploi": 'Οδηγίες χρήσης',
   'Affichage': 'Εμφάνιση',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'Για όλα τα έργα. Κάθε έργο μπορεί να κρατά τη δική του επιλογή, από τις οθόνες του.',
   'Icônes': 'Εικονίδια',

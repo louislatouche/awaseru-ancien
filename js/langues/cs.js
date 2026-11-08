@@ -146,7 +146,6 @@ export default {
   Crédits: 'Autoři',
   'Replik, version {n}': 'Replik, verze {n}',
   'Navigation': 'Navigace',
-  "Mode d'emploi": 'Návod',
   'Affichage': 'Zobrazení',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'Pro všechny hry. Každá hra si může na svých obrazovkách nechat vlastní volbu.',
   'Icônes': 'Ikony',

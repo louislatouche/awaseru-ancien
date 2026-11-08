@@ -146,7 +146,6 @@ export default {
   Crédits: 'Készítők',
   'Replik, version {n}': 'Replik, verzió: {n}',
   'Navigation': 'Navigáció',
-  "Mode d'emploi": 'Használati útmutató',
   'Affichage': 'Megjelenítés',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'Minden darabra. Minden darab megtarthatja a saját beállítását a saját képernyőin.',
   'Icônes': 'Ikonok',

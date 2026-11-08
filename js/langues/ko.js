@@ -145,7 +145,6 @@ export default {
   Crédits: '크레딧',
   'Replik, version {n}': 'Replik 버전 {n}',
   'Navigation': '탐색',
-  "Mode d'emploi": '사용법',
   'Affichage': '표시',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': '모든 작품에 적용돼요. 작품마다 그 작품 화면에서 따로 정할 수 있어요.',
   'Icônes': '아이콘',

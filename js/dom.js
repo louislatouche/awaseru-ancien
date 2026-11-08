@@ -43,19 +43,10 @@ const ICONES = {
   pause: 'M7 5.5h3v13H7zM14 5.5h3v13h-3z',
   su: 'M5 12.5l4.5 4.5L19 7.5',
   revoir: 'M12 4A8 8 0 1 1 4.48 9.26M12 4l2.6-2.6M12 4l2.6 2.6',
-  stop: 'M6.5 6.5h11v11h-11z',
-  // Les gestes, pour le mode d'emploi : toucher, garder le doigt, glisser, pincer.
-  toucher: 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2',
-  maintenir: 'M12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16z',
-  'glisser-droite': 'M4 12h15M13 6l6 6-6 6',
-  'glisser-gauche': 'M20 12H5M11 6l-6 6 6 6',
-  pincer: 'M3 3l7 7M10 5v5H5M21 21l-7-7M14 19v-5h5',
-  grille: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
-  suite: 'M5 12h12M13 8l4 4-4 4', // la flèche entre un geste et son effet
 };
 
-// Lecture, pause et stop sont remplis : à petite taille, on les reconnaît mieux que de simples contours.
-const ICONES_PLEINES = new Set(['lecture', 'pause', 'stop']);
+// Lecture et pause sont remplies : à petite taille, on les reconnaît mieux que de simples contours.
+const ICONES_PLEINES = new Set(['lecture', 'pause']);
 
 // Un dessin SVG n'est pas du HTML ordinaire : createElement ne suffit pas, il faut indiquer
 // son « espace de noms », sinon le navigateur crée un élément qu'il ne sait pas dessiner.

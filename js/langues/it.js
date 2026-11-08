@@ -145,7 +145,6 @@ export default {
   Crédits: 'Crediti',
   'Replik, version {n}': 'Replik, versione {n}',
   'Navigation': 'Navigazione',
-  "Mode d'emploi": 'Istruzioni',
   'Affichage': 'Visualizzazione',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'Per tutte le opere. Ogni opera può avere la sua scelta, dalle sue schermate.',
   'Icônes': 'Icone',

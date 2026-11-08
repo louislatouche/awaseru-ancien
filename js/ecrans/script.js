@@ -2,7 +2,7 @@
 
 import { cascade, el, icone, remplacer } from '../dom.js';
 import {
-  creerAvisVoix, creerInterrupteurs, creerReplique, creerTitreScene, libelleLien, lireReplique,
+  creerAvisVoix, creerInterrupteurs, creerReplique, creerTitreScene, libelleLien, lireReplique, suivreLecture,
 } from '../affichage.js';
 import { t, traduire } from '../langues.js';
 import { arreterVoix } from '../voix.js';
@@ -18,7 +18,7 @@ export function afficherScript(racine, piece) {
   let boutonActif = null;
 
   function eteindre() {
-    boutonActif?.classList.remove('en-lecture', 'is-syncing');
+    boutonActif?.classList.remove('en-lecture');
     boutonActif = null;
   }
 
@@ -32,8 +32,11 @@ export function afficherScript(racine, piece) {
     }
     eteindre();
     boutonActif = bouton;
-    bouton.classList.add('en-lecture', 'is-syncing');
+    bouton.classList.add('en-lecture');
+    // Le filet de la carte en fait le tour à mesure de la lecture, jusqu'à ce qu'elle s'arrête.
+    const finirFilet = suivreLecture(bouton);
     await lireReplique(ligne);
+    finirFilet();
     // Si on a touché une autre réplique entre-temps, boutonActif a changé : on n'y touche pas.
     if (boutonActif === bouton) eteindre();
   }

@@ -146,7 +146,6 @@ export default {
   Crédits: 'Autorzy',
   'Replik, version {n}': 'Replik, wersja {n}',
   'Navigation': 'Nawigacja',
-  "Mode d'emploi": 'Instrukcja',
   'Affichage': 'Wyświetlanie',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'Dla wszystkich sztuk. Każda sztuka może mieć własny wybór, ustawiany na jej ekranach.',
   'Icônes': 'Ikony',

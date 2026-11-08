@@ -146,7 +146,6 @@ export default {
   Crédits: 'クレジット',
   'Replik, version {n}': 'Replik バージョン {n}',
   'Navigation': 'ナビゲーション',
-  "Mode d'emploi": '使い方',
   'Affichage': '表示',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'すべての作品に適用されます。作品ごとの設定は、その作品の画面で変更できます。',
   'Icônes': 'アイコン',

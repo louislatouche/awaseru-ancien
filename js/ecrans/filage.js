@@ -11,7 +11,7 @@
 import { cascade, definirRetour, el, remplacer } from '../dom.js';
 import {
   audioActif, creerAvisEnchainement, creerAvisVoix, creerBoutonIcone, creerChoixUnique, creerEcoute,
-  creerInterrupteurs, creerReplique, creerTitreScene, creerTitreVue, lireReplique,
+  creerInterrupteurs, creerReplique, creerTitreScene, creerTitreVue, lireReplique, suivreLecture,
 } from '../affichage.js';
 import { t, traduire } from '../langues.js';
 import { enchainementsDe, lignesDe } from '../pieces.js';
@@ -89,7 +89,6 @@ export function afficherFilage(racine, piece) {
       el('button', { type: 'button', className: 'btn', onclick: avancer }, t('Suivant'))));
 
     remplacer(commandes, boutons);
-    carteCourante.classList.toggle('is-syncing', etat === 'lecture');
     // Après les boutons, et pas avant : leur hauteur change, et la carte pourrait se retrouver dessous.
     carteCourante.scrollIntoView({ block: 'center' });
   }
@@ -115,9 +114,7 @@ export function afficherFilage(racine, piece) {
     // Pour ma réplique : une écoute partagée entre le bouton ▶ et la carte, que l'on peut toucher
     // pour la voir, puis pour l'écouter. Une fois passée, la carte reste dans le journal sans réagir.
     // Pendant qu'elle est lue, ma réplique porte l'anneau de lecture, comme celles des autres.
-    ecouteCourante = mienne
-      ? creerEcoute(ligne, { surEtat: (etatEcoute) => carte.classList.toggle('is-syncing', etatEcoute === 'lecture') })
-      : null;
+    ecouteCourante = mienne ? creerEcoute(ligne) : null;
     const ecoute = ecouteCourante;
     const enCours = () => carte === carteCourante && etat === 'a-moi';
     const carte = creerReplique(ligne, piece, {
@@ -130,6 +127,7 @@ export function afficherFilage(racine, piece) {
         else ecoute.toucher();
       } : null,
     });
+    ecoute?.lierCarte(carte); // quand j'écoute ma réplique, son filet suit la lecture
     // Mode Gestes : un appui long sur ma réplique arrête son écoute (il n'y a pas de bouton pour cela).
     if (mienne && lireReglages().navigation === 'gestes') {
       brancherGestes(carte, { maintenir: () => { if (enCours()) ecoute.arreter(); } });
@@ -162,7 +160,10 @@ export function afficherFilage(racine, piece) {
 
     // texteAParler vide : la ligne n'est qu'une didascalie, on laisse le temps de la lire.
     const aDire = texteAParler(ligne.texte, lireReglages().lireDidascalies);
+    // Pendant que l'app lit, le filet de la carte en fait le tour à mesure de la lecture.
+    const finirFilet = aDire ? suivreLecture(carteCourante) : null;
     const resultat = aDire ? await lireReplique(ligne) : (await attendre(DUREE_LIGNE_MUETTE), 'fini');
+    finirFilet?.();
     if (moi !== jeton) return;
 
     if (resultat === 'fini') {

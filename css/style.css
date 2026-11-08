@@ -215,10 +215,6 @@ body:has(.tabbar:not([hidden])) { --place-bas: calc(var(--tabbar-h) + var(--safe
 .bouton-icone .label { font-size: 12px; font-weight: 700; line-height: 1.1; }
 .bouton-icone.avec-label .progression { bottom: 4px; }
 
-/* Le bouton ▶ de « Ton signal », à côté du titre : un carré, pas toute la largeur. */
-.bouton-signal { flex: none; width: auto; min-width: 56px; min-height: 44px; padding-inline: 14px; }
-.bouton-signal.avec-label { min-height: 52px; }
-
 /* Le trait au pied du bouton ▶ : jusqu'où la réplique a été lue. */
 .progression {
   position: absolute;
@@ -389,6 +385,7 @@ rt { font-size: 0.55em; color: var(--ink-soft); }
 .scene-fr { color: var(--ink-soft); font-size: 17px; }
 
 .replique {
+  position: relative; /* repère pour le filet de lecture */
   display: block;
   width: 100%;
   padding: 14px 16px;
@@ -413,6 +410,40 @@ button.replique:disabled { cursor: default; }
    profonde suffit à la distinguer, puisqu'elle est au centre de l'écran. */
 .replique.en-lecture, .replique.courante:not(.mienne) { background: var(--accent-soft); }
 .replique.en-lecture, .replique.courante { box-shadow: var(--shadow-soft); }
+
+/* Le filet de lecture : un trait sauge qui fait le tour de la carte à mesure qu'elle est lue
+   (voir dessinerFilet dans affichage.js). Les rectangles se dessinent ici, en CSS, pour suivre
+   la taille de la carte ; le JavaScript ne règle que la part du tour déjà parcourue. */
+.filet-lecture {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .25s;
+}
+
+.avec-filet > .filet-lecture { opacity: 1; }
+
+.filet-lecture rect {
+  x: 1.5px;
+  y: 1.5px;
+  width: calc(100% - 3px);
+  height: calc(100% - 3px);
+  rx: calc(var(--radius) - 1.5px);
+  fill: none;
+  stroke-width: 3px;
+}
+
+.filet-lecture .piste { stroke: color-mix(in srgb, var(--accent) 20%, transparent); }
+.filet-lecture .trait-lecture { stroke: var(--accent); stroke-linecap: round; }
+
+/* La petite icône lecture / pause dans l'en-tête de la carte du signal : la carte entière est le bouton. */
+.temoin-lecture { display: flex; margin-inline-start: auto; color: var(--accent-dark); }
+.statut + .temoin-lecture { margin-inline-start: 0; }
+.temoin-lecture svg { width: 20px; height: 20px; }
 
 .replique-tete { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; font-size: 15px; line-height: 1.6; }
 .numero { font-weight: 700; color: var(--accent-dark); font-variant-numeric: tabular-nums; }

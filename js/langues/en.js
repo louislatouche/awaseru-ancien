@@ -145,7 +145,6 @@ export default {
   Crédits: 'Credits',
   'Replik, version {n}': 'Replik, version {n}',
   'Navigation': 'Navigation',
-  "Mode d'emploi": 'User guide',
   'Affichage': 'Display',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'For all plays. Each play can keep its own choice, from its screens.',
   'Icônes': 'Icons',

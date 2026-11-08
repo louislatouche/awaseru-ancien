@@ -135,14 +135,20 @@ export function afficherFiches(racine, piece) {
         boutonRevoir.disabled = false;
       };
 
-      // Le signal a le même bouton que ma réplique : lecture, pause, appui long pour arrêter.
-      const ecouteSignal = signal ? creerEcoute(signal, { libelle: t('Réécouter'), classe: 'bouton-signal' }) : null;
-
-      const ecoute = creerEcoute(ligne, {
-        surLecture: permettreNote,
-        // Pendant que ma réplique est lue, la carte porte l'anneau de lecture.
-        surEtat: (etat) => carteMoi.classList.toggle('is-syncing', etat === 'lecture'),
+      // Le signal : sa carte elle-même est le bouton lecture. Un toucher lit ou met en pause, un appui
+      // long arrête ; son filet montre où en est la lecture, et une petite icône dit son état.
+      const ecouteSignal = signal ? creerEcoute(signal, { libelle: t('Réécouter') }) : null;
+      const carteSignal = signal && creerReplique(signal, piece, {
+        mienne: selection.has(signal.numero),
+        statut: lireStatuts(piece.id)[signal.numero],
+        surTouche: () => ecouteSignal.toucher(),
       });
+      if (carteSignal) {
+        ecouteSignal.lierCarte(carteSignal, { avecTemoin: true });
+        brancherGestes(carteSignal, { maintenir: ecouteSignal.arreter });
+      }
+
+      const ecoute = creerEcoute(ligne, { surLecture: permettreNote });
 
       function devoiler() {
         carteMoi.classList.remove('est-cachee');
@@ -163,6 +169,8 @@ export function afficherFiches(racine, piece) {
         },
       });
 
+      ecoute.lierCarte(carteMoi); // son filet suit la lecture de ma réplique
+
       const boutonVoir = creerBoutonIcone('voir', t('Voir'), 'btn-ghost', devoiler);
 
       // Mode Gestes : la carte se glisse à droite (je savais) ou à gauche (à revoir), et un appui
@@ -182,12 +190,8 @@ export function afficherFiches(racine, piece) {
       remplacer(racine,
         el('p', { className: 'eyebrow fiche-compteur' }, t('Fiche {position} sur {total}', { position: position + 1, total: paquet.length })),
         creerAvisEnchainement(piece, ligne, enchainementsDe(lignes, index, selection)),
-        el('div', { className: 'ligne-titre' },
-          el('h2', { className: 'titre-section' }, t('Ton signal')),
-          ecouteSignal?.bouton),
-        signal
-          ? creerReplique(signal, piece, { mienne: selection.has(signal.numero), statut: lireStatuts(piece.id)[signal.numero] })
-          : el('p', { className: 'avis' }, t('Début de la pièce : pas de réplique avant la tienne.')),
+        el('h2', { className: 'titre-section' }, t('Ton signal')),
+        carteSignal || el('p', { className: 'avis' }, t('Début de la pièce : pas de réplique avant la tienne.')),
         el('h2', { className: 'titre-section' }, t('À toi')),
         zoneMoi,
         creerInterrupteurs(piece.id),

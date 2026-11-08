@@ -145,7 +145,6 @@ export default {
   Crédits: 'Credits',
   'Replik, version {n}': 'Replik, versie {n}',
   'Navigation': 'Navigatie',
-  "Mode d'emploi": 'Handleiding',
   'Affichage': 'Weergave',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'Voor alle stukken. Elk stuk kan via zijn schermen een eigen keuze houden.',
   'Icônes': 'Pictogrammen',

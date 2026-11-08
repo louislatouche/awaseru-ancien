@@ -145,7 +145,6 @@ export default {
   Crédits: 'Автори',
   'Replik, version {n}': 'Replik, версія {n}',
   'Navigation': 'Навігація',
-  "Mode d'emploi": 'Інструкція',
   'Affichage': 'Відображення',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'Для всіх п’єс. Кожна п’єса може мати власний вибір на своїх екранах.',
   'Icônes': 'Значки',

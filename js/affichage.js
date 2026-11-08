@@ -127,32 +127,33 @@ export function creerBoutonIcone(nomIcone, libelle, classe, onclick, mot = libel
   }, icone(nomIcone), ecrit && el('span', { className: 'label' }, mot));
 }
 
-// L'écoute d'une réplique : la mienne (partagée par le bouton ▶ et par sa carte), ou mon signal.
+// L'écoute d'une réplique : la mienne (bouton ▶ et carte), ou mon signal (sa carte seulement).
 // Un toucher lance la lecture, le suivant la met en pause, le suivant la reprend là où elle était.
-// Un appui long sur le bouton arrête tout et revient au début. Un trait au pied du bouton montre
-// où en est la lecture (seulement avec les voix enregistrées : la voix du téléphone ne le dit pas).
+// Un appui long arrête tout et revient au début. Un trait au pied du bouton, et le filet de la
+// carte, montrent où en est la lecture (avec les voix enregistrées : la voix du téléphone ne le dit pas).
 //
-// Renvoie { bouton, toucher, arreter } : le bouton à placer dans la page, et de quoi piloter la
-// lecture depuis la carte (toucher, et arreter pour l'appui long du mode Gestes).
+// Renvoie { bouton, toucher, arreter, lierCarte } : le bouton à placer dans la page, et de quoi
+// piloter la lecture depuis la carte (toucher, et arreter pour l'appui long).
+// lierCarte(carte) : le filet de la carte suit alors la lecture (voir dessinerFilet). Avec
+// { avecTemoin: true }, une petite icône lecture / pause s'affiche aussi dans son en-tête.
 // surLecture est appelée à chaque lancement (les fiches s'en servent pour permettre l'évaluation).
-// surEtat reçoit chaque changement ('arret', 'lecture', 'pause') : la carte s'en sert pour
-// afficher l'anneau de lecture, seul signe visible quand il n'y a pas de bouton.
-// libelle : le nom du bouton à l'arrêt (le signal des fiches dit « Réécouter ») ; classe : une classe en plus.
-export function creerEcoute(ligne, {
-  surLecture = null, surEtat = null, libelle: libelleArret = t('Écouter ma réplique'), classe = '',
-} = {}) {
+// libelle : le nom du bouton à l'arrêt.
+export function creerEcoute(ligne, { surLecture = null, libelle: libelleArret = t('Écouter ma réplique') } = {}) {
   let etat = 'arret'; // 'arret', 'lecture' ou 'pause'
   // Le jeton change à chaque arrêt voulu : la fin d'une lecture abandonnée ne touche plus au bouton.
   let jeton = 0;
+  let carte = null;   // la carte liée, dont le filet suit la lecture
+  let temoin = null;  // la petite icône dans l'en-tête de la carte
 
   const ecrit = avecLabels();
   const trait = el('span', { className: 'progression', hidden: true });
-  const bouton = el('button', { type: 'button', className: `btn-ghost bouton-icone${ecrit ? ' avec-label' : ''} ${classe}` });
+  const bouton = el('button', { type: 'button', className: `btn-ghost bouton-icone${ecrit ? ' avec-label' : ''}` });
 
   function majTrait() {
     const avance = progressionVoix();
     trait.hidden = etat === 'arret' || avance === null;
     trait.style.setProperty('--p', `${(avance ?? 0) * 100}%`);
+    if (carte) dessinerFilet(carte, etat);
   }
 
   // Pendant la lecture, le trait avance à chaque image affichée par l'écran.
@@ -161,15 +162,16 @@ export function creerEcoute(ligne, {
     if (etat === 'lecture') requestAnimationFrame(suivre);
   }
 
-  function dessiner(annoncer = true) {
+  function dessiner() {
     const libelle = { arret: libelleArret, lecture: t('Pause'), pause: t('Reprendre') }[etat];
     // Sous l'icône, le mot court : « Écouter » tient dans un quart d'écran, pas la phrase entière.
     const mot = etat === 'arret' ? t('Écouter') : libelle;
+    const nomIcone = etat === 'lecture' ? 'pause' : 'lecture';
     bouton.title = libelle;
     bouton.setAttribute('aria-label', libelle);
-    remplacer(bouton, icone(etat === 'lecture' ? 'pause' : 'lecture'), ecrit && el('span', { className: 'label' }, mot), trait);
+    remplacer(bouton, icone(nomIcone), ecrit && el('span', { className: 'label' }, mot), trait);
+    if (temoin) remplacer(temoin, icone(nomIcone));
     majTrait();
-    if (annoncer) surEtat?.(etat);
   }
 
   async function lancer() {
@@ -212,9 +214,73 @@ export function creerEcoute(ligne, {
     }
   }
 
+  // La carte se lie après coup : elle a besoin de toucher() pour exister, et l'écoute a besoin d'elle.
+  function lierCarte(nouvelleCarte, { avecTemoin = false } = {}) {
+    carte = nouvelleCarte;
+    if (avecTemoin) {
+      temoin = el('span', { className: 'temoin-lecture', 'aria-hidden': 'true' });
+      carte.querySelector('.replique-tete')?.append(temoin);
+    }
+    dessiner();
+  }
+
   brancherAppuiLong(bouton, { toucher, maintenir: arreter });
-  dessiner(false); // au départ, rien à annoncer : la carte n'existe peut-être pas encore
-  return { bouton, toucher, arreter };
+  dessiner();
+  return { bouton, toucher, arreter, lierCarte };
+}
+
+// ---- Le filet de lecture : un trait qui fait le tour de la carte à mesure qu'elle est lue ----
+
+const ESPACE_SVG = 'http://www.w3.org/2000/svg';
+
+// Le dessin posé sur la carte : une piste pâle, et par-dessus le trait qui avance. Créé au premier besoin.
+function filetDe(carte) {
+  let filet = carte.querySelector(':scope > .filet-lecture');
+  if (filet) return filet;
+  filet = document.createElementNS(ESPACE_SVG, 'svg');
+  filet.setAttribute('class', 'filet-lecture');
+  filet.setAttribute('aria-hidden', 'true');
+  for (const classe of ['piste', 'trait-lecture']) {
+    const rectangle = document.createElementNS(ESPACE_SVG, 'rect');
+    rectangle.setAttribute('class', classe);
+    filet.append(rectangle);
+  }
+  carte.append(filet);
+  return filet;
+}
+
+// Met à jour le filet d'une carte selon la lecture : etat vaut 'lecture', 'pause' ou 'arret'.
+// En pause, le trait reste où il en était. La voix du téléphone ne dit pas où elle en est :
+// pour elle, on garde l'anneau qui tourne du design kit (is-syncing).
+export function dessinerFilet(carte, etat) {
+  const avance = progressionVoix();
+  const connue = avance !== null;
+  carte.classList.toggle('is-syncing', etat === 'lecture' && !connue);
+  const visible = etat !== 'arret' && connue;
+  carte.classList.toggle('avec-filet', visible);
+  if (!visible) return;
+  const trait = filetDe(carte).querySelector('.trait-lecture');
+  // La longueur du tour de la carte, en pixels : le trait en couvre la part déjà lue,
+  // le reste est un « trou » dans les pointillés (stroke-dasharray et stroke-dashoffset).
+  const longueur = trait.getTotalLength();
+  trait.style.strokeDasharray = `${longueur}px`;
+  trait.style.strokeDashoffset = `${longueur * (1 - avance)}px`;
+}
+
+// Pour une lecture lancée directement avec lireReplique (le filage, le script) : le filet de la
+// carte suit la voix image après image, jusqu'à ce qu'on appelle la fonction renvoyée.
+export function suivreLecture(carte) {
+  let actif = true;
+  const image = () => {
+    if (!actif) return;
+    dessinerFilet(carte, 'lecture');
+    requestAnimationFrame(image);
+  };
+  image();
+  return () => {
+    actif = false;
+    dessinerFilet(carte, 'arret');
+  };
 }
 
 // Un encadré qui apparaît seulement s'il n'y a vraiment aucune voix japonaise.

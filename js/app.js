@@ -14,12 +14,12 @@ import { trouverPiece } from './pieces.js';
 import { texteBrut } from './texte.js';
 import { arreterVoix, voixPretes } from './voix.js';
 import { adresseAReprendre, noterAdresse, terminerReprise } from './reprise.js';
+import { proposerRechargement } from './version.js';
 import { afficherBibliotheque } from './ecrans/bibliotheque.js';
 import { afficherFiches } from './ecrans/fiches.js';
 import { afficherFilage } from './ecrans/filage.js';
 import { afficherMesRepliques } from './ecrans/mes-repliques.js';
 import { afficherReglages } from './ecrans/reglages.js';
-import { afficherModeEmploi } from './ecrans/mode-emploi.js';
 import { afficherScript } from './ecrans/script.js';
 
 const ONGLETS = [
@@ -127,9 +127,6 @@ async function router() {
     // Les Réglages s'ouvrent de partout : la flèche ramène à l'écran d'où l'on vient.
     afficherBarre(null, { retour: parcours.at(-2) ?? '#/' });
     afficher = afficherReglages;
-  } else if (morceaux[0] === 'mode-emploi') {
-    afficherBarre(null, { retour: '#/reglages' }); // on y arrive depuis les Réglages : la flèche y ramène
-    afficher = afficherModeEmploi;
   } else if (morceaux[0] === 'piece' && morceaux[1]) {
     piece = await trouverPiece(decodeURIComponent(morceaux[1]));
     if (piece && (await piecesRetirees()).has(piece.id)) piece = null; // par exemple un vieux favori
@@ -185,14 +182,22 @@ function enregistrerServiceWorker() {
     console.warn("Service worker non enregistré :", erreur);
   });
 
+  // Une nouvelle version s'est installée pendant que la page tournait : son code attend un rechargement.
+  let versionPrete = false;
+
   // Le navigateur ne cherche une nouvelle version qu'au démarrage de l'app. Or Android garde souvent
   // l'app en arrière-plan : quand on y revient, il la réveille sans la recharger, et ne vérifie rien.
   // On lui demande donc de vérifier à chaque retour dans l'app, en arrière-plan, sans rien bloquer.
-  // S'il y a du nouveau, il le télécharge, et le bandeau ci-dessous apparaît.
   // Au plus une fois par minute : basculer entre deux apps ne doit pas multiplier les requêtes.
   let derniereVerification = Date.now(); // le démarrage vient de vérifier
   document.addEventListener('visibilitychange', async () => {
-    if (document.hidden || Date.now() - derniereVerification < 60_000) return;
+    // En quittant l'app, si une nouvelle version attend, on recharge maintenant, sans que cela se
+    // voie : au retour, le nouveau code est là, et reprise.js remet à la même fiche ou réplique.
+    if (document.hidden) {
+      if (versionPrete) location.reload();
+      return;
+    }
+    if (Date.now() - derniereVerification < 60_000) return;
     derniereVerification = Date.now();
     const inscription = await navigator.serviceWorker.getRegistration();
     inscription?.update().catch(() => {}); // hors ligne : on réessaiera au prochain retour
@@ -203,15 +208,11 @@ function enregistrerServiceWorker() {
   const avaitUnControleur = Boolean(navigator.serviceWorker.controller);
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!avaitUnControleur) return;
-    // L'app peut maintenant rester ouverte pendant deux mises à jour : un seul bandeau suffit.
-    if (document.querySelector('.bandeau-maj')) return;
-    // On ne recharge pas tout seul : cela couperait un filage en cours. L'utilisateur choisit.
-    const bandeau = el('button', {
-      type: 'button',
-      className: 'btn bandeau-maj',
-      onclick: () => location.reload(),
-    }, t('Nouvelle version prête : toucher pour recharger'));
-    document.body.append(bandeau);
+    versionPrete = true;
+    // App en arrière-plan : on recharge tout de suite. Sinon on ne coupe rien (un filage, une fiche) :
+    // un bandeau propose de recharger, et à défaut l'app le fera quand on la quittera.
+    if (document.hidden) location.reload();
+    else proposerRechargement();
   });
 }
 
