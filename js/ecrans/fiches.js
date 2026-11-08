@@ -169,7 +169,9 @@ export function afficherFiches(racine, piece) {
         },
       });
 
-      ecoute.lierCarte(carteMoi); // son filet suit la lecture de ma réplique
+      // Avec les boutons, le trait du bouton ▶ montre déjà où en est la lecture. En mode Gestes, il
+      // n'y a pas de bouton : c'est alors le filet de la carte qui suit la lecture de ma réplique.
+      if (gestes) ecoute.lierCarte(carteMoi);
 
       const boutonVoir = creerBoutonIcone('voir', t('Voir'), 'btn-ghost', devoiler);
 

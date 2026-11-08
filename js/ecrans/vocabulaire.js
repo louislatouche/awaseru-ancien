@@ -179,6 +179,31 @@ export function afficherVocabulaire(racine, piece) {
     afficherAide();
   }
 
+  // Amène une carte dans la partie visible de l'écran : entre l'en-tête et le panneau du bas, qui
+  // en cache une partie. Elle se déplace au plus court, vers le haut ou vers le bas, et pas du tout
+  // si elle se voit déjà en entier. Une carte trop haute pour tenir à l'écran montre au moins le mot
+  // touché, ou à défaut son début (là où la lecture commence).
+  function montrer(carte, motTouche = null) {
+    const ecran = document.getElementById('ecran'); // la zone qui défile
+    const MARGE = 12;
+    // L'en-tête passe par-dessus le haut de cette zone : la partie visible commence sous lui.
+    const entete = document.querySelector('.app-header');
+    const haut = Math.max(ecran.getBoundingClientRect().top, entete?.getBoundingClientRect().bottom ?? 0) + MARGE;
+    const bas = panneau.getBoundingClientRect().top - MARGE;
+    const cadre = carte.getBoundingClientRect();
+    let decalage = 0;
+    if (cadre.height <= bas - haut || motTouche) {
+      const cible = cadre.height <= bas - haut ? cadre : motTouche.getBoundingClientRect();
+      if (cible.top < haut) decalage = cible.top - haut;
+      else if (cible.bottom > bas) decalage = cible.bottom - bas;
+    } else {
+      decalage = cadre.top - haut;
+    }
+    if (Math.abs(decalage) < 1) return;
+    const reduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    ecran.scrollBy({ top: decalage, behavior: reduit ? 'instant' : 'smooth' });
+  }
+
   // Un mot touché : toutes ses apparitions se surlignent (celle-ci plus fort), et le panneau donne
   // sa lecture, sa prononciation, son sens, son sens dans cette phrase, et où il revient ailleurs.
   function choisir(mot, morceau, bouton) {
@@ -214,22 +239,33 @@ export function afficherVocabulaire(racine, piece) {
           type: 'button',
           className: 'chip',
           onclick: () => {
-            apparition.bouton.scrollIntoView({ block: 'center' });
             choisir(mot, apparition.morceau, apparition.bouton);
+            // Après choisir : le panneau vient de changer de hauteur, la partie visible aussi.
+            montrer(apparition.bouton.closest('.carte-texte'), apparition.bouton);
           },
         }, String(apparition.ligne.numero)))));
   }
 
-  // Une réplique du texte. Son bouton lecture la lit, la met en pause, ou l'arrête d'un appui long ;
-  // son filet montre où en est la lecture. Chacun de ses mots se touche.
+  // Une réplique du texte. Son bouton lecture la lit, la met en pause, ou l'arrête d'un appui long,
+  // et son trait montre où en est la lecture : la carte n'a donc pas de filet, contrairement aux
+  // fiches et au filage. Chacun de ses mots se touche.
+  // Lancer sa lecture, ou la toucher (un mot ou ailleurs), l'amène dans la partie visible de l'écran.
   function creerCarteTexte(ligne) {
-    const ecoute = creerEcoute(ligne);
+    const ecoute = creerEcoute(ligne, { surLecture: () => montrer(carte) });
     ecoute.bouton.classList.add('bouton-ligne');
-    const carte = el('div', { className: `replique carte-texte${selection.has(ligne.numero) ? ' mienne' : ''}` },
+    const carte = el('div', {
+      className: `replique carte-texte${selection.has(ligne.numero) ? ' mienne' : ''}`,
+      // Après le mot touché (le clic remonte du mot vers la carte) : le panneau a déjà sa nouvelle
+      // hauteur. Le bouton lecture s'en occupe lui-même, et seulement quand une lecture démarre :
+      // une pause, ou un appui long pour arrêter, ne font pas bouger la carte.
+      onclick: (evenement) => {
+        if (evenement.target.closest('button')) return;
+        montrer(carte, evenement.target.closest('.mot-touchable'));
+      },
+    },
       el('div', { className: 'carte-texte-tete' }, enTete(ligne), ecoute.bouton),
       creerPhrase(ligne, { gloses, interactif: true }),
       el('span', { className: 'replique-fr traduction' }, traduire(ligne, 'fr')));
-    ecoute.lierCarte(carte);
     return carte;
   }
 

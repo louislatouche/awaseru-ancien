@@ -134,7 +134,8 @@ export function creerBoutonIcone(nomIcone, libelle, classe, onclick, mot = libel
 //
 // Renvoie { bouton, toucher, arreter, lierCarte } : le bouton à placer dans la page, et de quoi
 // piloter la lecture depuis la carte (toucher, et arreter pour l'appui long).
-// lierCarte(carte) : le filet de la carte suit alors la lecture (voir dessinerFilet). Avec
+// lierCarte(carte) : le filet de la carte suit alors la lecture (voir dessinerFilet). Seulement quand
+// le bouton n'est pas à l'écran (mode Gestes, signal des fiches) : sinon son trait suffit. Avec
 // { avecTemoin: true }, une petite icône lecture / pause s'affiche aussi dans son en-tête.
 // surLecture est appelée à chaque lancement (les fiches s'en servent pour permettre l'évaluation).
 // libelle : le nom du bouton à l'arrêt.

@@ -113,8 +113,8 @@ export function afficherFilage(racine, piece) {
     const statut = lireStatuts(piece.id)[ligne.numero];
     // Pour ma réplique : une écoute partagée entre le bouton ▶ et la carte, que l'on peut toucher
     // pour la voir, puis pour l'écouter. Une fois passée, la carte reste dans le journal sans réagir.
-    // Pendant qu'elle est lue, ma réplique porte l'anneau de lecture, comme celles des autres.
     ecouteCourante = mienne ? creerEcoute(ligne) : null;
+    const gestes = lireReglages().navigation === 'gestes';
     const ecoute = ecouteCourante;
     const enCours = () => carte === carteCourante && etat === 'a-moi';
     const carte = creerReplique(ligne, piece, {
@@ -127,9 +127,11 @@ export function afficherFilage(racine, piece) {
         else ecoute.toucher();
       } : null,
     });
-    ecoute?.lierCarte(carte); // quand j'écoute ma réplique, son filet suit la lecture
-    // Mode Gestes : un appui long sur ma réplique arrête son écoute (il n'y a pas de bouton pour cela).
-    if (mienne && lireReglages().navigation === 'gestes') {
+    // Mode Gestes : il n'y a pas de bouton ▶. Quand j'écoute ma réplique, c'est donc le filet de sa
+    // carte qui suit la lecture (avec les boutons, le trait du bouton le fait déjà), et un appui long
+    // sur la carte arrête l'écoute.
+    if (mienne && gestes) {
+      ecoute.lierCarte(carte);
       brancherGestes(carte, { maintenir: () => { if (enCours()) ecoute.arreter(); } });
     }
     carteCourante = carte;
