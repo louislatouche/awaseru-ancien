@@ -7,6 +7,7 @@ export default {
   Fiches: 'Schede',
   Filage: 'Prova completa',
   'Retour aux pièces': 'Torna agli spettacoli',
+  'Retour': 'Indietro',
   Réglages: 'Impostazioni',
   'Sections de la pièce': 'Sezioni dello spettacolo',
   'Pièce introuvable': 'Spettacolo non trovato',

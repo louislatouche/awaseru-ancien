@@ -7,6 +7,7 @@ export default {
   Fiches: '카드',
   Filage: '리허설',
   'Retour aux pièces': '연극 목록으로',
+  'Retour': '뒤로',
   Réglages: '설정',
   'Sections de la pièce': '연극 메뉴',
   'Pièce introuvable': '연극을 찾을 수 없어요',

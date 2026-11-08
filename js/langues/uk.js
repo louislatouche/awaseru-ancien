@@ -7,6 +7,7 @@ export default {
   Fiches: 'Картки',
   Filage: 'Прогін',
   'Retour aux pièces': 'Назад до п’єс',
+  'Retour': 'Назад',
   Réglages: 'Налаштування',
   'Sections de la pièce': 'Розділи п’єси',
   'Pièce introuvable': 'П’єсу не знайдено',

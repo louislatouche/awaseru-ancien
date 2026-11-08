@@ -7,6 +7,7 @@ export default {
   Fiches: 'Huskekort',
   Filage: 'Gjennomkjøring',
   'Retour aux pièces': 'Tilbake til stykkene',
+  'Retour': 'Tilbake',
   Réglages: 'Innstillinger',
   'Sections de la pièce': 'Stykkets deler',
   'Pièce introuvable': 'Fant ikke stykket',

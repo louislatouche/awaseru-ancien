@@ -7,6 +7,7 @@ export default {
   Fiches: 'Kortit',
   Filage: 'Läpiajo',
   'Retour aux pièces': 'Takaisin näytelmiin',
+  'Retour': 'Takaisin',
   Réglages: 'Asetukset',
   'Sections de la pièce': 'Näytelmän osiot',
   'Pièce introuvable': 'Näytelmää ei löytynyt',

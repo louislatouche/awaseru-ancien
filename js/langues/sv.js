@@ -7,6 +7,7 @@ export default {
   Fiches: 'Övningskort',
   Filage: 'Genomspelning',
   'Retour aux pièces': 'Tillbaka till pjäserna',
+  'Retour': 'Tillbaka',
   Réglages: 'Inställningar',
   'Sections de la pièce': 'Pjäsens delar',
   'Pièce introuvable': 'Pjäsen hittades inte',

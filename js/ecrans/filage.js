@@ -8,7 +8,7 @@
 //   pause    : arrêté par l'utilisateur (ou parce que l'écran s'est éteint)
 //   fin      : la pièce est terminée
 
-import { cascade, el, remplacer } from '../dom.js';
+import { cascade, definirRetour, el, remplacer } from '../dom.js';
 import {
   audioActif, creerAvisEnchainement, creerAvisVoix, creerBoutonIcone, creerChoixUnique, creerEcoute,
   creerInterrupteurs, creerReplique, creerTitreScene, creerTitreVue, lireReplique,
@@ -231,6 +231,11 @@ export function afficherFilage(racine, piece) {
   // milieu d'un filage. On retrouve alors la réplique, mais à l'arrêt : le navigateur ne laisse
   // parler l'app qu'après un toucher, que Reprendre ou Suivant fourniront.
   async function demarrer(depart, { repris = false } = {}) {
+    // Filage lancé : la flèche de retour ramène à son écran de départ, en coupant la voix.
+    definirRetour(() => {
+      arreterVoix();
+      ecranDepart();
+    });
     if (audioActif(piece)) {
       sansVoix = false;
     } else {
@@ -267,6 +272,7 @@ export function afficherFilage(racine, piece) {
     etat = 'depart';
     jeton += 1;
     oublierPosition(); // pas de filage en cours : rien à reprendre si l'app est relancée
+    definirRetour(null); // la flèche de retour quitte alors le filage
     libererEcran();
 
     // Le départ est la position de la première réplique de la scène choisie, dans la liste à plat.

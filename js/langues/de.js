@@ -7,6 +7,7 @@ export default {
   Fiches: 'Karteikarten',
   Filage: 'Durchlauf',
   'Retour aux pièces': 'Zurück zu den Stücken',
+  'Retour': 'Zurück',
   Réglages: 'Einstellungen',
   'Sections de la pièce': 'Abschnitte des Stücks',
   'Pièce introuvable': 'Stück nicht gefunden',

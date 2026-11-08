@@ -95,8 +95,12 @@ body:has(.tabbar:not([hidden])) { --place-bas: calc(var(--tabbar-h) + var(--safe
   justify-content: center;
   width: 44px;
   height: 44px;
+  padding: 0;
+  background: none; /* la flèche de retour est un vrai bouton : sans fond ni bord de bouton */
+  border: 0;
   color: var(--ink-soft);
   border-radius: var(--radius-sm);
+  cursor: pointer;
 }
 
 .icon-btn svg { display: block; width: 23px; height: 23px; }

@@ -7,6 +7,7 @@ export default {
   Fiches: 'カード',
   Filage: '通し稽古',
   'Retour aux pièces': '演目一覧に戻る',
+  'Retour': '戻る',
   Réglages: '設定',
   'Sections de la pièce': '演目のメニュー',
   'Pièce introuvable': '演目が見つかりません',

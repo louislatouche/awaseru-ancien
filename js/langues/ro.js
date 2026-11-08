@@ -7,6 +7,7 @@ export default {
   Fiches: 'Fișe',
   Filage: 'Repetiție continuă',
   'Retour aux pièces': 'Înapoi la piese',
+  'Retour': 'Înapoi',
   Réglages: 'Setări',
   'Sections de la pièce': 'Secțiunile piesei',
   'Pièce introuvable': 'Piesa nu a fost găsită',

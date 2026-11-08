@@ -7,6 +7,7 @@ export default {
   Fiches: 'Κάρτες',
   Filage: 'Συνεχής πρόβα',
   'Retour aux pièces': 'Πίσω στα έργα',
+  'Retour': 'Πίσω',
   Réglages: 'Ρυθμίσεις',
   'Sections de la pièce': 'Ενότητες του έργου',
   'Pièce introuvable': 'Το έργο δεν βρέθηκε',

@@ -7,6 +7,7 @@ export default {
   Fiches: 'Fiszki',
   Filage: 'Przebieg',
   'Retour aux pièces': 'Wróć do sztuk',
+  'Retour': 'Wstecz',
   Réglages: 'Ustawienia',
   'Sections de la pièce': 'Sekcje sztuki',
   'Pièce introuvable': 'Nie znaleziono sztuki',

@@ -7,6 +7,7 @@ export default {
   Fiches: 'Kartičky',
   Filage: 'Průchod',
   'Retour aux pièces': 'Zpět na hry',
+  'Retour': 'Zpět',
   Réglages: 'Nastavení',
   'Sections de la pièce': 'Části hry',
   'Pièce introuvable': 'Hra nenalezena',

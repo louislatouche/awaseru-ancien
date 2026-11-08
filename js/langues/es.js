@@ -7,6 +7,7 @@ export default {
   Fiches: 'Tarjetas',
   Filage: 'Ensayo corrido',
   'Retour aux pièces': 'Volver a las obras',
+  'Retour': 'Atrás',
   Réglages: 'Ajustes',
   'Sections de la pièce': 'Secciones de la obra',
   'Pièce introuvable': 'Obra no encontrada',

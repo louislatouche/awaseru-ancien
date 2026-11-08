@@ -7,6 +7,7 @@ export default {
   Fiches: 'Flashcards',
   Filage: 'Run-through',
   'Retour aux pièces': 'Back to plays',
+  'Retour': 'Back',
   Réglages: 'Settings',
   'Sections de la pièce': 'Play sections',
   'Pièce introuvable': 'Play not found',

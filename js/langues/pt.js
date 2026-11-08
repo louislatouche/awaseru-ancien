@@ -7,6 +7,7 @@ export default {
   Fiches: 'Cartões',
   Filage: 'Ensaio corrido',
   'Retour aux pièces': 'Voltar às peças',
+  'Retour': 'Voltar',
   Réglages: 'Definições',
   'Sections de la pièce': 'Secções da peça',
   'Pièce introuvable': 'Peça não encontrada',

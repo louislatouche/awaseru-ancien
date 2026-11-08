@@ -6,7 +6,7 @@
 // Deux affichages de la même liste : le texte complet, et une grille de numéros pour aller vite.
 // Pincer l'écran passe à la grille, écarter les doigts revient au texte.
 
-import { brancherAppuiLong, cascade, el, rebond, remplacer } from '../dom.js';
+import { brancherAppuiLong, cascade, definirRetour, el, rebond, remplacer } from '../dom.js';
 import { surPincement } from '../pincement.js';
 import { t, traduire } from '../langues.js';
 import { creerJaponais } from '../texte.js';
@@ -208,6 +208,8 @@ export function afficherMesRepliques(racine, piece) {
   // la position quittée. Il faut le placer avant le zoom, qui se centre sur ce qui est visible.
   function montrerGrille(oui, versElement = null) {
     if (oui === !vueGrille.hidden) return; // déjà sur cette vue
+    // Sur la grille, la flèche de retour ramène au texte ; sur le texte, elle quitte l'écran.
+    definirRetour(oui ? () => montrerGrille(false) : null);
     const zone = document.getElementById('ecran');
     if (oui) positionTexte = zone.scrollTop;
     afficherVue(oui);

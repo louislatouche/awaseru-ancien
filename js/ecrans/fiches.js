@@ -1,6 +1,6 @@
 // Écran 4 : répétition en fiches. Le signal d'entrée est lu, ma réplique est cachée, je m'évalue.
 
-import { cascade, el, hautDePage, remplacer, salve, signaler } from '../dom.js';
+import { cascade, definirRetour, el, hautDePage, remplacer, salve, signaler } from '../dom.js';
 import {
   creerAvisEnchainement, creerAvisSansSelection, creerAvisVoix, creerBascule, creerBoutonIcone, creerChoixUnique,
   creerEcoute, creerInterrupteurs, creerReplique, creerTitreVue,
@@ -31,6 +31,7 @@ export function afficherFiches(racine, piece) {
 
   function ecranDepart() {
     oublierPosition(); // pas de série en cours : rien à reprendre si l'app est relancée
+    definirRetour(null); // la flèche de retour quitte alors les fiches
     const selection = lireSelection(piece);
     const statuts = lireStatuts(piece.id);
     const miennes = lignes.filter((l) => selection.has(l.numero));
@@ -89,6 +90,11 @@ export function afficherFiches(racine, piece) {
     // Après une relance, le navigateur refuse de parler tant qu'on n'a rien touché :
     // la première fiche reprise ne lit donc pas son signal toute seule (Réécouter le fait).
     let lireLeSignal = !reprise;
+    // Pendant la série (et sur son écran de fin), la flèche de retour ramène au choix des fiches.
+    definirRetour(() => {
+      arreterVoix();
+      ecranDepart();
+    });
 
     function noter(ligne, statut) {
       arreterVoix(); // une réplique en pause ne doit pas reprendre sur la fiche suivante

@@ -5,7 +5,7 @@
 // ce qui suit le # (le « hash ») ne part jamais au serveur. On peut donc changer d'écran sans
 // recharger, garder des chemins relatifs, et le bouton Retour d'Android fonctionne tout seul.
 
-import { el, hautDePage, icone, remplacer } from './dom.js';
+import { definirRetour, el, hautDePage, icone, remonterDansEcran, remplacer } from './dom.js';
 import { chargerLangue, langueActive, t, traduire } from './langues.js';
 import { noterUtilisation } from './stockage.js';
 import { piecesRetirees } from './telechargement.js';
@@ -33,15 +33,36 @@ const zoneBarre = document.getElementById('barre');
 const zoneEcran = document.getElementById('ecran');
 const zoneOnglets = document.getElementById('onglets');
 
+// ---- Remonter d'un niveau ----
+
+// Le chemin parcouru dans l'app : la liste des adresses visitées, la dernière étant l'écran affiché.
+// Revenir à l'avant-dernière (par la flèche ou par le bouton Retour d'Android), c'est reculer :
+// on la retire au lieu d'en ajouter une.
+const parcours = [];
+
+function noterParcours(adresse) {
+  if (parcours.at(-2) === adresse) parcours.pop();
+  else if (parcours.at(-1) !== adresse) parcours.push(adresse);
+}
+
+// La flèche en haut à gauche. D'abord à l'intérieur de l'écran (une série de fiches revient au choix
+// des fiches, un filage lancé à son départ), sinon vers l'écran du dessus. Si l'on arrive justement
+// de lui, on recule dans l'historique : le bouton Retour d'Android reste d'accord avec la flèche.
+function remonter(dessus) {
+  if (remonterDansEcran()) return;
+  if (parcours.at(-2) === dessus) history.back();
+  else location.hash = dessus;
+}
+
 // L'en-tête, comme dans Faktur : le mot-symbole, avec en dessous le nom de la pièce ouverte.
-// retour : true pour une flèche vers Mes pièces, ou l'adresse où elle doit ramener.
-function afficherBarre(sousTitre, { retour = false, reglages = false } = {}) {
-  const versReglages = retour === '#/reglages';
+// retour : l'adresse de l'écran du dessus, où ramène la flèche (rien : pas de flèche).
+function afficherBarre(sousTitre, { retour = null, reglages = false } = {}) {
   remplacer(zoneBarre,
-    retour && el('a', {
+    retour && el('button', {
+      type: 'button',
       className: 'icon-btn',
-      href: versReglages ? '#/reglages' : '#/',
-      'aria-label': versReglages ? t('Réglages') : t('Retour aux pièces'),
+      'aria-label': t('Retour'),
+      onclick: () => remonter(retour),
     }, icone('retour')),
     el('a', { className: 'brand', href: '#/' },
       el('strong', { className: 'wordmark' }, 'replik'),
@@ -85,7 +106,10 @@ async function router() {
   arreterVoix();
   nettoyer?.();
   nettoyer = null;
-  noterAdresse(location.hash || '#/'); // pour revenir ici si Android relance l'app (voir reprise.js)
+  const adresse = location.hash || '#/';
+  noterAdresse(adresse); // pour revenir ici si Android relance l'app (voir reprise.js)
+  noterParcours(adresse);
+  definirRetour(null); // le nouvel écran dira lui-même s'il a des étapes
 
   // Si le chargement traîne (premier lancement, réseau lent), on l'annonce avec le reflet de Faktur.
   const attente = setTimeout(() => {
@@ -100,7 +124,8 @@ async function router() {
   let ongletActif = null;
 
   if (morceaux[0] === 'reglages') {
-    afficherBarre(null, { retour: true });
+    // Les Réglages s'ouvrent de partout : la flèche ramène à l'écran d'où l'on vient.
+    afficherBarre(null, { retour: parcours.at(-2) ?? '#/' });
     afficher = afficherReglages;
   } else if (morceaux[0] === 'mode-emploi') {
     afficherBarre(null, { retour: '#/reglages' }); // on y arrive depuis les Réglages : la flèche y ramène
@@ -111,12 +136,12 @@ async function router() {
     const onglet = ONGLETS.find((o) => o.chemin === morceaux[2]) ?? ONGLETS[0];
     if (piece) {
       noterUtilisation(piece.id); // pour la remonter en haut de la liste des pièces
-      afficherBarre(traduire(piece, 'titre_fr'), { retour: true, reglages: true });
+      afficherBarre(traduire(piece, 'titre_fr'), { retour: '#/', reglages: true });
       afficher = onglet.afficher;
       ongletActif = onglet.chemin;
     } else {
       // Par exemple un favori vers une pièce retirée depuis.
-      afficherBarre(t('Pièce introuvable'), { retour: true });
+      afficherBarre(t('Pièce introuvable'), { retour: '#/' });
       afficher = (racine) => racine.append(el('p', { className: 'vide' }, t("Cette pièce n'est plus sur ce téléphone.")));
     }
   } else {
@@ -220,6 +245,7 @@ const adresseQuittee = adresseAReprendre();
 if (adresseQuittee && (location.hash === '' || location.hash === '#/')) {
   history.replaceState(null, '', '#/');
   history.pushState(null, '', adresseQuittee);
+  parcours.push('#/'); // le parcours aussi : la flèche de retour pourra reculer jusqu'à Mes pièces
 }
 
 window.addEventListener('hashchange', changerEcran);

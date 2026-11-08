@@ -7,6 +7,7 @@ export default {
   Fiches: 'Kártyák',
   Filage: 'Átfutás',
   'Retour aux pièces': 'Vissza a darabokhoz',
+  'Retour': 'Vissza',
   Réglages: 'Beállítások',
   'Sections de la pièce': 'A darab részei',
   'Pièce introuvable': 'A darab nem található',

@@ -7,6 +7,7 @@ export default {
   Fiches: 'Flitskaarten',
   Filage: 'Doorloop',
   'Retour aux pièces': 'Terug naar de stukken',
+  'Retour': 'Terug',
   Réglages: 'Instellingen',
   'Sections de la pièce': 'Onderdelen van het stuk',
   'Pièce introuvable': 'Stuk niet gevonden',

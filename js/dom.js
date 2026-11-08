@@ -210,6 +210,25 @@ export function compter(cible, afficher) {
   requestAnimationFrame(image);
 }
 
+// ---- La flèche de retour, en haut à gauche : elle remonte d'un niveau ----
+// Un écran qui a des étapes (une série de fiches, un filage lancé, la grille des numéros) dit
+// comment revenir à son propre début. Sans étape en cours, la flèche mène à l'écran du dessus
+// (voir remonter dans app.js). Le routeur efface ce retour à chaque changement d'écran.
+let retourDansEcran = null;
+
+export function definirRetour(fonction) {
+  retourDansEcran = fonction;
+}
+
+// Appelée par la flèche : vrai si l'écran a pu revenir à son début.
+export function remonterDansEcran() {
+  if (!retourDansEcran) return false;
+  const revenir = retourDansEcran;
+  retourDansEcran = null;
+  revenir();
+  return true;
+}
+
 // Remonte en haut de l'écran. La zone qui défile est <main>, pas la fenêtre (voir style.css).
 export function hautDePage() {
   document.getElementById('ecran').scrollTop = 0;
