@@ -578,9 +578,8 @@ button.replique:disabled { cursor: default; }
   gap: 8px;
   margin: auto calc(-1 * var(--marge)) -20px; /* auto en haut : les colle en bas même si l'écran est peu rempli */
   padding: 12px var(--marge);
-  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  background: color-mix(in srgb, var(--bg) 92%, transparent); /* ce fond suffit à les détacher des cartes */
   backdrop-filter: blur(10px);
-  border-top: 1px solid var(--border);
 }
 
 /* ---- Vocabulaire ---- */
