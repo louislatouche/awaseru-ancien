@@ -1,14 +1,14 @@
 // Reprendre là où on en était quand Android relance l'app de lui-même.
 //
-// Sur un Galaxy Z Fold, déplier le téléphone relance Replik depuis Mes pièces : c'est un défaut
+// Sur un Galaxy Z Fold, déplier le téléphone relance Awaseru depuis Mes pièces : c'est un défaut
 // reconnu par Samsung depuis Android 16. Android peut aussi fermer une app restée en arrière-plan
 // s'il manque de mémoire. Pour que cela passe inaperçu, on note en continu l'écran affiché et la
 // position dans cet écran (la fiche, la réplique du filage). Si l'app redémarre peu après, on y revient.
 //
-// La note est rangée à part, hors du préfixe « replik: » de stockage.js : elle ne doit pas entrer
+// La note est rangée à part, hors du préfixe « awaseru: » de stockage.js : elle ne doit pas entrer
 // dans les sauvegardes, qui refusent toute donnée inconnue (voir sauvegarde.js).
 
-const CLE = 'replik-reprise';
+const CLE = 'awaseru-reprise';
 const DELAI = 30 * 60 * 1000; // passé 30 minutes, c'est un nouveau départ : l'app s'ouvre sur Mes pièces
 
 // La note de l'écran en cours : son adresse, la position dans l'écran, et jusqu'où il a défilé.

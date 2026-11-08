@@ -201,7 +201,7 @@ function creerSauvegarde() {
     try {
       poignees = await window.showOpenFilePicker({
         startIn: 'downloads',
-        types: [{ description: t('Sauvegarde Replik'), accept: { 'application/json': ['.json'] } }],
+        types: [{ description: t('Sauvegarde Awaseru'), accept: { 'application/json': ['.json'] } }],
       });
     } catch (erreur) {
       // AbortError : tu as simplement refermé le sélecteur. Sinon, on essaie l'autre voie.
@@ -287,7 +287,7 @@ export async function afficherReglages(racine) {
   // La version du code qui tourne vraiment (voir version.js). Si une plus récente est déjà
   // téléchargée et attend un rechargement, le bandeau le propose.
   versionEnCours().then((numero) => {
-    if (numero !== null) version.textContent = t('Replik, version {n}', { n: numero });
+    if (numero !== null) version.textContent = t('Awaseru, version {n}', { n: numero });
   });
   nouvelleVersionEnAttente().then((enAttente) => {
     if (enAttente) proposerRechargement();

@@ -1,4 +1,4 @@
-# Replik
+# Awaseru
 
 Une application web installable (PWA) pour apprendre ses répliques de théâtre en japonais, sur un téléphone Android. Elle fonctionne hors ligne et garde toutes ses données sur le téléphone : aucun serveur, aucun compte.
 
@@ -9,7 +9,7 @@ Une application web installable (PWA) pour apprendre ses répliques de théâtre
 | `index.html` | L'unique page de l'app : trois zones vides que le JavaScript remplit. |
 | `manifest.webmanifest` | La carte d'identité de l'app pour Android : nom, icônes, mode plein écran. |
 | `sw.js` | Le service worker : garde une copie de l'app pour le hors-ligne. Contient le numéro de version. |
-| `css/style.css` | Les styles propres à Replik, posés sur le design kit. |
+| `css/style.css` | Les styles propres à Awaseru, posés sur le design kit. |
 | `css/polices.css` | Déclare les polices rangées dans `polices/`. |
 | `design-kit/` | Copie exacte de `tokens.css` et `base.css` du design kit : couleurs, boutons, cartes. Ne pas les modifier ici. |
 | `polices/` | Fraunces, Karla et Poppins, servies par l'app pour rester hors ligne, avec leurs licences. |
@@ -39,15 +39,15 @@ Une application web installable (PWA) pour apprendre ses répliques de théâtre
 | `icons/` | Les dessins sources (SVG) et les icônes exportées (PNG). |
 | `.nojekyll` | Fichier vide : dit à GitHub Pages de publier les fichiers tels quels. |
 | `CLAUDE.md` | Les consignes du projet pour Claude. |
-| `.claude/skills/nouvelle-piece/` | Le skill qui transforme un PDF de pièce en fichier Replik. |
+| `.claude/skills/nouvelle-piece/` | Le skill qui transforme un PDF de pièce en fichier Awaseru. |
 
 ## L'apparence
 
-Replik utilise le thème clair du design kit de Louis, comme Faktur et SessionConnect : fond papier, sauge, ambre, Fraunces pour les titres, Karla pour le texte. L'app ne suit pas le mode sombre du téléphone.
+Awaseru utilise le thème clair du design kit de Louis, comme Faktur et SessionConnect : fond papier, sauge, ambre, Fraunces pour les titres, Karla pour le texte. L'app ne suit pas le mode sombre du téléphone.
 
 Le kit fonctionne par copie : le maître est dans `P:\_DEV\design-kit`. Pour reprendre une nouvelle version, recopie `tokens.css` et `base.css` dans `design-kit/`, puis augmente `VERSION` dans `sw.js`.
 
-Le kit charge normalement ses polices depuis Google Fonts. Replik garde les siennes dans `polices/` : aucune ressource externe, et la même typographie hors ligne. Le japonais reste affiché avec la police du téléphone.
+Le kit charge normalement ses polices depuis Google Fonts. Awaseru garde les siennes dans `polices/` : aucune ressource externe, et la même typographie hors ligne. Le japonais reste affiché avec la police du téléphone.
 
 ## Les voix
 
@@ -88,7 +88,7 @@ Puis ouvre <http://localhost:8000> dans Chrome. Il faut passer par ce petit serv
 
 GitHub Pages héberge gratuitement l'app en HTTPS. Le dépôt doit être public avec un compte gratuit : le texte de tes pièces fournies sera donc visible par tous.
 
-1. Sur <https://github.com/new>, crée un dépôt nommé `replik`, public.
+1. Sur <https://github.com/new>, crée un dépôt nommé `awaseru`, public.
 2. Dans ce dossier, envoie les fichiers (remplace `TONNOM` par ton identifiant GitHub) :
 
    ```bash
@@ -100,11 +100,11 @@ GitHub Pages héberge gratuitement l'app en HTTPS. Le dépôt doit être public 
    ```
 
    ```bash
-   git commit -m "Première version de Replik"
+   git commit -m "Première version d'Awaseru"
    ```
 
    ```bash
-   git remote add origin https://github.com/TONNOM/replik.git
+   git remote add origin https://github.com/TONNOM/awaseru.git
    ```
 
    ```bash
@@ -114,7 +114,7 @@ GitHub Pages héberge gratuitement l'app en HTTPS. Le dépôt doit être public 
 3. Sur la page du dépôt, ouvre **Settings**, puis **Pages** dans la colonne de gauche.
 4. Sous **Build and deployment**, à la ligne **Source**, choisis **Deploy from a branch**.
 5. Choisis la branche `main`, le dossier `/ (root)`, puis clique sur **Save**.
-6. Attends quelques minutes (jusqu'à 10) : l'app est en ligne à l'adresse `https://TONNOM.github.io/replik/`.
+6. Attends quelques minutes (jusqu'à 10) : l'app est en ligne à l'adresse `https://TONNOM.github.io/awaseru/`.
 
 ### Publier une mise à jour
 
@@ -138,20 +138,20 @@ GitHub Pages héberge gratuitement l'app en HTTPS. Le dépôt doit être public 
 
 ## Installer sur Android
 
-1. Ouvre `https://TONNOM.github.io/replik/` dans Chrome et laisse la page se charger quelques secondes.
+1. Ouvre `https://TONNOM.github.io/awaseru/` dans Chrome et laisse la page se charger quelques secondes.
 2. Menu **⋮** de Chrome, puis **Ajouter à l'écran d'accueil** ou **Installer l'application** (le libellé varie selon la version).
-3. Replik apparaît sur l'écran d'accueil et s'ouvre sans la barre d'adresse.
+3. Awaseru apparaît sur l'écran d'accueil et s'ouvre sans la barre d'adresse.
 4. Pour vérifier le hors-ligne : passe en mode avion et ouvre l'app.
 
 ### La voix japonaise
 
-Replik lit ses pièces avec ses voix enregistrées. La voix du téléphone ne sert que de secours, ou si tu coupes le réglage « Utiliser les voix enregistrées ». Pour l'installer :
+Awaseru lit ses pièces avec ses voix enregistrées. La voix du téléphone ne sert que de secours, ou si tu coupes le réglage « Utiliser les voix enregistrées ». Pour l'installer :
 
-**Paramètres Android > Synthèse vocale** (parfois rangée dans Accessibilité ou Gestion globale) **> moteur Google > installer les données vocales > japonais.** Ferme puis rouvre ensuite Replik.
+**Paramètres Android > Synthèse vocale** (parfois rangée dans Accessibilité ou Gestion globale) **> moteur Google > installer les données vocales > japonais.** Ferme puis rouvre ensuite Awaseru.
 
 ## Choisir ses répliques
 
-Replik sert à toute la troupe : rien n'est présélectionné, chacun coche ses répliques dans l'écran *Mes répliques*. Pour aller plus vite, pince l'écran avec deux doigts : il ne reste qu'une grille de numéros à toucher. Écarte deux doigts pour revenir au texte.
+Awaseru sert à toute la troupe : rien n'est présélectionné, chacun coche ses répliques dans l'écran *Mes répliques*. Pour aller plus vite, pince l'écran avec deux doigts : il ne reste qu'une grille de numéros à toucher. Écarte deux doigts pour revenir au texte.
 
 ## Tes données
 

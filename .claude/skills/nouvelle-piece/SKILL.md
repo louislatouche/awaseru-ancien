@@ -1,9 +1,9 @@
 ---
 name: nouvelle-piece
-description: Convertit le script PDF d'une pièce du cours de théâtre japonais en fichier de pièce Replik (JSON avec furigana) et l'ajoute à l'app. À utiliser quand je donne un nouveau script ou un PDF de pièce, ou que je demande d'ajouter une pièce.
+description: Convertit le script PDF d'une pièce du cours de théâtre japonais en fichier de pièce Awaseru (JSON avec furigana) et l'ajoute à l'app. À utiliser quand je donne un nouveau script ou un PDF de pièce, ou que je demande d'ajouter une pièce.
 ---
 
-# Ajouter une pièce à Replik
+# Ajouter une pièce à Awaseru
 
 PDF à traiter : $ARGUMENTS (si vide, demande-moi le fichier).
 

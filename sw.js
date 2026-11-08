@@ -5,11 +5,11 @@
 // >>> À AUGMENTER à chaque modification de l'app, y compris pour une nouvelle pièce. <<<
 // Le navigateur ne détecte une mise à jour que si ce fichier-ci change d'au moins un octet.
 // Sans cela, le téléphone continuerait de servir l'ancienne copie, indéfiniment.
-const VERSION = 51;
+const VERSION = 56;
 
 // Sur GitHub Pages, tous tes projets partagent le même site, donc le même espace de caches.
 // Le préfixe nous permet de ne jamais toucher à ceux des autres.
-const PREFIXE = 'replik-v';
+const PREFIXE = 'awaseru-v';
 const CACHE = `${PREFIXE}${VERSION}`;
 
 // Tous les fichiers de l'app. Les chemins sont relatifs à l'emplacement de sw.js.
@@ -89,7 +89,7 @@ self.addEventListener('install', (evenement) => {
     const audio = await reponseAudio.json();
     // Sauf les voix des pièces retirées de ce téléphone : une mise à jour ne doit pas les ramener
     // (voir js/telechargement.js). Un chemin s'écrit pieces/audio/<id de la pièce>/<fichier>.
-    const notees = await (await caches.open('replik-retirees')).match('retirees.json');
+    const notees = await (await caches.open('awaseru-retirees')).match('retirees.json');
     const retirees = new Set(notees ? await notees.json() : []);
 
     const cache = await caches.open(CACHE);
@@ -107,12 +107,14 @@ self.addEventListener('install', (evenement) => {
   })());
 });
 
-// Activation : on supprime les anciennes copies de Replik, et seulement celles-là.
+// Activation : on supprime les anciennes copies d'Awaseru, et seulement celles-là. Ainsi que tout
+// ce qui reste du temps où l'app s'appelait Replik (caches « replik-… ») : l'adresse /replik/
+// n'existe plus, ces copies ne serviraient plus à rien.
 self.addEventListener('activate', (evenement) => {
   evenement.waitUntil((async () => {
     const noms = await caches.keys();
     await Promise.all(noms
-      .filter((nom) => nom.startsWith(PREFIXE) && nom !== CACHE)
+      .filter((nom) => (nom.startsWith(PREFIXE) && nom !== CACHE) || nom.startsWith('replik-'))
       .map((nom) => caches.delete(nom)));
     // Prend tout de suite le contrôle de la page déjà ouverte lors de la toute première visite.
     await self.clients.claim();

@@ -1,15 +1,16 @@
-// Écran 5 : le vocabulaire de la pièce. Deux façons de le regarder :
-// - Mots : chaque mot avec sa lecture en kana, sa prononciation en lettres latines, sa traduction,
-//   et la réplique où il apparaît (le mot y est surligné) ;
-// - Phrases : chaque réplique en mot à mot, la traduction écrite sous chaque mot.
-// Et une révision en fiches, comme pour les répliques : le mot seul, puis sa lecture et son sens.
+// Écran 5 : le vocabulaire de la pièce. On lit le texte, et on touche un mot pour voir son
+// explication en bas de l'écran : sa lecture en kana, sa prononciation en lettres latines, son sens
+// (et son sens dans cette phrase), et les autres répliques où il revient. L'interrupteur « Mot à
+// mot » écrit la traduction sous chaque mot. Et une révision en fiches, comme pour les répliques :
+// le mot seul, puis sa lecture et son sens.
 //
 // Tout vient du fichier de la pièce : la liste « vocabulaire », et le découpage « mots » de chaque
 // réplique (voir validation.js). Une pièce qui ne les a pas affiche simplement un message.
 
 import { cascade, definirRetour, el, hautDePage, icone, remplacer, salve, signaler } from '../dom.js';
 import {
-  creerAvisSansSelection, creerBoutonIcone, creerChoixUnique, creerEcoute, creerNomRole, creerTitreScene, creerTitreVue,
+  creerAvisSansSelection, creerBascule, creerBoutonIcone, creerChoixUnique, creerEcoute, creerNomRole, creerTitreScene,
+  creerTitreVue,
 } from '../affichage.js';
 import { brancherGestes } from '../gestes.js';
 import { langueActive, t, traduire } from '../langues.js';
@@ -38,8 +39,8 @@ export function afficherVocabulaire(racine, piece) {
     return;
   }
 
-  // Ce que l'on regarde : les mots ou les phrases, de mes répliques ou de toute la pièce.
-  let vue = 'mots';
+  // Ce que l'on regarde : mes répliques ou toute la pièce, avec ou sans le mot à mot.
+  let gloses = false;
   let portee = selection.size > 0 ? 'miennes' : 'tout';
 
   const lignesChoisies = () => (portee === 'miennes' ? lignes.filter((ligne) => selection.has(ligne.numero)) : lignes);
@@ -67,21 +68,44 @@ export function afficherVocabulaire(racine, piece) {
     if (message) signaler(message, 9000);
   }
 
+  // Les mots du texte affiché : pour chacun, ses apparitions (le bouton, la réplique, le morceau),
+  // pour les surligner toutes et passer de l'une à l'autre. Refait à chaque affichage du texte.
+  let apparitions = new Map();
+
   // Un morceau de réplique : le japonais (avec furigana), et en mot à mot sa traduction dessous.
-  function creerMorceau(morceau, { gloses, surligne, didascalie }) {
+  // interactif : un mot du vocabulaire devient un bouton, qui affiche son explication en bas.
+  function creerMorceau(morceau, ligne, { gloses, surligne, didascalie, interactif }) {
     const japonais = el('span', { className: 'morceau-ja' });
     ajouterAvecFurigana(japonais, morceau.t);
-    const classes = ['morceau', gloses && 'avec-glose', surligne && 'surligne', didascalie && 'didascalie'].filter(Boolean).join(' ');
-    if (!gloses) return el('span', { className: classes }, japonais);
-    // La traduction du mot tel qu'il est employé ici ; à défaut, celle du vocabulaire.
     const mot = morceau.v ? parId.get(morceau.v) : null;
-    const glose = mot ? (traduire(morceau, 'fr') ?? traduire(mot, 'fr')) : '';
-    return el('span', { className: classes }, japonais, glose && el('span', { className: 'glose', lang: langueActive() }, glose));
+    const classes = ['morceau', gloses && 'avec-glose', surligne && 'surligne', didascalie && 'didascalie'].filter(Boolean).join(' ');
+    // La traduction du mot tel qu'il est employé ici ; à défaut, celle du vocabulaire.
+    const glose = gloses && mot && el('span', { className: 'glose', lang: langueActive() }, traduire(morceau, 'fr') ?? traduire(mot, 'fr'));
+    if (!interactif || !mot) return el('span', { className: classes }, japonais, glose);
+
+    // Un simple <span> qui se touche, plutôt qu'un <button> : un bouton réserverait la largeur de ses
+    // furigana et creuserait des espaces dans la phrase. role et tabIndex le rendent utilisable au
+    // clavier et par les lecteurs d'écran, comme un vrai bouton.
+    const bouton = el('span', {
+      className: `${classes} mot-touchable`,
+      role: 'button',
+      tabIndex: 0,
+      onclick: () => choisir(mot, morceau, bouton),
+      onkeydown: (evenement) => {
+        if (evenement.key === 'Enter' || evenement.key === ' ') {
+          evenement.preventDefault();
+          choisir(mot, morceau, bouton);
+        }
+      },
+    }, japonais, glose);
+    if (!apparitions.has(mot.id)) apparitions.set(mot.id, []);
+    apparitions.get(mot.id).push({ bouton, ligne, morceau });
+    return bouton;
   }
 
   // Une réplique dessinée mot par mot. surligner : l'id d'un mot à mettre en évidence.
-  // gloses : le mot à mot, chaque mot avec sa traduction dessous.
-  function creerPhrase(ligne, { surligner = null, gloses = false } = {}) {
+  // gloses : le mot à mot, chaque mot avec sa traduction dessous. interactif : les mots se touchent.
+  function creerPhrase(ligne, { surligner = null, gloses = false, interactif = false } = {}) {
     if (!ligne.mots) return creerJaponais(ligne.texte, 'japonais japonais-petit'); // réplique pas encore découpée
     const phrase = el('span', { className: gloses ? 'mot-a-mot' : 'japonais japonais-petit', lang: 'ja' });
     let dansDidascalie = false;
@@ -91,8 +115,8 @@ export function afficherVocabulaire(racine, piece) {
         if (rang > 0) phrase.append(gloses ? el('span', { className: 'saut' }) : el('br'));
         if (!partie) return;
         if (partie.includes('（')) dansDidascalie = true;
-        phrase.append(creerMorceau({ ...morceau, t: partie }, {
-          gloses, surligne: surligner !== null && morceau.v === surligner, didascalie: dansDidascalie,
+        phrase.append(creerMorceau({ ...morceau, t: partie }, ligne, {
+          gloses, interactif, surligne: surligner !== null && morceau.v === surligner, didascalie: dansDidascalie,
         }));
         if (partie.includes('）')) dansDidascalie = false;
       });
@@ -125,71 +149,110 @@ export function afficherVocabulaire(racine, piece) {
     return el('div', { className: 'mot-lecture' }, el('b', { lang: 'ja' }, lecture), ` · ${enRomaji(lecture)}`);
   };
 
-  function creerCarteMot({ mot, ou }, statuts) {
-    const autres = el('div', { className: 'autres-contextes', hidden: true }, ou.slice(1).map((ligne) => creerContexte(mot, ligne)));
-    const restant = ou.length - 1;
-    return el('article', { className: 'carte-mot' },
+  // ---- Le panneau en bas de l'écran : l'explication du mot touché ----
+
+  const zone = el('div', { className: 'pile-vocabulaire' });
+  const panneau = el('div', { className: 'commandes panneau-mot', 'aria-live': 'polite' });
+  let statuts = {};
+
+  // Avant le premier toucher, le panneau dit comment s'en servir.
+  function afficherAide() {
+    remplacer(panneau, el('p', { className: 'legende aide-mot' }, t('Touche un mot pour voir son explication.')));
+  }
+
+  function effacerSurlignage() {
+    for (const ancien of zone.querySelectorAll('.mot-touchable.surligne')) ancien.classList.remove('surligne', 'choisi');
+  }
+
+  function fermer() {
+    effacerSurlignage();
+    afficherAide();
+  }
+
+  // Un mot touché : toutes ses apparitions se surlignent (celle-ci plus fort), et le panneau donne
+  // sa lecture, sa prononciation, son sens, son sens dans cette phrase, et où il revient ailleurs.
+  function choisir(mot, morceau, bouton) {
+    effacerSurlignage();
+    const toutes = apparitions.get(mot.id) ?? [];
+    for (const { bouton: autre } of toutes) autre.classList.add('surligne');
+    bouton.classList.add('choisi');
+
+    // Les autres répliques où le mot revient, une fois chacune : un toucher y mène.
+    const ligneIci = toutes.find((apparition) => apparition.bouton === bouton)?.ligne;
+    const parLigne = new Map();
+    for (const apparition of toutes) {
+      if (apparition.ligne !== ligneIci && !parLigne.has(apparition.ligne)) parLigne.set(apparition.ligne, apparition);
+    }
+    const ailleurs = [...parLigne.values()];
+
+    const sens = traduire(mot, 'fr');
+    const sensIci = traduire(morceau, 'fr');
+    remplacer(panneau,
       el('div', { className: 'mot-tete' },
         creerJaponais(mot.mot, 'mot-japonais'),
         creerPastilleMot(statuts[mot.id]),
-        creerBoutonIcone('lecture', t('Écouter'), 'btn-ghost bouton-mot', () => direMot(mot))),
+        creerBoutonIcone('lecture', t('Écouter'), 'btn-ghost bouton-mot', () => direMot(mot)),
+        creerBoutonIcone('fermer', t('Fermer'), 'btn-ghost bouton-mot', fermer)),
       creerLecture(mot),
-      el('div', { className: 'mot-sens' }, traduire(mot, 'fr')),
-      creerContexte(mot, ou[0]),
-      // Les autres répliques qui l'emploient, à déplier : voir le mot dans plusieurs phrases aide à le retenir.
-      restant > 0 && el('button', {
-        type: 'button',
-        className: 'action-discrete autres-contextes-bouton',
-        onclick: () => { autres.hidden = !autres.hidden; },
-      }, restant === 1 ? t('Et dans une autre réplique') : t('Et dans {n} autres répliques', { n: restant })),
-      autres);
+      el('div', { className: 'mot-sens' }, sens),
+      sensIci && sensIci !== sens && el('div', { className: 'mot-ici' }, t('Ici : {sens}', { sens: sensIci })),
+      ailleurs.length > 0 && el('div', { className: 'apparitions' },
+        el('span', { className: 'legende' }, ailleurs.length === 1
+          ? t('Et dans une autre réplique')
+          : t('Et dans {n} autres répliques', { n: ailleurs.length })),
+        ailleurs.map((apparition) => el('button', {
+          type: 'button',
+          className: 'chip',
+          onclick: () => {
+            apparition.bouton.scrollIntoView({ block: 'center' });
+            choisir(mot, apparition.morceau, apparition.bouton);
+          },
+        }, String(apparition.ligne.numero)))));
   }
 
-  // Une réplique en mot à mot. Comme ailleurs, la toucher la lit ou la met en pause, et garder le
-  // doigt dessus l'arrête ; son filet montre où en est la lecture.
-  function creerCartePhrase(ligne) {
+  // Une réplique du texte. Son bouton lecture la lit, la met en pause, ou l'arrête d'un appui long ;
+  // son filet montre où en est la lecture. Chacun de ses mots se touche.
+  function creerCarteTexte(ligne) {
     const ecoute = creerEcoute(ligne);
-    const carte = el('button', {
-      type: 'button',
-      className: `replique carte-phrase${selection.has(ligne.numero) ? ' mienne' : ''}`,
-      onclick: () => ecoute.toucher(),
-    }, enTete(ligne), creerPhrase(ligne, { gloses: true }), el('span', { className: 'replique-fr traduction' }, traduire(ligne, 'fr')));
-    ecoute.lierCarte(carte, { avecTemoin: true });
-    brancherGestes(carte, { maintenir: ecoute.arreter });
+    ecoute.bouton.classList.add('bouton-ligne');
+    const carte = el('div', { className: `replique carte-texte${selection.has(ligne.numero) ? ' mienne' : ''}` },
+      el('div', { className: 'carte-texte-tete' }, enTete(ligne), ecoute.bouton),
+      creerPhrase(ligne, { gloses, interactif: true }),
+      el('span', { className: 'replique-fr traduction' }, traduire(ligne, 'fr')));
+    ecoute.lierCarte(carte);
     return carte;
   }
 
-  // ---- L'écran principal : le choix, puis la liste ----
+  // ---- L'écran principal : le texte, dont chaque mot se touche ----
 
-  const zone = el('div', { className: 'pile-vocabulaire' });
   const compteur = el('span', { className: 'pill pill--ok' });
+  const boutonReviser = el('button', { type: 'button', className: 'btn' }, t('Réviser'));
 
-  function dessinerListe() {
+  function dessinerTexte() {
     definirRetour(null);
     arreterVoix();
+    apparitions = new Map();
+    statuts = lireStatutsMots(piece.id);
     const lignesVues = lignesChoisies();
     const entrees = entreesDe(lignesVues);
     compteur.textContent = t(entrees.length > 1 ? '{n} mots' : '{n} mot', { n: entrees.length });
+    boutonReviser.disabled = entrees.length === 0;
+    boutonReviser.onclick = () => lancerRevision(entrees);
 
     if (portee === 'miennes' && selection.size === 0) {
       remplacer(zone, creerAvisSansSelection(piece));
+      panneau.hidden = true;
       return;
     }
-
-    if (vue === 'mots') {
-      const statuts = lireStatutsMots(piece.id);
-      remplacer(zone,
-        el('button', { type: 'button', className: 'btn', disabled: entrees.length === 0, onclick: () => lancerRevision(entrees) }, t('Réviser')),
-        entrees.map((entree) => creerCarteMot(entree, statuts)));
-    } else {
-      // Les phrases, rangées par scène comme dans le script.
-      let scene = null;
-      remplacer(zone, lignesVues.flatMap((ligne) => {
-        const titre = ligne.scene !== scene ? creerTitreScene(ligne.scene) : null;
-        scene = ligne.scene;
-        return [titre, creerCartePhrase(ligne)];
-      }));
-    }
+    panneau.hidden = false;
+    // Les répliques, rangées par scène comme dans le script.
+    let scene = null;
+    remplacer(zone, lignesVues.flatMap((ligne) => {
+      const titre = ligne.scene !== scene ? creerTitreScene(ligne.scene) : null;
+      scene = ligne.scene;
+      return [titre, creerCarteTexte(ligne)];
+    }));
+    afficherAide();
     cascade(zone);
   }
 
@@ -198,15 +261,16 @@ export function afficherVocabulaire(racine, piece) {
       creerTitreVue(t('Vocabulaire'), compteur),
       el('div', { className: 'chips-vocabulaire' },
         creerChoixUnique([
-          { valeur: 'mots', libelle: t('Mots') },
-          { valeur: 'phrases', libelle: t('Phrases') },
-        ], vue, (choix) => { vue = choix; dessinerListe(); }),
-        creerChoixUnique([
           { valeur: 'miennes', libelle: t('Mes répliques') },
           { valeur: 'tout', libelle: t('Toute la pièce') },
-        ], portee, (choix) => { portee = choix; dessinerListe(); })),
-      zone);
-    dessinerListe();
+        ], portee, (choix) => { portee = choix; dessinerTexte(); }),
+        // Le mot à mot : la traduction écrite sous chaque mot, pour suivre la construction de la phrase.
+        el('div', { className: 'chips' }, creerBascule(t('Mot à mot'), gloses, (actif) => { gloses = actif; dessinerTexte(); }))),
+      boutonReviser,
+      zone,
+      // Collé en bas de l'écran, comme les commandes des fiches.
+      panneau);
+    dessinerTexte();
     hautDePage();
   }
 

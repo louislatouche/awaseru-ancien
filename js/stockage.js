@@ -1,10 +1,30 @@
 // Tout ce qui est gardé sur le téléphone, dans localStorage.
 //
 // localStorage ne sait stocker que du texte : on convertit donc en JSON à l'écriture et à la lecture.
-// Le préfixe « replik: » est nécessaire car sur GitHub Pages, tous tes projets partagent le même
+// Le préfixe « awaseru: » est nécessaire car sur GitHub Pages, tous tes projets partagent le même
 // localStorage (ils sont sur le même site, tonnom.github.io).
 
-const PREFIXE = 'replik:';
+const PREFIXE = 'awaseru:';
+
+// Avant de s'appeler Awaseru, l'app s'appelait Replik et rangeait tout sous « replik: ». L'adresse a
+// changé (/replik/ devenue /awaseru/), mais le site reste le même, donc les données aussi : on les
+// recopie une fois sous le nouveau préfixe, puis on efface les anciennes. Une donnée déjà présente
+// sous le nouveau nom n'est jamais écrasée.
+function reprendreLesDonneesDeReplik() {
+  const ANCIEN_PREFIXE = 'replik:';
+  try {
+    const anciennes = Object.keys(localStorage).filter((cle) => cle.startsWith(ANCIEN_PREFIXE));
+    for (const ancienne of anciennes) {
+      const nouvelle = PREFIXE + ancienne.slice(ANCIEN_PREFIXE.length);
+      if (localStorage.getItem(nouvelle) === null) localStorage.setItem(nouvelle, localStorage.getItem(ancienne));
+      localStorage.removeItem(ancienne); // seulement une fois la copie faite : rien ne se perd en route
+    }
+    localStorage.removeItem('replik-reprise'); // la note de reprise ne vit que 30 minutes : inutile de la garder
+  } catch {
+    // stockage inaccessible (navigation privée stricte) : il n'y a rien à reprendre
+  }
+}
+reprendreLesDonneesDeReplik(); // au chargement de ce fichier, donc avant toute lecture
 
 function lire(cle, valeurParDefaut) {
   try {

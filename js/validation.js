@@ -37,7 +37,7 @@ export function validerPiece(piece) {
   };
 
   if (piece.format !== undefined && piece.format !== FORMAT_CONNU) {
-    erreurs.push(`format ${piece.format} inconnu (Replik connaît le format ${FORMAT_CONNU}).`);
+    erreurs.push(`format ${piece.format} inconnu (Awaseru connaît le format ${FORMAT_CONNU}).`);
   }
   if (piece.id !== undefined && !estTexteRempli(piece.id)) erreurs.push('« id » doit être un texte non vide.');
 

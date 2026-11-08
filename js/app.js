@@ -67,8 +67,9 @@ function afficherBarre(sousTitre, { retour = null, reglages = false } = {}) {
       onclick: () => remonter(retour),
     }, icone('retour')),
     el('a', { className: 'brand', href: '#/' },
-      el('strong', { className: 'wordmark' }, 'replik'),
-      sousTitre && el('small', {}, sousTitre)),
+      el('strong', { className: 'wordmark' }, 'awaseru'),
+      // Sous le nom : la pièce ouverte, ou à défaut le nom de l'app en japonais.
+      sousTitre ? el('small', {}, sousTitre) : el('small', { lang: 'ja' }, '合わせる')),
     reglages && el('a', { className: 'icon-btn', href: '#/reglages', 'aria-label': t('Réglages') }, icone('reglages')),
   );
 }
@@ -154,7 +155,7 @@ async function router() {
   }
   afficherOnglets(piece, ongletActif);
   appliquerAffichage(piece?.id ?? null); // furigana et traduction : le choix de cette pièce, ou le général
-  document.title = piece ? `${texteBrut(piece.titre)} · Replik` : 'Replik';
+  document.title = piece ? `${texteBrut(piece.titre)} · Awaseru` : 'Awaseru';
 
   // Chaque écran se construit dans un élément neuf, placé dans la page une fois prêt.
   // Si l'utilisateur a déjà changé d'écran entre-temps (les écrans peuvent attendre le chargement

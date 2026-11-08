@@ -44,6 +44,7 @@ const ICONES = {
   pause: 'M7 5.5h3v13H7zM14 5.5h3v13h-3z',
   su: 'M5 12.5l4.5 4.5L19 7.5',
   revoir: 'M12 4A8 8 0 1 1 4.48 9.26M12 4l2.6-2.6M12 4l2.6 2.6',
+  fermer: 'M6.5 6.5l11 11M17.5 6.5l-11 11',
 };
 
 // Lecture et pause sont remplies : à petite taille, on les reconnaît mieux que de simples contours.
@@ -227,7 +228,7 @@ function retirerMarche() {
 export function definirRetour(fonction) {
   retourDansEcran = fonction;
   if (fonction && !marchePosee) {
-    history.pushState({ etapeReplik: true }, ''); // même adresse : rien ne se recharge
+    history.pushState({ etapeAwaseru: true }, ''); // même adresse : rien ne se recharge
     marchePosee = true;
   } else if (!fonction) {
     retirerMarche();

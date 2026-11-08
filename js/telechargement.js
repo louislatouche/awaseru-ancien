@@ -7,7 +7,7 @@
 // La liste des pièces retirées est dans un cache, pas dans localStorage : le service worker doit
 // la lire à chaque mise à jour pour ne pas les réinstaller, et il n'a pas accès à localStorage.
 
-const CACHE_RETIREES = 'replik-retirees'; // ne commence pas par « replik-v » : une mise à jour le garde
+const CACHE_RETIREES = 'awaseru-retirees'; // ne commence pas par « awaseru-v » : une mise à jour le garde
 const FICHIER_RETIREES = 'retirees.json';
 
 // Le cache n'existe qu'en HTTPS ou sur localhost. Ailleurs, rien n'est gardé : rien à retirer.
@@ -28,7 +28,7 @@ async function enregistrerRetirees(retirees) {
 // Les copies de l'app : une seule d'habitude, deux le temps d'une mise à jour.
 async function copiesDeLApp() {
   const noms = await caches.keys();
-  return Promise.all(noms.filter((nom) => nom.startsWith('replik-v')).map((nom) => caches.open(nom)));
+  return Promise.all(noms.filter((nom) => nom.startsWith('awaseru-v')).map((nom) => caches.open(nom)));
 }
 
 export async function retirerPiece(id) {

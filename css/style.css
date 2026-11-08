@@ -1,7 +1,7 @@
-/* Replik : les styles propres à l'app, posés sur le design kit, comme dans Faktur.
+/* Awaseru : les styles propres à l'app, posés sur le design kit, comme dans Faktur.
    Le kit (dossier design-kit/) donne les couleurs, les polices, les boutons et les cartes. C'est une
    copie exacte du maître : on n'y touche jamais. Cette feuille ajoute seulement ce qui est propre à
-   Replik, et n'utilise que les variables du kit (var(--...)), jamais une couleur écrite en dur. */
+   Awaseru, et n'utilise que les variables du kit (var(--...)), jamais une couleur écrite en dur. */
 
 :root {
   --safe-top: env(safe-area-inset-top, 0px);
@@ -12,7 +12,8 @@
   --place-haut: calc(var(--header-h) + var(--safe-top));
   --place-bas: 0px;
   --maxw: 720px;
-  --font-wordmark: 'Poppins', 'Segoe UI', sans-serif; /* le mot « replik », comme « faktur » */
+  --marge: 12px; /* la marge sur les côtés des écrans : petite, pour laisser la place au japonais */
+  --font-wordmark: 'Poppins', 'Segoe UI', sans-serif; /* le mot « awaseru », comme « faktur » */
   --didascalie: color-mix(in srgb, var(--ink-mute) 70%, var(--ink));
 }
 
@@ -131,7 +132,7 @@ body:has(.tabbar:not([hidden])) { --place-bas: calc(var(--tabbar-h) + var(--safe
   max-width: var(--maxw);
   min-height: 100%;
   margin-inline: auto;
-  padding: 20px;
+  padding: 20px var(--marge);
 }
 
 /* ---- La barre d'onglets ---- */
@@ -142,29 +143,36 @@ body:has(.tabbar:not([hidden])) { --place-bas: calc(var(--tabbar-h) + var(--safe
   align-items: stretch;
   height: var(--place-bas);
   margin-top: calc(-1 * var(--place-bas));
-  padding-bottom: var(--safe-bottom);
+  padding: 0 8px var(--safe-bottom); /* une marge de chaque côté : le premier et le dernier onglet ne collent pas au bord */
   background: color-mix(in srgb, var(--surface) 85%, transparent);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   box-shadow: 0 -2px 8px color-mix(in srgb, var(--ink) 5%, transparent); /* la même, vers le haut */
 }
 
+/* Cinq onglets : sur un écran étroit (l'écran extérieur d'un Fold), un nom comme « Mes répliques »
+   ne tient pas sur une ligne. Les icônes partent donc toutes du même haut, et un nom trop long passe
+   simplement sur deux lignes, centré, sans rien décaler : les premières lignes restent alignées. */
 .tab {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 3px;
-  font-size: 11px; /* cinq onglets sur un téléphone : 12 pixels faisaient passer « Mes répliques » sur deux lignes */
+  padding: 11px 2px 0; /* un nom sur une ligne paraît centré, un nom sur deux lignes tient dans la barre */
+  /* La taille suit la largeur de l'écran : 11 pixels sur un téléphone ordinaire, jusqu'à 10 sur un écran étroit. */
+  font-size: clamp(10px, 2.9vw, 11px);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
+  text-align: center;
   color: var(--ink-mute);
 }
 
-/* Le nom reste sur une ligne, sous son icône : trop long dans une langue, il se termine par « … ». */
-.tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Un nom passe à la ligne entre ses mots, jamais au milieu d'un mot. Un seul mot un peu trop long
+   déborde à peine de son onglet, de façon égale des deux côtés. */
+.tab span { word-break: keep-all; }
 
 .tab svg { display: block; width: 23px; height: 23px; }
 .tab.is-active { color: var(--accent-dark); }
@@ -249,7 +257,8 @@ body:has(.tabbar:not([hidden])) { --place-bas: calc(var(--tabbar-h) + var(--safe
 /* ---- Blocs communs ---- */
 .pile { display: flex; flex-direction: column; gap: 12px; }
 
-.card { box-shadow: var(--shadow-card); }
+/* Le kit donne 24 pixels de marge intérieure aux cartes sur téléphone : 18 laissent plus de place au texte. */
+.card { padding-inline: 18px; box-shadow: var(--shadow-card); }
 
 .avis {
   padding: 12px 16px;
@@ -274,7 +283,7 @@ body:has(.tabbar:not([hidden])) { --place-bas: calc(var(--tabbar-h) + var(--safe
 .chip { min-height: 44px; font-size: 14px; line-height: 1.25; text-align: start; }
 
 /* Les chips sans contour, comme les cartes et les boutons : un fond teinté suffit à les voir,
-   sur le fond de page comme dans une carte blanche. Le kit leur garde un filet ; Replik l'efface ici.
+   sur le fond de page comme dans une carte blanche. Le kit leur garde un filet ; Awaseru l'efface ici.
    Le contour reste là mais transparent : la chip garde sa taille quand elle est choisie. */
 .chip { border-color: transparent; background: var(--bg-soft); }
 
@@ -375,8 +384,8 @@ rt { font-size: 0.55em; color: var(--ink-soft); }
 
 /* .card.acc-card : sur téléphone, le kit redonne une marge à .card, et elle s'ajoutait à celle du titre. */
 .card.acc-card { padding: 0; }
-.acc-header { padding: 12px 20px; font-size: 17px; }
-.acc-pad { display: flex; flex-direction: column; gap: 10px; padding: 0 20px 18px; }
+.acc-header { padding: 12px 18px; font-size: 17px; }
+.acc-pad { display: flex; flex-direction: column; gap: 10px; padding: 0 18px 18px; }
 .acc-pad p { color: var(--ink-soft); font-size: 15px; line-height: 1.6; }
 .lien-role { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 
@@ -390,7 +399,7 @@ rt { font-size: 0.55em; color: var(--ink-soft); }
   position: relative; /* repère pour le filet de lecture */
   display: block;
   width: 100%;
-  padding: 14px 16px;
+  padding: 14px; /* moins de marge sur les côtés : le japonais passe moins vite à la ligne */
   background: var(--surface);
   color: inherit;
   border: 0; /* sans bord : la carte flotte sur son ombre, comme les cartes du kit */
@@ -465,8 +474,8 @@ button.replique:disabled { cursor: default; }
   position: sticky;
   top: 0; /* compté depuis l'intérieur de la marge de .app-main : donc juste sous l'en-tête */
   z-index: 2;
-  margin: -20px -20px 0;
-  padding: 14px 20px;
+  margin: -20px calc(-1 * var(--marge)) 0;
+  padding: 14px var(--marge);
   background: color-mix(in srgb, var(--bg) 92%, transparent);
   backdrop-filter: blur(10px);
 }
@@ -567,27 +576,31 @@ button.replique:disabled { cursor: default; }
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin: auto -20px -20px; /* auto en haut : les colle en bas même si l'écran est peu rempli */
-  padding: 12px 20px;
+  margin: auto calc(-1 * var(--marge)) -20px; /* auto en haut : les colle en bas même si l'écran est peu rempli */
+  padding: 12px var(--marge);
   background: color-mix(in srgb, var(--bg) 92%, transparent);
   backdrop-filter: blur(10px);
   border-top: 1px solid var(--border);
 }
 
 /* ---- Vocabulaire ---- */
-.chips-vocabulaire, .pile-vocabulaire, .autres-contextes { display: flex; flex-direction: column; gap: 10px; }
+.chips-vocabulaire, .pile-vocabulaire { display: flex; flex-direction: column; gap: 10px; }
 .pile-vocabulaire { gap: 14px; }
 
-/* Une carte de mot : le mot, sa lecture, son sens, et la réplique où il apparaît. */
-.carte-mot {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 14px 16px;
-  background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
-}
+/* Le texte : chaque mot se touche, sans en avoir l'air. Touché, il se surligne. */
+.carte-texte-tete { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bouton-ligne { flex: none; width: auto; min-width: 44px; min-height: 40px; padding-inline: 8px; }
+.mot-touchable { border-radius: 4px; cursor: pointer; }
+
+.mot-touchable.choisi .morceau-ja { background: color-mix(in srgb, var(--star) 40%, var(--surface)); }
+
+/* Le panneau du mot touché : collé en bas de l'écran, comme les commandes des fiches. */
+.panneau-mot { gap: 4px; max-height: 45vh; overflow-y: auto; }
+.panneau-mot .mot-japonais { font-size: 1.6rem; line-height: 1.6; }
+.mot-ici { color: var(--ink-soft); font-size: 15px; }
+.apparitions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 4px; }
+.apparitions .chip { min-height: 36px; padding: 4px 12px; }
+.aide-mot { margin: 0; text-align: center; }
 
 .mot-tete { display: flex; align-items: center; gap: 10px; }
 .mot-japonais { margin-inline-end: auto; font-size: 2rem; font-weight: 700; line-height: 1.7; }
@@ -606,7 +619,6 @@ button.replique:disabled { cursor: default; }
 /* Le contexte : la réplique, le mot surligné comme au feutre, et la traduction de la phrase. */
 .contexte { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; padding: 10px 12px; background: var(--bg-soft); border-radius: var(--radius-sm); }
 .morceau.surligne .morceau-ja { background: var(--star-soft); border-radius: 4px; box-shadow: inset 0 -2px 0 var(--star); }
-.autres-contextes-bouton { align-self: flex-start; margin: 0; padding-inline: 0; color: var(--accent-dark); font-weight: 700; }
 
 /* Le mot à mot : chaque mot en colonne, le japonais dessus, sa traduction dessous. */
 .mot-a-mot { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px 6px; margin-block: 6px; }
@@ -647,7 +659,7 @@ button.replique:disabled { cursor: default; }
 
 .ligne-remise { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 /* La ligne Langue est une carte d'une seule ligne : la marge d'une carte de texte la rendrait énorme. */
-.card.ligne-remise { padding: 8px 20px; }
+.card.ligne-remise { padding: 8px 18px; }
 .credit { display: flex; flex-direction: column; gap: 2px; }
 .version { color: var(--ink-mute); font-size: 13px; text-align: center; }
 

@@ -4,7 +4,7 @@
 import { t } from './langues.js';
 import { lireReglages } from './stockage.js';
 
-export const aideInstallation = () => t("Aucune voix japonaise sur ce téléphone. Pour l'installer : Paramètres Android > Synthèse vocale (parfois rangée dans Accessibilité ou Gestion globale) > moteur Google > installer les données vocales > japonais. Ferme puis rouvre ensuite Replik.");
+export const aideInstallation = () => t("Aucune voix japonaise sur ce téléphone. Pour l'installer : Paramètres Android > Synthèse vocale (parfois rangée dans Accessibilité ou Gestion globale) > moteur Google > installer les données vocales > japonais. Ferme puis rouvre ensuite Awaseru.");
 
 let voix = [];
 

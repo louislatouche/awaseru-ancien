@@ -1,4 +1,4 @@
-# Replik
+# Awaseru
 Web app installable (PWA) pour apprendre mes répliques du cours de théâtre en japonais, utilisée sur Android.
 - JavaScript vanilla (modules ES), sans framework ni build. J'apprends le JavaScript : code lisible, commentaires en français, et explique simplement chaque changement.
 - Réponds en français et tutoie-moi.

@@ -1,6 +1,6 @@
-// La version de Replik, et les mises à jour qui attendent d'être chargées.
+// La version d'Awaseru, et les mises à jour qui attendent d'être chargées.
 //
-// Le numéro de version est celui de la copie hors ligne de l'app : le cache « replik-v45 » du
+// Le numéro de version est celui de la copie hors ligne de l'app : le cache « awaseru-v45 » du
 // service worker (voir sw.js). Quand une mise à jour s'installe, la nouvelle copie remplace
 // l'ancienne tout de suite, mais la page ouverte garde l'ancien code en mémoire tant qu'elle n'est
 // pas rechargée. Pour savoir quel code tourne vraiment, on note donc la version du démarrage.
@@ -12,8 +12,8 @@ import { t } from './langues.js';
 async function numerosInstalles() {
   if (!('caches' in window)) return [];
   return (await caches.keys())
-    .filter((nom) => nom.startsWith('replik-v'))
-    .map((nom) => Number(nom.slice('replik-v'.length)));
+    .filter((nom) => nom.startsWith('awaseru-v'))
+    .map((nom) => Number(nom.slice('awaseru-v'.length)));
 }
 
 // Lue une seule fois, au chargement de ce fichier : la copie qui a servi le code de cette page.

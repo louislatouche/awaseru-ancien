@@ -5,7 +5,9 @@ import { t } from './langues.js';
 import { toutesLesDonnees } from './stockage.js';
 import { validerPiece } from './validation.js';
 
-const TYPE = 'replik-sauvegarde';
+const TYPE = 'awaseru-sauvegarde';
+// Les sauvegardes faites quand l'app s'appelait encore Replik restent lisibles : leur contenu est le même.
+const TYPES_LISIBLES = [TYPE, 'replik-sauvegarde'];
 const VERSION_DU_FORMAT = 1;
 
 const estObjet = (valeur) => typeof valeur === 'object' && valeur !== null && !Array.isArray(valeur);
@@ -21,7 +23,7 @@ export function telechargerSauvegarde() {
   lien.href = adresse;
   // sv-SE écrit les dates en AAAA-MM-JJ, à l'heure du téléphone. toISOString donnerait l'heure de
   // Londres : juste après minuit, le fichier porterait encore la date de la veille.
-  lien.download = `replik-sauvegarde-${maintenant.toLocaleDateString('sv-SE')}.json`;
+  lien.download = `awaseru-sauvegarde-${maintenant.toLocaleDateString('sv-SE')}.json`;
   lien.click();
   setTimeout(() => URL.revokeObjectURL(adresse), 30000); // le temps que le téléchargement démarre
 }
@@ -52,13 +54,13 @@ export async function lireSauvegarde(fichier) {
   try {
     contenu = JSON.parse(await fichier.text());
   } catch {
-    throw new Error(t("ce fichier n'est pas une sauvegarde de Replik."));
+    throw new Error(t("ce fichier n'est pas une sauvegarde d'Awaseru."));
   }
-  if (!estObjet(contenu) || contenu.type !== TYPE || !estObjet(contenu.donnees)) {
-    throw new Error(t("ce fichier n'est pas une sauvegarde de Replik."));
+  if (!estObjet(contenu) || !TYPES_LISIBLES.includes(contenu.type) || !estObjet(contenu.donnees)) {
+    throw new Error(t("ce fichier n'est pas une sauvegarde d'Awaseru."));
   }
   if (contenu.version > VERSION_DU_FORMAT) {
-    throw new Error(t("cette sauvegarde vient d'une version plus récente de Replik. Mets l'app à jour."));
+    throw new Error(t("cette sauvegarde vient d'une version plus récente d'Awaseru. Mets l'app à jour."));
   }
   for (const [cle, valeur] of Object.entries(contenu.donnees)) {
     const erreur = erreurDansDonnee(cle, valeur);

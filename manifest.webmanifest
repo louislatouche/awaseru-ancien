@@ -1,7 +1,7 @@
 {
-  "name": "Replik",
-  "short_name": "Replik",
-  "description": "Apprendre ses répliques de théâtre en japonais.",
+  "name": "Awaseru",
+  "short_name": "Awaseru",
+  "description": "Awaseru (合わせる) : apprendre ses répliques de théâtre en japonais.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",
