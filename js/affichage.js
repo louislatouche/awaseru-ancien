@@ -137,14 +137,21 @@ export function creerBoutonIcone(nomIcone, libelle, classe, onclick, mot = libel
 // lierCarte(carte) : le filet de la carte suit alors la lecture (voir dessinerFilet). Seulement quand
 // le bouton n'est pas à l'écran (mode Gestes, signal des fiches) : sinon son trait suffit. Avec
 // { avecTemoin: true }, une petite icône lecture / pause s'affiche aussi dans son en-tête.
-// surLecture est appelée à chaque lancement (les fiches s'en servent pour permettre l'évaluation).
-// libelle : le nom du bouton à l'arrêt.
-export function creerEcoute(ligne, { surLecture = null, libelle: libelleArret = t('Écouter ma réplique') } = {}) {
+// surLecture est appelée à chaque lancement de sa réplique (les fiches s'en servent pour permettre
+// l'évaluation). libelle : le nom du bouton à l'arrêt. surEtat(etat, ligneLue) est appelée à chaque
+// changement : lecture, pause ou arrêt, et quelle réplique est concernée.
+//
+// Le même bouton peut aussi lire une autre réplique : toucher(autreLigne). Les fiches s'en servent
+// pour le signal : le bouton ▶ du bas pilote alors la lecture en cours, quelle qu'elle soit.
+// Sans réplique précisée, toucher() agit sur la lecture en cours, ou lance la sienne s'il n'y en a pas.
+export function creerEcoute(ligne, { surLecture = null, libelle: libelleArret = t('Écouter ma réplique'), surEtat = null } = {}) {
   let etat = 'arret'; // 'arret', 'lecture' ou 'pause'
   // Le jeton change à chaque arrêt voulu : la fin d'une lecture abandonnée ne touche plus au bouton.
   let jeton = 0;
   let carte = null;   // la carte liée, dont le filet suit la lecture
   let temoin = null;  // la petite icône dans l'en-tête de la carte
+  let enCours = ligne; // la réplique qui se lit, ou s'est lue en dernier
+  let pret = false;   // surEtat n'est appelée qu'après la création : la page n'a pas encore ses cartes
 
   const ecrit = avecLabels();
   const trait = el('span', { className: 'progression', hidden: true });
@@ -154,7 +161,8 @@ export function creerEcoute(ligne, { surLecture = null, libelle: libelleArret = 
     const avance = progressionVoix();
     trait.hidden = etat === 'arret' || avance === null;
     trait.style.setProperty('--p', `${(avance ?? 0) * 100}%`);
-    if (carte) dessinerFilet(carte, etat);
+    // Le filet est celui de la carte de sa réplique : il ne suit pas la lecture d'une autre.
+    if (carte) dessinerFilet(carte, enCours === ligne ? etat : 'arret');
   }
 
   // Pendant la lecture, le trait avance à chaque image affichée par l'écran.
@@ -173,17 +181,19 @@ export function creerEcoute(ligne, { surLecture = null, libelle: libelleArret = 
     remplacer(bouton, icone(nomIcone), ecrit && el('span', { className: 'label' }, mot), trait);
     if (temoin) remplacer(temoin, icone(nomIcone));
     majTrait();
+    if (pret) surEtat?.(etat, enCours);
   }
 
-  async function lancer() {
+  async function lancer(laquelle) {
     const moi = ++jeton;
+    enCours = laquelle;
     etat = 'lecture';
     dessiner();
     suivre();
-    surLecture?.();
+    if (laquelle === ligne) surLecture?.();
     // La promesse se termine à la fin de la réplique, ou si une autre lecture prend la place
     // (le signal qu'on réécoute, la fiche suivante, un changement d'écran...).
-    await lireReplique(ligne);
+    await lireReplique(laquelle);
     if (moi !== jeton) return;
     etat = 'arret';
     dessiner();
@@ -196,9 +206,10 @@ export function creerEcoute(ligne, { surLecture = null, libelle: libelleArret = 
     dessiner();
   }
 
-  function toucher() {
-    if (etat === 'arret') {
-      lancer();
+  function toucher(laquelle = null) {
+    const cible = laquelle ?? (etat === 'arret' ? ligne : enCours);
+    if (etat === 'arret' || cible !== enCours) {
+      lancer(cible); // rien en cours, ou une autre réplique demandée : celle-ci prend la place
     } else if (etat === 'lecture') {
       // Avec la voix du téléphone, la pause est impossible : la lecture s'arrête, et la fin
       // de lancer() remettra le bouton au départ.
@@ -211,7 +222,7 @@ export function creerEcoute(ligne, { surLecture = null, libelle: libelleArret = 
       dessiner();
       suivre();
     } else {
-      lancer(); // plus rien à reprendre : on recommence
+      lancer(cible); // plus rien à reprendre : on recommence
     }
   }
 
@@ -225,8 +236,10 @@ export function creerEcoute(ligne, { surLecture = null, libelle: libelleArret = 
     dessiner();
   }
 
-  brancherAppuiLong(bouton, { toucher, maintenir: arreter });
+  // Une fonction fléchée : le bouton lui-même ne doit pas transmettre de réplique à toucher.
+  brancherAppuiLong(bouton, { toucher: () => toucher(), maintenir: arreter });
   dessiner();
+  pret = true;
   return { bouton, toucher, arreter, lierCarte };
 }
 

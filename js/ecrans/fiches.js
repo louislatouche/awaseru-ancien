@@ -29,6 +29,43 @@ const CLASSES_STATUT = { su: 'est-sue', a_revoir: 'est-a-revoir' };
 export function afficherFiches(racine, piece) {
   const lignes = lignesDe(piece);
 
+  // ---- La carte qui se lit passe au premier plan ----
+  // Elle se soulève de 4 px et son ombre grandit, pendant que le reste de l'écran pâlit. La barre de
+  // boutons, elle, reste nette : c'est elle qui pilote la lecture. À la fin, tout revient en place.
+  // Des animations JavaScript plutôt que des classes CSS : elles se défont exactement comme elles se
+  // sont faites (reverse), sans toucher aux transitions des cartes (l'enfoncement au toucher).
+  const OMBRE_LEVEE = '0 6px 16px rgba(43, 42, 39, 0.08), 0 24px 52px rgba(43, 42, 39, 0.16)';
+  const FEUTRE = 'cubic-bezier(.22, 1, .36, 1)'; // la même que --feutre dans style.css
+  let enAvant = null; // la carte au premier plan, et ses animations
+
+  function remettreEnPlace() {
+    enAvant?.animations.forEach((animation) => animation.reverse()); // repart à l'envers, jusqu'à l'état normal
+    enAvant = null;
+  }
+
+  function mettreEnAvant(carte, oui) {
+    if (!carte) return;
+    if (!oui) {
+      if (enAvant?.carte === carte) remettreEnPlace(); // une autre carte a pu prendre la place entre-temps
+      return;
+    }
+    if (enAvant?.carte === carte) return;
+    remettreEnPlace();
+    const reduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // En mode Gestes, ma carte est dans un cadre qui la fait glisser sous le doigt : c'est ce cadre
+    // qui se soulève, pour ne pas gêner le glissement de la carte elle-même.
+    const leve = carte.parentElement?.classList.contains('cadre-glisse') ? carte.parentElement : carte;
+    const autres = [...racine.children].filter((bloc) => !bloc.contains(carte) && !bloc.classList.contains('commandes'));
+    enAvant = {
+      carte,
+      animations: [
+        leve.animate({ transform: 'translateY(-4px)' }, { duration: reduit ? 0 : 400, easing: FEUTRE, fill: 'forwards' }),
+        carte.animate({ boxShadow: OMBRE_LEVEE }, { duration: reduit ? 0 : 400, easing: FEUTRE, fill: 'forwards' }),
+        ...autres.map((bloc) => bloc.animate({ opacity: 0.4 }, { duration: reduit ? 0 : 280, easing: 'ease', fill: 'forwards' })),
+      ],
+    };
+  }
+
   function ecranDepart() {
     oublierPosition(); // pas de série en cours : rien à reprendre si l'app est relancée
     definirRetour(null); // la flèche de retour quitte alors les fiches
@@ -107,6 +144,7 @@ export function afficherFiches(racine, piece) {
     }
 
     function montrerFiche() {
+      enAvant = null; // les cartes de la fiche précédente disparaissent avec leurs animations
       const ligne = paquet[position];
       // Les répliques sont notées par leur numéro : c'est tout ce qu'il faut pour reconstruire la série.
       const numeros = (liste) => liste.map((l) => l.numero);
@@ -135,20 +173,24 @@ export function afficherFiches(racine, piece) {
         boutonRevoir.disabled = false;
       };
 
-      // Le signal : sa carte elle-même est le bouton lecture. Un toucher lit ou met en pause, un appui
-      // long arrête ; son filet montre où en est la lecture, et une petite icône dit son état.
-      const ecouteSignal = signal ? creerEcoute(signal, { libelle: t('Réécouter') }) : null;
+      // ---- La lecture ----
+      // Avec les boutons, un seul bouton ▶, en bas, pilote la lecture en cours : celle du signal comme
+      // celle de ma réplique. Il passe en pause et son trait avance quelle que soit la carte lue : le
+      // signal n'a donc ni filet ni petite icône. En mode Gestes, il n'y a pas de bouton : chaque carte
+      // a sa propre écoute, et c'est son filet (avec, pour le signal, une petite icône) qui suit la lecture.
+      // Dans les deux cas, la carte qui se lit passe au premier plan (voir mettreEnAvant).
+      const carteDe = (laLigne) => (laLigne === ligne ? carteMoi : carteSignal);
+      const suivreEtat = (etat, laLigne) => mettreEnAvant(carteDe(laLigne), etat !== 'arret');
+      const ecoute = creerEcoute(ligne, { surLecture: permettreNote, surEtat: suivreEtat });
+      const ecouteSignal = signal && gestes ? creerEcoute(signal, { libelle: t('Réécouter'), surEtat: suivreEtat }) : null;
+
+      // Le signal : sa carte elle-même se touche pour le lire ou le mettre en pause, et un appui long arrête.
       const carteSignal = signal && creerReplique(signal, piece, {
         mienne: selection.has(signal.numero),
         statut: lireStatuts(piece.id)[signal.numero],
-        surTouche: () => ecouteSignal.toucher(),
+        surTouche: () => (ecouteSignal ? ecouteSignal.toucher() : ecoute.toucher(signal)),
       });
-      if (carteSignal) {
-        ecouteSignal.lierCarte(carteSignal, { avecTemoin: true });
-        brancherGestes(carteSignal, { maintenir: ecouteSignal.arreter });
-      }
-
-      const ecoute = creerEcoute(ligne, { surLecture: permettreNote });
+      if (carteSignal) brancherGestes(carteSignal, { maintenir: () => (ecouteSignal ?? ecoute).arreter() });
 
       function devoiler() {
         carteMoi.classList.remove('est-cachee');
@@ -165,13 +207,15 @@ export function afficherFiches(racine, piece) {
         statut: lireStatuts(piece.id)[ligne.numero],
         surTouche: () => {
           if (carteMoi.classList.contains('est-cachee')) devoiler();
-          else ecoute.toucher();
+          else ecoute.toucher(ligne); // ma réplique, même si le signal était en train de se lire
         },
       });
 
-      // Avec les boutons, le trait du bouton ▶ montre déjà où en est la lecture. En mode Gestes, il
-      // n'y a pas de bouton : c'est alors le filet de la carte qui suit la lecture de ma réplique.
-      if (gestes) ecoute.lierCarte(carteMoi);
+      // Mode Gestes : les filets (et la petite icône du signal), une fois les deux cartes créées.
+      if (gestes) {
+        ecoute.lierCarte(carteMoi);
+        if (carteSignal) ecouteSignal.lierCarte(carteSignal, { avecTemoin: true });
+      }
 
       const boutonVoir = creerBoutonIcone('voir', t('Voir'), 'btn-ghost', devoiler);
 
@@ -204,8 +248,11 @@ export function afficherFiches(racine, piece) {
       // Passer à la fiche suivante : un fondu court, comme les étapes de Faktur.
       for (const bloc of racine.children) bloc.classList.add('etape');
       hautDePage();
-      // Le signal se lit tout seul, par son propre bouton : celui-ci passe donc en pause pendant la lecture.
-      if (ecouteSignal && lireLeSignal) ecouteSignal.toucher();
+      // Le signal se lit tout seul : par le bouton ▶ du bas, qui passe en pause, ou par sa propre écoute en mode Gestes.
+      if (signal && lireLeSignal) {
+        if (ecouteSignal) ecouteSignal.toucher();
+        else ecoute.toucher(signal);
+      }
       lireLeSignal = true;
     }
 
