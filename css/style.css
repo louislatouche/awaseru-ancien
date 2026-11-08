@@ -594,7 +594,10 @@ button.replique:disabled { cursor: default; }
    sinon presque jusqu'aux furigana de la première ligne. Il glisse d'autant vers la droite, pour
    rester calé dans le coin à égale distance du haut et du bord droit de la carte (9 px chacun).
    translate le déplace sans toucher à la mise en page : le texte, lui, ne bouge pas. */
-.bouton-ligne { flex: none; width: auto; min-width: 44px; min-height: 40px; padding-inline: 8px; translate: 5px -5px; }
+.bouton-ligne { translate: 5px -5px; }
+/* Les petits boutons du Vocabulaire ont tous la même taille : la lecture de chaque carte, et la
+   lecture et la fermeture du panneau du mot touché. */
+.bouton-ligne, .bouton-mot { flex: none; width: auto; min-width: 44px; min-height: 40px; padding-inline: 8px; }
 .mot-touchable { border-radius: 4px; cursor: pointer; }
 
 .mot-touchable.choisi .morceau-ja { background: color-mix(in srgb, var(--star) 40%, var(--surface)); }
@@ -610,7 +613,6 @@ button.replique:disabled { cursor: default; }
 .mot-tete { display: flex; align-items: center; gap: 10px; }
 .mot-japonais { margin-inline-end: auto; font-size: 2rem; font-weight: 700; line-height: 1.7; }
 .mot-japonais rt { font-size: .45em; }
-.bouton-mot { flex: none; width: auto; min-width: 52px; padding-inline: 10px; }
 .mot-lecture { color: var(--ink-soft); font-size: 15px; }
 .mot-lecture b { color: var(--ink); }
 .mot-sens { color: var(--accent-dark); font-size: 17px; font-weight: 700; }

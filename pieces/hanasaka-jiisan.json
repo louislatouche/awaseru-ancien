@@ -1095,7 +1095,7 @@
         },
         {
           "numero": 13,
-          "role": null,
+          "role": "narrateur",
           "texte": "[可哀想|かわいそう]に、シロは[死|し]んでしまいました。",
           "fr": "Pauvre Shiro, il en mourut.",
           "en": "Poor Shiro died of it.",
@@ -1215,7 +1215,7 @@
         },
         {
           "numero": 15,
-          "role": null,
+          "role": "narrateur",
           "texte": "すると、そこから[大|おお]きな[木|き]が、あっという[間|ま]に[育|そだ]ちました。",
           "fr": "Alors, à cet endroit précis, un grand arbre poussa en un clin d'œil.",
           "en": "Then, on that very spot, a great tree grew up in the blink of an eye.",
