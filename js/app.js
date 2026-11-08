@@ -146,11 +146,26 @@ function enregistrerServiceWorker() {
     console.warn("Service worker non enregistré :", erreur);
   });
 
+  // Le navigateur ne cherche une nouvelle version qu'au démarrage de l'app. Or Android garde souvent
+  // l'app en arrière-plan : quand on y revient, il la réveille sans la recharger, et ne vérifie rien.
+  // On lui demande donc de vérifier à chaque retour dans l'app, en arrière-plan, sans rien bloquer.
+  // S'il y a du nouveau, il le télécharge, et le bandeau ci-dessous apparaît.
+  // Au plus une fois par minute : basculer entre deux apps ne doit pas multiplier les requêtes.
+  let derniereVerification = Date.now(); // le démarrage vient de vérifier
+  document.addEventListener('visibilitychange', async () => {
+    if (document.hidden || Date.now() - derniereVerification < 60_000) return;
+    derniereVerification = Date.now();
+    const inscription = await navigator.serviceWorker.getRegistration();
+    inscription?.update().catch(() => {}); // hors ligne : on réessaiera au prochain retour
+  });
+
   // S'il y a déjà un service worker aux commandes, un changement veut dire « nouvelle version ».
   // S'il n'y en a pas, c'est la toute première installation : rien à annoncer.
   const avaitUnControleur = Boolean(navigator.serviceWorker.controller);
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!avaitUnControleur) return;
+    // L'app peut maintenant rester ouverte pendant deux mises à jour : un seul bandeau suffit.
+    if (document.querySelector('.bandeau-maj')) return;
     // On ne recharge pas tout seul : cela couperait un filage en cours. L'utilisateur choisit.
     const bandeau = el('button', {
       type: 'button',

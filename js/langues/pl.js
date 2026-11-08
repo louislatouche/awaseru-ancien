@@ -69,6 +69,8 @@ export default {
   Mélangées: 'Pomieszane',
   Répliques: 'Kwestie',
   'Seulement les À revoir ({n})': 'Tylko do powtórki ({n})',
+  'Une réplique précise': 'Konkretna kwestia',
+  'Touche un numéro pour travailler cette réplique seule.': 'Dotknij numeru, aby ćwiczyć tylko tę kwestię.',
   Commencer: 'Zacznij',
   'Je savais': 'Znam to',
   Voir: 'Pokaż',
@@ -142,6 +144,10 @@ export default {
   'Restauration impossible : {erreur}': 'Nie udało się przywrócić: {erreur}',
   Crédits: 'Autorzy',
   'Replik, version {n}': 'Replik, wersja {n}',
+  'Chercher une mise à jour': 'Sprawdź aktualizacje',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': 'Znaleziono nową wersję: trwa pobieranie. Baner zaproponuje ci ponowne załadowanie.',
+  'Tu as déjà la dernière version.': 'Masz już najnowszą wersję.',
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': 'Nie można sprawdzić: czy masz połączenie z internetem?',
 
   // Script
   'À propos de cette pièce': 'O tej sztuce',

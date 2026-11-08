@@ -68,6 +68,8 @@ export default {
   Mélangées: 'Вперемешку',
   Répliques: 'Реплики',
   'Seulement les À revoir ({n})': 'Только «Повторить» ({n})',
+  'Une réplique précise': 'Конкретная реплика',
+  'Touche un numéro pour travailler cette réplique seule.': 'Коснись номера, чтобы поработать только с этой репликой.',
   Commencer: 'Начать',
   'Je savais': 'Знаю',
   Voir: 'Показать',
@@ -141,6 +143,10 @@ export default {
   'Restauration impossible : {erreur}': 'Не удалось восстановить: {erreur}',
   Crédits: 'Авторы',
   'Replik, version {n}': 'Replik, версия {n}',
+  'Chercher une mise à jour': 'Проверить обновления',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': 'Найдена новая версия: она загружается. Баннер предложит перезагрузить.',
+  'Tu as déjà la dernière version.': 'У тебя уже самая новая версия.',
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': 'Не удаётся проверить: ты подключён к интернету?',
 
   // Script
   'À propos de cette pièce': 'Об этой пьесе',

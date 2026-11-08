@@ -212,6 +212,41 @@ function creerCredits(pieces) {
       el('p', { className: 'legende' }, traduire(piece.audio, 'credit')))));
 }
 
+// Chercher une nouvelle version tout de suite, sans attendre de fermer et rouvrir l'app.
+function creerMiseAJour() {
+  if (!('serviceWorker' in navigator)) return null; // sans service worker, pas de mise à jour à gérer
+  let enCours = false;
+
+  const bouton = el('button', {
+    type: 'button',
+    className: 'btn-ghost',
+    onclick: async () => {
+      if (enCours) return;
+      enCours = true;
+      bouton.classList.add('is-syncing'); // l'anneau du kit, pendant l'échange avec le site
+      const debut = Date.now();
+      let message;
+      try {
+        const inscription = await navigator.serviceWorker.getRegistration();
+        await inscription.update(); // relit sw.js sur le site et le compare à celui du téléphone
+        // installing : le fichier a changé, le navigateur commence à copier la nouvelle version.
+        // Une fois la copie finie, app.js affiche le bandeau « Nouvelle version prête ».
+        message = inscription.installing || inscription.waiting
+          ? t('Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.')
+          : t('Tu as déjà la dernière version.');
+      } catch {
+        message = t('Impossible de vérifier : es-tu bien connecté à Internet ?');
+      }
+      // Le kit demande de garder l'anneau au moins une seconde, sinon on ne le voit pas passer.
+      await new Promise((resolve) => { setTimeout(resolve, Math.max(0, 1000 - (Date.now() - debut))); });
+      bouton.classList.remove('is-syncing');
+      enCours = false;
+      signaler(message);
+    },
+  }, t('Chercher une mise à jour'));
+  return bouton;
+}
+
 export async function afficherReglages(racine) {
   const { fournies, importees } = await toutesLesPieces();
 
@@ -240,6 +275,7 @@ export async function afficherReglages(racine) {
       trierParUtilisation([...fournies, ...importees]).map(creerRemiseAZero)),
     creerSauvegarde(),
     creerCredits(trierParUtilisation([...fournies, ...importees])),
+    creerMiseAJour(),
     version,
   );
   cascade(racine);

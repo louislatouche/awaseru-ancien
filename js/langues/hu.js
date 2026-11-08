@@ -69,6 +69,8 @@ export default {
   Mélangées: 'Összekeverve',
   Répliques: 'Replikák',
   'Seulement les À revoir ({n})': 'Csak az átnézendők ({n})',
+  'Une réplique précise': 'Egy adott replika',
+  'Touche un numéro pour travailler cette réplique seule.': 'Koppints egy számra, hogy csak azt a replikát gyakorold.',
   Commencer: 'Kezdés',
   'Je savais': 'Tudtam',
   Voir: 'Mutasd',
@@ -142,6 +144,10 @@ export default {
   'Restauration impossible : {erreur}': 'A visszaállítás nem sikerült: {erreur}',
   Crédits: 'Készítők',
   'Replik, version {n}': 'Replik, verzió: {n}',
+  'Chercher une mise à jour': 'Frissítés keresése',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': 'Új verzió található: letöltés folyamatban. Egy sáv felajánlja majd az újratöltést.',
+  'Tu as déjà la dernière version.': 'Már a legújabb verziót használod.',
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': 'Nem sikerült ellenőrizni: van internetkapcsolatod?',
 
   // Script
   'À propos de cette pièce': 'A darabról',

@@ -69,6 +69,8 @@ export default {
   Mélangées: 'シャッフル',
   Répliques: 'セリフ',
   'Seulement les À revoir ({n})': '要復習のみ（{n}）',
+  'Une réplique précise': '特定のセリフ',
+  'Touche un numéro pour travailler cette réplique seule.': '番号をタップすると、そのセリフだけを練習できます。',
   Commencer: '始める',
   'Je savais': '覚えていた',
   Voir: '見る',
@@ -142,6 +144,10 @@ export default {
   'Restauration impossible : {erreur}': '復元できません：{erreur}',
   Crédits: 'クレジット',
   'Replik, version {n}': 'Replik バージョン {n}',
+  'Chercher une mise à jour': 'アップデートを確認',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': '新しいバージョンが見つかりました。ダウンロード中です。終わると、再読み込みを案内するバナーが表示されます。',
+  'Tu as déjà la dernière version.': 'すでに最新バージョンです。',
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': '確認できません。インターネットに接続されていますか？',
 
   // Script
   'À propos de cette pièce': 'この演目について',

@@ -456,6 +456,10 @@ button.replique:disabled { cursor: default; }
 
 .bouton-numero.est-choisi { background: var(--accent); color: var(--on-accent); }
 
+/* Dans les fiches, le numéro prend la couleur de la pastille de sa réplique. */
+.bouton-numero.est-sue { background: var(--accent-soft); color: var(--accent-dark); }
+.bouton-numero.est-a-revoir { background: var(--star-soft); color: var(--star-dark); }
+
 /* ---- Fiches et filage ---- */
 .journal { flex: 1; display: flex; flex-direction: column; gap: 10px; }
 .fin-piece { font-weight: 700; text-align: center; }

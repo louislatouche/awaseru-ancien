@@ -69,6 +69,8 @@ export default {
   Mélangées: 'Sekoitettu',
   Répliques: 'Repliikit',
   'Seulement les À revoir ({n})': 'Vain kerrattavat ({n})',
+  'Une réplique précise': 'Tietty repliikki',
+  'Touche un numéro pour travailler cette réplique seule.': 'Napauta numeroa harjoitellaksesi vain sitä repliikkiä.',
   Commencer: 'Aloita',
   'Je savais': 'Osasin',
   Voir: 'Näytä',
@@ -142,6 +144,10 @@ export default {
   'Restauration impossible : {erreur}': 'Palautus epäonnistui: {erreur}',
   Crédits: 'Tekijät',
   'Replik, version {n}': 'Replik, versio {n}',
+  'Chercher une mise à jour': 'Etsi päivityksiä',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': 'Uusi versio löytyi: sitä ladataan. Palkki tarjoaa sitten uudelleenlatausta.',
+  'Tu as déjà la dernière version.': 'Sinulla on jo uusin versio.',
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': 'Tarkistus ei onnistu: onko sinulla internetyhteys?',
 
   // Script
   'À propos de cette pièce': 'Tietoa tästä näytelmästä',

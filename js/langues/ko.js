@@ -68,6 +68,8 @@ export default {
   Mélangées: '섞기',
   Répliques: '대사',
   'Seulement les À revoir ({n})': '복습 필요만 ({n})',
+  'Une réplique précise': '특정 대사',
+  'Touche un numéro pour travailler cette réplique seule.': '번호를 누르면 그 대사만 연습할 수 있어요.',
   Commencer: '시작',
   'Je savais': '알고 있었어요',
   Voir: '보기',
@@ -141,6 +143,10 @@ export default {
   'Restauration impossible : {erreur}': '복원할 수 없어요: {erreur}',
   Crédits: '크레딧',
   'Replik, version {n}': 'Replik 버전 {n}',
+  'Chercher une mise à jour': '업데이트 확인',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': '새 버전을 찾았어요. 다운로드 중이에요. 끝나면 새로고침을 안내하는 배너가 나타나요.',
+  'Tu as déjà la dernière version.': '이미 최신 버전이에요.',
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': '확인할 수 없어요. 인터넷에 연결되어 있나요?',
 
   // Script
   'À propos de cette pièce': '이 연극 소개',

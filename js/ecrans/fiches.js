@@ -21,6 +21,9 @@ function melanger(liste) {
   return copie;
 }
 
+// La couleur d'un numéro selon où en est sa réplique (voir style.css).
+const CLASSES_STATUT = { su: 'est-sue', a_revoir: 'est-a-revoir' };
+
 export function afficherFiches(racine, piece) {
   const lignes = lignesDe(piece);
 
@@ -61,6 +64,17 @@ export function afficherFiches(racine, piece) {
           lancer(melangees ? melanger(base) : base);
         },
       }, t('Commencer')),
+      // Ou une seule réplique, choisie par son numéro. Sa couleur rappelle où elle en est :
+      // ambre si elle est à revoir, sauge si elle est sue, comme les pastilles des cartes.
+      el('section', { className: 'card pile' },
+        el('p', { className: 'eyebrow' }, t('Une réplique précise')),
+        el('p', { className: 'legende' }, t('Touche un numéro pour travailler cette réplique seule.')),
+        el('div', { className: 'grille-numeros' }, miennes.map((ligne) => el('button', {
+          type: 'button',
+          className: `bouton-numero ${CLASSES_STATUT[statuts[ligne.numero]] ?? ''}`,
+          'aria-label': t('Réplique {n}', { n: ligne.numero }),
+          onclick: () => lancer([ligne]),
+        }, String(ligne.numero))))),
     );
     cascade(racine);
   }

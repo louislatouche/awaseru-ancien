@@ -68,6 +68,8 @@ export default {
   Mélangées: 'Gemischt',
   Répliques: 'Zeilen',
   'Seulement les À revoir ({n})': 'Nur zu Wiederholende ({n})',
+  'Une réplique précise': 'Eine bestimmte Zeile',
+  'Touche un numéro pour travailler cette réplique seule.': 'Tippe auf eine Nummer, um nur diese Zeile zu üben.',
   Commencer: 'Starten',
   'Je savais': 'Wusste ich',
   Voir: 'Anzeigen',
@@ -141,6 +143,10 @@ export default {
   'Restauration impossible : {erreur}': 'Wiederherstellung nicht möglich: {erreur}',
   Crédits: 'Credits',
   'Replik, version {n}': 'Replik, Version {n}',
+  'Chercher une mise à jour': 'Nach Updates suchen',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': 'Neue Version gefunden: Sie wird heruntergeladen. Ein Banner bietet dir dann das Neuladen an.',
+  'Tu as déjà la dernière version.': 'Du hast bereits die neueste Version.',
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': 'Prüfen nicht möglich: Bist du mit dem Internet verbunden?',
 
   // Script
   'À propos de cette pièce': 'Über dieses Stück',

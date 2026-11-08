@@ -68,6 +68,8 @@ export default {
   Mélangées: 'Shuffled',
   Répliques: 'Lines',
   'Seulement les À revoir ({n})': 'Only those to review ({n})',
+  'Une réplique précise': 'A specific line',
+  'Touche un numéro pour travailler cette réplique seule.': 'Tap a number to practise that line on its own.',
   Commencer: 'Start',
   'Je savais': 'I knew it',
   Voir: 'Show',
@@ -141,6 +143,10 @@ export default {
   'Restauration impossible : {erreur}': 'Restore failed: {erreur}',
   Crédits: 'Credits',
   'Replik, version {n}': 'Replik, version {n}',
+  'Chercher une mise à jour': 'Check for updates',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': 'New version found: it is downloading. A banner will offer to reload.',
+  'Tu as déjà la dernière version.': 'You already have the latest version.',
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': 'Unable to check: are you connected to the internet?',
 
   // Script
   'À propos de cette pièce': 'About this play',

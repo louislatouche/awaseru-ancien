@@ -68,6 +68,8 @@ export default {
   Mélangées: 'Mescolate',
   Répliques: 'Battute',
   'Seulement les À revoir ({n})': 'Solo quelle da rivedere ({n})',
+  'Une réplique précise': 'Una battuta precisa',
+  'Touche un numéro pour travailler cette réplique seule.': 'Tocca un numero per lavorare solo su quella battuta.',
   Commencer: 'Inizia',
   'Je savais': 'La sapevo',
   Voir: 'Mostra',
@@ -141,6 +143,10 @@ export default {
   'Restauration impossible : {erreur}': 'Ripristino non riuscito: {erreur}',
   Crédits: 'Crediti',
   'Replik, version {n}': 'Replik, versione {n}',
+  'Chercher une mise à jour': 'Cerca aggiornamenti',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': 'Nuova versione trovata: si sta scaricando. Un banner ti proporrà di ricaricare.',
+  'Tu as déjà la dernière version.': "Hai già l'ultima versione.",
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': 'Impossibile verificare: sei connesso a internet?',
 
   // Script
   'À propos de cette pièce': 'Informazioni su questo spettacolo',

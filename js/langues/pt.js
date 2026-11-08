@@ -68,6 +68,8 @@ export default {
   Mélangées: 'Misturadas',
   Répliques: 'Falas',
   'Seulement les À revoir ({n})': 'Só as a rever ({n})',
+  'Une réplique précise': 'Uma fala específica',
+  'Touche un numéro pour travailler cette réplique seule.': 'Toca num número para trabalhar só essa fala.',
   Commencer: 'Começar',
   'Je savais': 'Eu sabia',
   Voir: 'Ver',
@@ -141,6 +143,10 @@ export default {
   'Restauration impossible : {erreur}': 'Não foi possível restaurar: {erreur}',
   Crédits: 'Créditos',
   'Replik, version {n}': 'Replik, versão {n}',
+  'Chercher une mise à jour': 'Procurar atualizações',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': 'Nova versão encontrada: está a ser descarregada. Um aviso vai propor-te recarregar.',
+  'Tu as déjà la dernière version.': 'Já tens a versão mais recente.',
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': 'Não foi possível verificar: estás ligado à internet?',
 
   // Script
   'À propos de cette pièce': 'Sobre esta peça',

@@ -68,6 +68,8 @@ export default {
   Mélangées: 'Geschud',
   Répliques: 'Regels',
   'Seulement les À revoir ({n})': 'Alleen de te herhalen ({n})',
+  'Une réplique précise': 'Eén bepaalde regel',
+  'Touche un numéro pour travailler cette réplique seule.': 'Tik op een nummer om alleen die regel te oefenen.',
   Commencer: 'Beginnen',
   'Je savais': 'Wist ik',
   Voir: 'Tonen',
@@ -141,6 +143,10 @@ export default {
   'Restauration impossible : {erreur}': 'Herstellen mislukt: {erreur}',
   Crédits: 'Credits',
   'Replik, version {n}': 'Replik, versie {n}',
+  'Chercher une mise à jour': 'Zoeken naar updates',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': 'Nieuwe versie gevonden: die wordt gedownload. Een balk stelt je daarna voor om te herladen.',
+  'Tu as déjà la dernière version.': 'Je hebt al de nieuwste versie.',
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': 'Controleren lukt niet: ben je verbonden met internet?',
 
   // Script
   'À propos de cette pièce': 'Over dit stuk',

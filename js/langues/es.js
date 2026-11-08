@@ -68,6 +68,8 @@ export default {
   Mélangées: 'Mezcladas',
   Répliques: 'Réplicas',
   'Seulement les À revoir ({n})': 'Solo las que hay que repasar ({n})',
+  'Une réplique précise': 'Una réplica concreta',
+  'Touche un numéro pour travailler cette réplique seule.': 'Toca un número para trabajar solo esa réplica.',
   Commencer: 'Empezar',
   'Je savais': 'Me la sabía',
   Voir: 'Ver',
@@ -141,6 +143,10 @@ export default {
   'Restauration impossible : {erreur}': 'No se puede restaurar: {erreur}',
   Crédits: 'Créditos',
   'Replik, version {n}': 'Replik, versión {n}',
+  'Chercher une mise à jour': 'Buscar actualizaciones',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': 'Nueva versión encontrada: se está descargando. Un aviso te propondrá recargar.',
+  'Tu as déjà la dernière version.': 'Ya tienes la última versión.',
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': 'No se puede comprobar: ¿estás conectado a internet?',
 
   // Script
   'À propos de cette pièce': 'Sobre esta obra',

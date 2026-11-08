@@ -68,6 +68,8 @@ export default {
   Mélangées: 'Blandade',
   Répliques: 'Repliker',
   'Seulement les À revoir ({n})': 'Bara de att repetera ({n})',
+  'Une réplique précise': 'En viss replik',
+  'Touche un numéro pour travailler cette réplique seule.': 'Tryck på ett nummer för att öva bara den repliken.',
   Commencer: 'Starta',
   'Je savais': 'Jag kunde den',
   Voir: 'Visa',
@@ -141,6 +143,10 @@ export default {
   'Restauration impossible : {erreur}': 'Det gick inte att återställa: {erreur}',
   Crédits: 'Credits',
   'Replik, version {n}': 'Replik, version {n}',
+  'Chercher une mise à jour': 'Sök efter uppdateringar',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': 'Ny version hittad: den laddas ner. En banderoll erbjuder dig sedan att ladda om.',
+  'Tu as déjà la dernière version.': 'Du har redan den senaste versionen.',
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': 'Det gick inte att kontrollera: är du ansluten till internet?',
 
   // Script
   'À propos de cette pièce': 'Om den här pjäsen',

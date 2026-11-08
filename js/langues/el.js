@@ -69,6 +69,8 @@ export default {
   Mélangées: 'Ανακατεμένες',
   Répliques: 'Ατάκες',
   'Seulement les À revoir ({n})': 'Μόνο για επανάληψη ({n})',
+  'Une réplique précise': 'Μια συγκεκριμένη ατάκα',
+  'Touche un numéro pour travailler cette réplique seule.': 'Πάτα έναν αριθμό για να δουλέψεις μόνο αυτή την ατάκα.',
   Commencer: 'Έναρξη',
   'Je savais': 'Το ήξερα',
   Voir: 'Εμφάνιση',
@@ -142,6 +144,10 @@ export default {
   'Restauration impossible : {erreur}': 'Η επαναφορά απέτυχε: {erreur}',
   Crédits: 'Συντελεστές',
   'Replik, version {n}': 'Replik, έκδοση {n}',
+  'Chercher une mise à jour': 'Έλεγχος για ενημέρωση',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': 'Βρέθηκε νέα έκδοση: γίνεται λήψη. Ένα πλαίσιο θα σου προτείνει επαναφόρτωση.',
+  'Tu as déjà la dernière version.': 'Έχεις ήδη την πιο πρόσφατη έκδοση.',
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': 'Δεν είναι δυνατός ο έλεγχος: είσαι συνδεδεμένος στο διαδίκτυο;',
 
   // Script
   'À propos de cette pièce': 'Σχετικά με αυτό το έργο',

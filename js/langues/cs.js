@@ -69,6 +69,8 @@ export default {
   Mélangées: 'Zamíchané',
   Répliques: 'Repliky',
   'Seulement les À revoir ({n})': 'Jen k opakování ({n})',
+  'Une réplique précise': 'Konkrétní replika',
+  'Touche un numéro pour travailler cette réplique seule.': 'Klepni na číslo a procvičíš jen tuhle repliku.',
   Commencer: 'Začít',
   'Je savais': 'Znám to',
   Voir: 'Ukázat',
@@ -142,6 +144,10 @@ export default {
   'Restauration impossible : {erreur}': 'Obnovení se nezdařilo: {erreur}',
   Crédits: 'Autoři',
   'Replik, version {n}': 'Replik, verze {n}',
+  'Chercher une mise à jour': 'Vyhledat aktualizaci',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': 'Nalezena nová verze: stahuje se. Lišta ti pak nabídne znovu načíst.',
+  'Tu as déjà la dernière version.': 'Už máš nejnovější verzi.',
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': 'Nelze ověřit: jsi připojen k internetu?',
 
   // Script
   'À propos de cette pièce': 'O této hře',

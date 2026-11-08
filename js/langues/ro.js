@@ -68,6 +68,8 @@ export default {
   Mélangées: 'Amestecate',
   Répliques: 'Replici',
   'Seulement les À revoir ({n})': 'Doar cele de repetat ({n})',
+  'Une réplique précise': 'O anumită replică',
+  'Touche un numéro pour travailler cette réplique seule.': 'Atinge un număr ca să lucrezi doar acea replică.',
   Commencer: 'Începe',
   'Je savais': 'O știam',
   Voir: 'Arată',
@@ -141,6 +143,10 @@ export default {
   'Restauration impossible : {erreur}': 'Restaurarea nu a reușit: {erreur}',
   Crédits: 'Credite',
   'Replik, version {n}': 'Replik, versiunea {n}',
+  'Chercher une mise à jour': 'Caută actualizări',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': 'Versiune nouă găsită: se descarcă. Un banner îți va propune să reîncarci.',
+  'Tu as déjà la dernière version.': 'Ai deja cea mai nouă versiune.',
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': 'Nu se poate verifica: ești conectat la internet?',
 
   // Script
   'À propos de cette pièce': 'Despre această piesă',

@@ -68,6 +68,8 @@ export default {
   Mélangées: 'Blandet',
   Répliques: 'Replikker',
   'Seulement les À revoir ({n})': 'Kun dem, der skal gentages ({n})',
+  'Une réplique précise': 'En bestemt replik',
+  'Touche un numéro pour travailler cette réplique seule.': 'Tryk på et nummer for kun at øve den replik.',
   Commencer: 'Start',
   'Je savais': 'Det kunne jeg',
   Voir: 'Vis',
@@ -141,6 +143,10 @@ export default {
   'Restauration impossible : {erreur}': 'Kunne ikke gendanne: {erreur}',
   Crédits: 'Credits',
   'Replik, version {n}': 'Replik, version {n}',
+  'Chercher une mise à jour': 'Søg efter opdateringer',
+  'Nouvelle version trouvée : elle se télécharge. Un bandeau te proposera de recharger.': 'Ny version fundet: den downloades. Et banner tilbyder dig derefter at genindlæse.',
+  'Tu as déjà la dernière version.': 'Du har allerede den nyeste version.',
+  'Impossible de vérifier : es-tu bien connecté à Internet ?': 'Kan ikke kontrollere: er du forbundet til internettet?',
 
   // Script
   'À propos de cette pièce': 'Om dette stykke',
