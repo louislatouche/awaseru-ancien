@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': 'Назад к пьесам',
   'Retour': 'Назад',
   Réglages: 'Настройки',
+  'Couper le son': 'Выключить звук',
   'Sections de la pièce': 'Разделы пьесы',
   'Pièce introuvable': 'Пьеса не найдена',
   "Cette pièce n'est plus sur ce téléphone.": 'Этой пьесы больше нет на этом телефоне.',

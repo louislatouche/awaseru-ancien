@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': 'Πίσω στα έργα',
   'Retour': 'Πίσω',
   Réglages: 'Ρυθμίσεις',
+  'Couper le son': 'Σίγαση',
   'Sections de la pièce': 'Ενότητες του έργου',
   'Pièce introuvable': 'Το έργο δεν βρέθηκε',
   "Cette pièce n'est plus sur ce téléphone.": 'Αυτό το έργο δεν βρίσκεται πια σε αυτό το τηλέφωνο.',

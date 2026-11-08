@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': '演目一覧に戻る',
   'Retour': '戻る',
   Réglages: '設定',
+  'Couper le son': '音を消す',
   'Sections de la pièce': '演目のメニュー',
   'Pièce introuvable': '演目が見つかりません',
   "Cette pièce n'est plus sur ce téléphone.": 'この演目はこの端末にありません。',

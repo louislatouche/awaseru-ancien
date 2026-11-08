@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': 'Tilbage til stykkerne',
   'Retour': 'Tilbage',
   Réglages: 'Indstillinger',
+  'Couper le son': 'Slå lyden fra',
   'Sections de la pièce': 'Stykkets afsnit',
   'Pièce introuvable': 'Stykket blev ikke fundet',
   "Cette pièce n'est plus sur ce téléphone.": 'Dette stykke er ikke længere på denne telefon.',

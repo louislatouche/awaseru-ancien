@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': 'Terug naar de stukken',
   'Retour': 'Terug',
   Réglages: 'Instellingen',
+  'Couper le son': 'Geluid uit',
   'Sections de la pièce': 'Onderdelen van het stuk',
   'Pièce introuvable': 'Stuk niet gevonden',
   "Cette pièce n'est plus sur ce téléphone.": 'Dit stuk staat niet meer op deze telefoon.',

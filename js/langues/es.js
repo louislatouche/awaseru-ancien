@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': 'Volver a las obras',
   'Retour': 'Atrás',
   Réglages: 'Ajustes',
+  'Couper le son': 'Silenciar',
   'Sections de la pièce': 'Secciones de la obra',
   'Pièce introuvable': 'Obra no encontrada',
   "Cette pièce n'est plus sur ce téléphone.": 'Esta obra ya no está en este teléfono.',

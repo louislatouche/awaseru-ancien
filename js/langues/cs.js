@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': 'Zpět na hry',
   'Retour': 'Zpět',
   Réglages: 'Nastavení',
+  'Couper le son': 'Ztlumit zvuk',
   'Sections de la pièce': 'Části hry',
   'Pièce introuvable': 'Hra nenalezena',
   "Cette pièce n'est plus sur ce téléphone.": 'Tato hra už v tomto telefonu není.',

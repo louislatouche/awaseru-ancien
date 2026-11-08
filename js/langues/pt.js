@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': 'Voltar às peças',
   'Retour': 'Voltar',
   Réglages: 'Definições',
+  'Couper le son': 'Silenciar',
   'Sections de la pièce': 'Secções da peça',
   'Pièce introuvable': 'Peça não encontrada',
   "Cette pièce n'est plus sur ce téléphone.": 'Esta peça já não está neste telemóvel.',

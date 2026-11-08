@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': 'Takaisin näytelmiin',
   'Retour': 'Takaisin',
   Réglages: 'Asetukset',
+  'Couper le son': 'Mykistä ääni',
   'Sections de la pièce': 'Näytelmän osiot',
   'Pièce introuvable': 'Näytelmää ei löytynyt',
   "Cette pièce n'est plus sur ce téléphone.": 'Tämä näytelmä ei ole enää tässä puhelimessa.',

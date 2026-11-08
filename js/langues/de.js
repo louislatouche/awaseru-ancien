@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': 'Zurück zu den Stücken',
   'Retour': 'Zurück',
   Réglages: 'Einstellungen',
+  'Couper le son': 'Ton aus',
   'Sections de la pièce': 'Abschnitte des Stücks',
   'Pièce introuvable': 'Stück nicht gefunden',
   "Cette pièce n'est plus sur ce téléphone.": 'Dieses Stück ist nicht mehr auf diesem Handy.',

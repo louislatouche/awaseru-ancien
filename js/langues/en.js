@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': 'Back to plays',
   'Retour': 'Back',
   Réglages: 'Settings',
+  'Couper le son': 'Mute',
   'Sections de la pièce': 'Play sections',
   'Pièce introuvable': 'Play not found',
   "Cette pièce n'est plus sur ce téléphone.": 'This play is no longer on this phone.',

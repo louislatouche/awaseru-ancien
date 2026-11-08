@@ -2,7 +2,7 @@
 // Cette API a des particularités sur Android : les commentaires expliquent chaque précaution.
 
 import { t } from './langues.js';
-import { lireReglages } from './stockage.js';
+import { changerReglage, lireReglages } from './stockage.js';
 
 export const aideInstallation = () => t("Aucune voix japonaise sur ce téléphone. Pour l'installer : Paramètres Android > Synthèse vocale (parfois rangée dans Accessibilité ou Gestion globale) > moteur Google > installer les données vocales > japonais. Ferme puis rouvre ensuite Awaseru.");
 
@@ -57,6 +57,18 @@ let enonceEnCours = null;
 // Le fichier audio en cours de lecture, pour pouvoir l'arrêter.
 let audioEnCours = null;
 
+// ---- Couper le son ----
+// Le bouton de l'en-tête rend l'app muette sans rien changer à son déroulé : les fichiers audio se
+// jouent quand même, en silence (le trait avance, le filage enchaîne au même rythme), et la voix du
+// téléphone parle à volume nul. Chrome pour Android transmet ce volume au moteur de synthèse vocale
+// d'Android (TtsPlatformImpl.java, paramètre KEY_PARAM_VOLUME), où 0 veut dire silence.
+export function changerSon(muet) {
+  changerReglage('muet', muet);
+  // Le fichier en cours se tait, ou reprend la parole, tout de suite. Une phrase de la voix du
+  // téléphone déjà commencée, elle, va à son terme : son volume ne se change plus en route.
+  if (audioEnCours) audioEnCours.muted = muet;
+}
+
 export function arreterVoix() {
   // D'abord couper le son : l'appel suivant efface la référence au fichier en cours.
   audioEnCours?.pause();
@@ -78,6 +90,7 @@ export function jouerFichier(url) {
 
   return new Promise((resolve) => {
     const audio = new Audio();
+    audio.muted = lireReglages().muet; // en silence si le son est coupé : la lecture se déroule quand même
     let adresse = null;
 
     const terminer = (resultat) => {
@@ -156,6 +169,7 @@ export function parler(texte) {
     enonce.voice = choisie;
     enonce.lang = 'ja-JP'; // on règle aussi la langue, pas seulement la voix
     enonce.rate = vitesse;
+    enonce.volume = lireReglages().muet ? 0 : 1; // son coupé : la phrase se dit, sans bruit
 
     let garde = null;
     const terminer = (resultat) => {

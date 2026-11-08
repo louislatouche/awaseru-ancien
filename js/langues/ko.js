@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': '연극 목록으로',
   'Retour': '뒤로',
   Réglages: '설정',
+  'Couper le son': '음소거',
   'Sections de la pièce': '연극 메뉴',
   'Pièce introuvable': '연극을 찾을 수 없어요',
   "Cette pièce n'est plus sur ce téléphone.": '이 연극은 더 이상 이 휴대폰에 없어요.',

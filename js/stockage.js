@@ -47,6 +47,7 @@ const REGLAGES_PAR_DEFAUT = {
   voix: null, // null = choix automatique
   lireDidascalies: false,
   voixEnregistrees: true, // les voix par rôle des pièces fournies, plutôt que celle du téléphone
+  muet: false, // le bouton de l'en-tête coupe le son de toute l'app (voir changerSon dans voix.js)
   furigana: true,
   traduction: true,
   // Les commandes des fiches et du filage : 'icones', 'icones-labels' (le nom sous chaque icône)

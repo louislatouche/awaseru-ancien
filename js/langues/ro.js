@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': 'Înapoi la piese',
   'Retour': 'Înapoi',
   Réglages: 'Setări',
+  'Couper le son': 'Oprește sunetul',
   'Sections de la pièce': 'Secțiunile piesei',
   'Pièce introuvable': 'Piesa nu a fost găsită',
   "Cette pièce n'est plus sur ce téléphone.": 'Piesa nu mai este pe acest telefon.',

@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': 'Tillbaka till pjäserna',
   'Retour': 'Tillbaka',
   Réglages: 'Inställningar',
+  'Couper le son': 'Stäng av ljudet',
   'Sections de la pièce': 'Pjäsens delar',
   'Pièce introuvable': 'Pjäsen hittades inte',
   "Cette pièce n'est plus sur ce téléphone.": 'Pjäsen finns inte längre på den här telefonen.',

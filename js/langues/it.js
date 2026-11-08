@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': 'Torna agli spettacoli',
   'Retour': 'Indietro',
   Réglages: 'Impostazioni',
+  'Couper le son': "Disattiva l'audio",
   'Sections de la pièce': 'Sezioni dello spettacolo',
   'Pièce introuvable': 'Spettacolo non trovato',
   "Cette pièce n'est plus sur ce téléphone.": "Questo spettacolo non è più su questo telefono.",

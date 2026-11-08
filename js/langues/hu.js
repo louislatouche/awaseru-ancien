@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': 'Vissza a darabokhoz',
   'Retour': 'Vissza',
   Réglages: 'Beállítások',
+  'Couper le son': 'Hang némítása',
   'Sections de la pièce': 'A darab részei',
   'Pièce introuvable': 'A darab nem található',
   "Cette pièce n'est plus sur ce téléphone.": 'Ez a darab már nincs ezen a telefonon.',

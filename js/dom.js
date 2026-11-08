@@ -45,6 +45,9 @@ const ICONES = {
   su: 'M5 12.5l4.5 4.5L19 7.5',
   revoir: 'M12 4A8 8 0 1 1 4.48 9.26M12 4l2.6-2.6M12 4l2.6 2.6',
   fermer: 'M6.5 6.5l11 11M17.5 6.5l-11 11',
+  // Le son de l'app : un haut-parleur avec ses ondes, ou barré d'une croix quand il est coupé.
+  son: 'M3.5 9h4l5-4.5v15l-5-4.5h-4zM15.8 8.8a4.5 4.5 0 0 1 0 6.4M18.6 6.2a8.2 8.2 0 0 1 0 11.6',
+  muet: 'M3.5 9h4l5-4.5v15l-5-4.5h-4zM15.5 9.25l5.5 5.5M21 9.25l-5.5 5.5',
 };
 
 // Lecture et pause sont remplies : à petite taille, on les reconnaît mieux que de simples contours.

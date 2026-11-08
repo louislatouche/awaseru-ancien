@@ -7,12 +7,12 @@
 
 import { el, hautDePage, icone, oublierRetour, remonterDansEcran, remplacer } from './dom.js';
 import { chargerLangue, langueActive, t, traduire } from './langues.js';
-import { noterUtilisation } from './stockage.js';
+import { lireReglages, noterUtilisation } from './stockage.js';
 import { piecesRetirees } from './telechargement.js';
 import { appliquerAffichage } from './affichage.js';
 import { trouverPiece } from './pieces.js';
 import { texteBrut } from './texte.js';
-import { arreterVoix, voixPretes } from './voix.js';
+import { arreterVoix, changerSon, voixPretes } from './voix.js';
 import { adresseAReprendre, noterAdresse, terminerReprise } from './reprise.js';
 import { proposerRechargement } from './version.js';
 import { afficherBibliotheque } from './ecrans/bibliotheque.js';
@@ -56,6 +56,23 @@ function remonter(dessus) {
   else location.hash = dessus;
 }
 
+// Le bouton qui coupe le son de toute l'app, à côté des réglages. Son icône montre l'état : un
+// haut-parleur barré quand l'app est muette. aria-pressed le dit aussi aux lecteurs d'écran.
+function creerBoutonSon() {
+  const bouton = el('button', { type: 'button', className: 'icon-btn', 'aria-label': t('Couper le son') });
+  const dessiner = () => {
+    const muet = lireReglages().muet;
+    bouton.setAttribute('aria-pressed', String(muet));
+    remplacer(bouton, icone(muet ? 'muet' : 'son'));
+  };
+  bouton.onclick = () => {
+    changerSon(!lireReglages().muet);
+    dessiner();
+  };
+  dessiner();
+  return bouton;
+}
+
 // L'en-tête, comme dans Faktur : le mot-symbole, avec en dessous le nom de la pièce ouverte.
 // retour : l'adresse de l'écran du dessus, où ramène la flèche (rien : pas de flèche).
 function afficherBarre(sousTitre, { retour = null, reglages = false } = {}) {
@@ -70,6 +87,7 @@ function afficherBarre(sousTitre, { retour = null, reglages = false } = {}) {
       el('strong', { className: 'wordmark' }, 'awaseru'),
       // Sous le nom : la pièce ouverte, ou à défaut le nom de l'app en japonais.
       sousTitre ? el('small', {}, sousTitre) : el('small', { lang: 'ja' }, '合わせる')),
+    reglages && creerBoutonSon(),
     reglages && el('a', { className: 'icon-btn', href: '#/reglages', 'aria-label': t('Réglages') }, icone('reglages')),
   );
 }

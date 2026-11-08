@@ -9,6 +9,7 @@ export default {
   'Retour aux pièces': 'Wróć do sztuk',
   'Retour': 'Wstecz',
   Réglages: 'Ustawienia',
+  'Couper le son': 'Wycisz dźwięk',
   'Sections de la pièce': 'Sekcje sztuki',
   'Pièce introuvable': 'Nie znaleziono sztuki',
   "Cette pièce n'est plus sur ce téléphone.": 'Tej sztuki nie ma już na tym telefonie.',
