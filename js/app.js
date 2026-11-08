@@ -13,11 +13,13 @@ import { appliquerAffichage } from './affichage.js';
 import { trouverPiece } from './pieces.js';
 import { texteBrut } from './texte.js';
 import { arreterVoix, voixPretes } from './voix.js';
+import { adresseAReprendre, noterAdresse, terminerReprise } from './reprise.js';
 import { afficherBibliotheque } from './ecrans/bibliotheque.js';
 import { afficherFiches } from './ecrans/fiches.js';
 import { afficherFilage } from './ecrans/filage.js';
 import { afficherMesRepliques } from './ecrans/mes-repliques.js';
 import { afficherReglages } from './ecrans/reglages.js';
+import { afficherModeEmploi } from './ecrans/mode-emploi.js';
 import { afficherScript } from './ecrans/script.js';
 
 const ONGLETS = [
@@ -32,9 +34,15 @@ const zoneEcran = document.getElementById('ecran');
 const zoneOnglets = document.getElementById('onglets');
 
 // L'en-tête, comme dans Faktur : le mot-symbole, avec en dessous le nom de la pièce ouverte.
+// retour : true pour une flèche vers Mes pièces, ou l'adresse où elle doit ramener.
 function afficherBarre(sousTitre, { retour = false, reglages = false } = {}) {
+  const versReglages = retour === '#/reglages';
   remplacer(zoneBarre,
-    retour && el('a', { className: 'icon-btn', href: '#/', 'aria-label': t('Retour aux pièces') }, icone('retour')),
+    retour && el('a', {
+      className: 'icon-btn',
+      href: versReglages ? '#/reglages' : '#/',
+      'aria-label': versReglages ? t('Réglages') : t('Retour aux pièces'),
+    }, icone('retour')),
     el('a', { className: 'brand', href: '#/' },
       el('strong', { className: 'wordmark' }, 'replik'),
       sousTitre && el('small', {}, sousTitre)),
@@ -77,6 +85,7 @@ async function router() {
   arreterVoix();
   nettoyer?.();
   nettoyer = null;
+  noterAdresse(location.hash || '#/'); // pour revenir ici si Android relance l'app (voir reprise.js)
 
   // Si le chargement traîne (premier lancement, réseau lent), on l'annonce avec le reflet de Faktur.
   const attente = setTimeout(() => {
@@ -93,6 +102,9 @@ async function router() {
   if (morceaux[0] === 'reglages') {
     afficherBarre(null, { retour: true });
     afficher = afficherReglages;
+  } else if (morceaux[0] === 'mode-emploi') {
+    afficherBarre(null, { retour: '#/reglages' }); // on y arrive depuis les Réglages : la flèche y ramène
+    afficher = afficherModeEmploi;
   } else if (morceaux[0] === 'piece' && morceaux[1]) {
     piece = await trouverPiece(decodeURIComponent(morceaux[1]));
     if (piece && (await piecesRetirees()).has(piece.id)) piece = null; // par exemple un vieux favori
@@ -117,6 +129,7 @@ async function router() {
     return;
   }
   afficherOnglets(piece, ongletActif);
+  appliquerAffichage(piece?.id ?? null); // furigana et traduction : le choix de cette pièce, ou le général
   document.title = piece ? `${texteBrut(piece.titre)} · Replik` : 'Replik';
 
   // Chaque écran se construit dans un élément neuf, placé dans la page une fois prêt.
@@ -132,6 +145,7 @@ async function router() {
   nettoyer = nettoyage ?? null;
   zoneEcran.replaceChildren(racine);
   hautDePage();
+  terminerReprise(zoneEcran); // après une relance, redescend là où on en était
   zoneEcran.focus({ preventScroll: true }); // pour que les lecteurs d'écran annoncent le nouvel écran
 }
 
@@ -195,6 +209,17 @@ function changerEcran() {
     console.error(erreur);
     zoneEcran.replaceChildren(el('p', { className: 'vide' }, t("Cet écran n'a pas pu s'afficher : {erreur}", { erreur: erreur.message })));
   });
+}
+
+// Android vient-il de relancer l'app (Fold déplié, mémoire manquante) ? Elle s'ouvre alors sur
+// Mes pièces : on la remet sur l'écran quitté. On écrit l'historique comme si on y était allé
+// depuis Mes pièces, pour que le bouton Retour d'Android y ramène au lieu de fermer l'app.
+// replaceState et pushState changent l'adresse sans déclencher hashchange : le premier affichage
+// est directement le bon.
+const adresseQuittee = adresseAReprendre();
+if (adresseQuittee && (location.hash === '' || location.hash === '#/')) {
+  history.replaceState(null, '', '#/');
+  history.pushState(null, '', adresseQuittee);
 }
 
 window.addEventListener('hashchange', changerEcran);

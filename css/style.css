@@ -205,6 +205,16 @@ body:has(.tabbar:not([hidden])) { --place-bas: calc(var(--tabbar-h) + var(--safe
 
 .bouton-icone svg { display: block; width: 24px; height: 24px; }
 
+/* Réglage « Icônes et labels » : le nom du bouton sous son icône, comme les onglets du bas. */
+.bouton-icone.avec-label { flex-direction: column; gap: 3px; min-height: 58px; padding-bottom: 4px; }
+.bouton-icone.avec-label svg { width: 22px; height: 22px; }
+.bouton-icone .label { font-size: 12px; font-weight: 700; line-height: 1.1; }
+.bouton-icone.avec-label .progression { bottom: 4px; }
+
+/* Le bouton ▶ de « Ton signal », à côté du titre : un carré, pas toute la largeur. */
+.bouton-signal { flex: none; width: auto; min-width: 56px; min-height: 44px; padding-inline: 14px; }
+.bouton-signal.avec-label { min-height: 52px; }
+
 /* Le trait au pied du bouton ▶ : jusqu'où la réplique a été lue. */
 .progression {
   position: absolute;
@@ -260,6 +270,22 @@ body:has(.tabbar:not([hidden])) { --place-bas: calc(var(--tabbar-h) + var(--safe
 .chips, .interrupteurs { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .chip { min-height: 44px; font-size: 14px; line-height: 1.25; text-align: start; }
+
+/* Les chips sans contour, comme les cartes et les boutons : un fond teinté suffit à les voir,
+   sur le fond de page comme dans une carte blanche. Le kit leur garde un filet ; Replik l'efface ici.
+   Le contour reste là mais transparent : la chip garde sa taille quand elle est choisie. */
+.chip { border-color: transparent; background: var(--bg-soft); }
+
+/* Sur un écran tactile, le « survol » colle après un toucher : la chip ou le bouton touché gardait
+   l'air survolé (contour sauge, fond teinté) jusqu'au toucher suivant. On rend l'apparence normale. */
+@media (hover: none) {
+  .chip:hover { border-color: transparent; background: var(--bg-soft); color: var(--ink-soft); }
+  .chip.is-selected:hover { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+  .btn:hover { background: var(--accent); box-shadow: none; }
+  .btn--muted:hover { background: var(--star-soft); box-shadow: none; }
+  .btn-ghost:hover { box-shadow: 0 2px 8px rgba(43, 42, 39, 0.08); }
+  .acc-header:hover { background: none; }
+}
 
 .chip:disabled { opacity: 0.45; cursor: default; }
 
@@ -463,6 +489,38 @@ button.replique:disabled { cursor: default; }
 /* ---- Fiches et filage ---- */
 .journal { flex: 1; display: flex; flex-direction: column; gap: 10px; }
 .fin-piece { font-weight: 700; text-align: center; }
+
+/* Réglage « Gestes » : ma réplique se tire à droite (je savais) ou à gauche (à revoir).
+   En s'écartant, elle découvre dessous ce que fait le geste (voir gestes.js). */
+.cadre-glisse { position: relative; }
+
+.carte-glissable {
+  position: relative; /* au-dessus des indices */
+  z-index: 1;
+  touch-action: pan-y; /* le navigateur garde le défilement vertical, le reste revient à gestes.js */
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.en-glisse { transition: none !important; will-change: transform; } /* la carte colle au doigt */
+
+.indice-glisse {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-inline: 22px;
+  border-radius: var(--radius);
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+.indice-glisse svg { display: block; width: 26px; height: 26px; }
+.indice-droite { justify-content: flex-start; background: color-mix(in srgb, var(--accent) 16%, var(--surface)); color: var(--accent-dark); }
+.indice-gauche { justify-content: flex-end; background: color-mix(in srgb, var(--star) 24%, var(--surface)); color: var(--star-dark); }
+
 
 /* sticky : les commandes restent collées en bas de la zone qui défile. */
 .commandes {

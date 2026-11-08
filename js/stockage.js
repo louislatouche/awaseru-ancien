@@ -29,6 +29,10 @@ const REGLAGES_PAR_DEFAUT = {
   voixEnregistrees: true, // les voix par rôle des pièces fournies, plutôt que celle du téléphone
   furigana: true,
   traduction: true,
+  // Les commandes des fiches et du filage : 'icones', 'icones-labels' (le nom sous chaque icône)
+  // ou 'gestes' (plus de barre dans les fiches : on touche et on glisse la carte).
+  navigation: 'icones',
+  affichagePieces: {}, // les choix de furigana et de traduction propres à une pièce (voir plus bas)
 };
 
 export function lireReglages() {
@@ -39,6 +43,28 @@ export function lireReglages() {
 
 export function changerReglage(nom, valeur) {
   ecrire('reglages', { ...lireReglages(), [nom]: valeur });
+}
+
+// ---- Furigana et traduction : un choix général, et celui de chaque pièce ----
+//
+// Les Réglages donnent le choix pour toutes les pièces (furigana, traduction). Les interrupteurs
+// des écrans d'une pièce le remplacent pour elle seule : son choix est rangé dans
+// reglages.affichagePieces, sous l'identifiant de la pièce. Sans choix propre, la pièce suit le général.
+
+export function lireAffichage(pieceId) {
+  const reglages = lireReglages();
+  const propre = (pieceId && reglages.affichagePieces?.[pieceId]) || {};
+  // ?? : « sinon » pour une valeur absente (contrairement à ||, il garde false, qui est un vrai choix).
+  return {
+    furigana: propre.furigana ?? reglages.furigana,
+    traduction: propre.traduction ?? reglages.traduction,
+  };
+}
+
+export function changerAffichagePiece(pieceId, nom, valeur) {
+  const pieces = { ...lireReglages().affichagePieces };
+  pieces[pieceId] = { ...pieces[pieceId], [nom]: valeur };
+  changerReglage('affichagePieces', pieces);
 }
 
 // ---- Sélection : quelles répliques sont les miennes ----

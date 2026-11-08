@@ -18,6 +18,8 @@ import { enchainementsDe, lignesDe } from '../pieces.js';
 import { lireReglages, lireSelection, lireStatuts } from '../stockage.js';
 import { creerJaponais, texteAParler } from '../texte.js';
 import { arreterVoix, voixJaponaises, voixPretes } from '../voix.js';
+import { noterPosition, oublierPosition, positionAReprendre } from '../reprise.js';
+import { brancherGestes } from '../gestes.js';
 
 const SILENCE_ENTRE_REPLIQUES = 350; // millisecondes, pour que ça respire
 const DUREE_LIGNE_MUETTE = 1500;     // le temps de lire une ligne qui n'est qu'une didascalie
@@ -68,7 +70,8 @@ export function afficherFilage(racine, piece) {
     const aMoi = etat === 'a-moi';
     const boutons = [];
 
-    if (aMoi) {
+    // En mode Gestes, voir et écouter ma réplique se font en touchant la carte : pas de boutons pour cela.
+    if (aMoi && lireReglages().navigation !== 'gestes') {
       boutonVoir = creerBoutonIcone('voir', t('Voir'), 'btn-ghost', devoiler);
       boutonVoir.disabled = !carteCourante.classList.contains('est-cachee');
       boutons.push(el('div', { className: 'boutons boutons-apparition' }, boutonVoir, ecouteCourante.bouton));
@@ -111,17 +114,26 @@ export function afficherFilage(racine, piece) {
     const statut = lireStatuts(piece.id)[ligne.numero];
     // Pour ma réplique : une écoute partagée entre le bouton ▶ et la carte, que l'on peut toucher
     // pour la voir, puis pour l'écouter. Une fois passée, la carte reste dans le journal sans réagir.
-    ecouteCourante = mienne ? creerEcoute(ligne) : null;
+    // Pendant qu'elle est lue, ma réplique porte l'anneau de lecture, comme celles des autres.
+    ecouteCourante = mienne
+      ? creerEcoute(ligne, { surEtat: (etatEcoute) => carte.classList.toggle('is-syncing', etatEcoute === 'lecture') })
+      : null;
+    const ecoute = ecouteCourante;
+    const enCours = () => carte === carteCourante && etat === 'a-moi';
     const carte = creerReplique(ligne, piece, {
       mienne,
       cachee: mienne,
       statut,
       surTouche: mienne ? () => {
-        if (carte !== carteCourante || etat !== 'a-moi') return;
+        if (!enCours()) return;
         if (carte.classList.contains('est-cachee')) devoiler();
-        else ecouteCourante.toucher();
+        else ecoute.toucher();
       } : null,
     });
+    // Mode Gestes : un appui long sur ma réplique arrête son écoute (il n'y a pas de bouton pour cela).
+    if (mienne && lireReglages().navigation === 'gestes') {
+      brancherGestes(carte, { maintenir: () => { if (enCours()) ecoute.arreter(); } });
+    }
     carteCourante = carte;
     journal.append(...avis, carteCourante);
     carteCourante.classList.add('courante');
@@ -132,6 +144,7 @@ export function afficherFilage(racine, piece) {
     const moi = jeton;
     const ligne = lignes[position];
     if (!dejaAffichee) montrerLigne(ligne);
+    noterPosition('filage', { position }); // pour reprendre ici si Android relance l'app
 
     if (selection.has(ligne.numero)) {
       etat = 'a-moi';
@@ -192,6 +205,7 @@ export function afficherFilage(racine, piece) {
 
   function terminer() {
     etat = 'fin';
+    oublierPosition();
     libererEcran();
     journal.append(el('p', { className: 'avis fin-piece' }, t('Fin de la pièce.')));
     remplacer(commandes, el('button', { type: 'button', className: 'btn', onclick: ecranDepart }, t('Recommencer un filage')));
@@ -211,11 +225,48 @@ export function afficherFilage(racine, piece) {
   }
   document.addEventListener('visibilitychange', surVisibilite);
 
+  // ---- Le lancement ----
+
+  // Lance le filage à partir d'une position. repris : l'app vient d'être relancée par Android au
+  // milieu d'un filage. On retrouve alors la réplique, mais à l'arrêt : le navigateur ne laisse
+  // parler l'app qu'après un toucher, que Reprendre ou Suivant fourniront.
+  async function demarrer(depart, { repris = false } = {}) {
+    if (audioActif(piece)) {
+      sansVoix = false;
+    } else {
+      await voixPretes();
+      sansVoix = voixJaponaises().length === 0;
+    }
+    position = depart;
+    derniereScene = null;
+    carteCourante = null;
+    remplacer(journal);
+    remplacer(racine,
+      sansVoix && creerAvisVoix(piece),
+      creerInterrupteurs(piece.id),
+      journal,
+      commandes,
+    );
+    if (!repris) {
+      garderEcranAllume();
+      jouerEtape();
+      return;
+    }
+    jeton += 1;
+    const ligne = lignes[position];
+    montrerLigne(ligne);
+    noterPosition('filage', { position }); // une seconde relance doit retomber au même endroit
+    if (selection.has(ligne.numero)) etat = 'a-moi';
+    else etat = sansVoix ? 'manuel' : 'pause';
+    afficherCommandes();
+  }
+
   // ---- L'écran de départ ----
 
   function ecranDepart() {
     etat = 'depart';
     jeton += 1;
+    oublierPosition(); // pas de filage en cours : rien à reprendre si l'app est relancée
     libererEcran();
 
     // Le départ est la position de la première réplique de la scène choisie, dans la liste à plat.
@@ -244,35 +295,15 @@ export function afficherFilage(racine, piece) {
         }),
         legende),
       // Ce toucher autorise aussi le navigateur à parler pour toute la suite du filage.
-      el('button', {
-        type: 'button',
-        className: 'btn',
-        onclick: async () => {
-          if (audioActif(piece)) {
-            sansVoix = false;
-          } else {
-            await voixPretes();
-            sansVoix = voixJaponaises().length === 0;
-          }
-          position = depart;
-          derniereScene = null;
-          carteCourante = null;
-          remplacer(journal);
-          remplacer(racine,
-            sansVoix && creerAvisVoix(piece),
-            creerInterrupteurs(),
-            journal,
-            commandes,
-          );
-          garderEcranAllume();
-          jouerEtape();
-        },
-      }, t('Lancer le filage')),
+      el('button', { type: 'button', className: 'btn', onclick: () => demarrer(depart) }, t('Lancer le filage')),
     );
     cascade(racine);
   }
 
-  ecranDepart();
+  // L'app vient-elle d'être relancée au milieu d'un filage ? On y revient. Sinon, l'écran de départ.
+  const reprise = positionAReprendre('filage');
+  if (reprise && reprise.position < lignes.length) demarrer(reprise.position, { repris: true });
+  else ecranDepart();
 
   // Appelé par le routeur quand on quitte l'écran : on coupe tout ce qui tourne encore.
   return () => {

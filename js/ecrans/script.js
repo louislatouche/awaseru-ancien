@@ -70,7 +70,7 @@ export function afficherScript(racine, piece) {
       el('h1', { className: 'vue-titre' }, traduire(piece, 'titre_fr'))),
     (piece.explication || rolesAvecLien.length > 0) && apropos,
     creerAvisVoix(piece),
-    creerInterrupteurs(),
+    creerInterrupteurs(piece.id),
     piece.scenes.map((scene) => el('section', { className: 'scene' },
       creerTitreScene(scene),
       lignes.filter((ligne) => ligne.scene === scene).map((ligne) => creerReplique(ligne, piece, {

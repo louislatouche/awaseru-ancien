@@ -5,7 +5,7 @@
 // >>> À AUGMENTER à chaque modification de l'app, y compris pour une nouvelle pièce. <<<
 // Le navigateur ne détecte une mise à jour que si ce fichier-ci change d'au moins un octet.
 // Sans cela, le téléphone continuerait de servir l'ancienne copie, indéfiniment.
-const VERSION = 40;
+const VERSION = 43;
 
 // Sur GitHub Pages, tous tes projets partagent le même site, donc le même espace de caches.
 // Le préfixe nous permet de ne jamais toucher à ceux des autres.
@@ -19,6 +19,7 @@ const FICHIERS = [
   'manifest.webmanifest',
   'css/polices.css',
   'css/style.css',
+  'css/mode-emploi.css',
   'design-kit/tokens.css',
   'design-kit/base.css',
   'icons/icon.svg',
@@ -28,6 +29,7 @@ const FICHIERS = [
   'js/affichage.js',
   'js/app.js',
   'js/dom.js',
+  'js/gestes.js',
   'js/langues.js',
   'js/langues/en.js',
   'js/langues/de.js',
@@ -51,6 +53,7 @@ const FICHIERS = [
   'js/modale.js',
   'js/pieces.js',
   'js/pincement.js',
+  'js/reprise.js',
   'js/sauvegarde.js',
   'js/stockage.js',
   'js/telechargement.js',
@@ -60,6 +63,7 @@ const FICHIERS = [
   'js/ecrans/bibliotheque.js',
   'js/ecrans/fiches.js',
   'js/ecrans/filage.js',
+  'js/ecrans/mode-emploi.js',
   'js/ecrans/mes-repliques.js',
   'js/ecrans/reglages.js',
   'js/ecrans/script.js',

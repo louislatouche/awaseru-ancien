@@ -1,0 +1,438 @@
+/* Le mode d'emploi : des scènes miniatures animées (voir js/ecrans/mode-emploi.js).
+   Chaque scène tourne en boucle. Dans les @keyframes, les pourcentages sont des moments du cycle :
+   « 40% » veut dire « aux 40 % de la durée de l'animation ». Seules les variables du kit servent
+   de couleurs, comme dans style.css. */
+
+.titre-avec-icone { display: flex; align-items: center; gap: 10px; }
+.titre-avec-icone svg { flex: none; width: 24px; height: 24px; color: var(--accent); }
+
+.scene-demo { display: flex; flex-direction: column; gap: 10px; margin: 0; }
+
+/* Le faux écran : tout ce qui bouge reste à l'intérieur. */
+.demo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 170px;
+  padding: 14px;
+  overflow: hidden;
+  background: var(--bg);
+  border-radius: var(--radius);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Des traits gris à la place du texte. */
+.trait { display: block; height: 7px; border-radius: 4px; background: color-mix(in srgb, var(--ink) 13%, transparent); }
+
+.mini-carte {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.mini-carte.mienne { background: var(--star-soft); }
+.mini-numero { font-size: 12px; font-weight: 700; line-height: 1; color: var(--accent-dark); }
+
+/* Ma réplique cachée : l'invitation et le texte au même endroit, l'un ou l'autre visible. */
+.mini-cachee { display: grid; align-items: center; min-height: 54px; }
+.mini-cachee > * { grid-area: 1 / 1; }
+.mini-masque { font-size: 13px; font-weight: 700; line-height: 1.3; text-align: center; color: var(--ink-soft); }
+.mini-texte { display: flex; flex-direction: column; gap: 6px; opacity: 0; }
+
+/* Lecture et pause l'une sur l'autre. */
+.pile-icones { display: grid; }
+.pile-icones > * { grid-area: 1 / 1; display: flex; }
+.pile-icones svg { width: 24px; height: 24px; }
+.icone-pause { opacity: 0; }
+
+/* Le doigt : un rond gris clair. left et top placent son centre. */
+.doigt {
+  position: absolute;
+  z-index: 5;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border: 2px solid color-mix(in srgb, var(--surface) 80%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 20%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Sous la scène : geste, flèche, effet. */
+.legende-gestes { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 20px; color: var(--ink-soft); }
+.paire { display: inline-flex; align-items: center; gap: 4px; }
+.paire svg { width: 22px; height: 22px; }
+.paire svg:nth-child(2) { width: 16px; height: 16px; color: var(--ink-mute); }
+
+/* Les faux boutons ne réagissent pas au doigt : ce ne sont que des images. */
+.demo .btn, .demo .btn-ghost { cursor: default; pointer-events: none; }
+
+/* ---- Script : toucher une réplique la fait lire ---- */
+.demo-script .carte-lue { animation: me-script-carte 4s infinite; }
+.demo-script .doigt { animation: me-script-doigt 4s infinite; }
+
+@keyframes me-script-carte {
+  0%, 40% { background: var(--surface); box-shadow: var(--shadow-card); }
+  45%, 85% { background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent), var(--shadow-card); }
+  95%, 100% { background: var(--surface); box-shadow: var(--shadow-card); }
+}
+
+@keyframes me-script-doigt {
+  0% { left: 80%; top: 115%; opacity: 0; transform: scale(1); }
+  15% { opacity: 1; }
+  35% { left: 60%; top: 112px; transform: scale(1); }
+  40% { transform: scale(.75); }
+  46% { transform: scale(1); }
+  60% { left: 60%; top: 112px; opacity: 1; }
+  75%, 100% { left: 80%; top: 115%; opacity: 0; }
+}
+
+/* ---- Mes répliques : toucher la case ---- */
+.demo-choix { justify-content: center; }
+
+.mini-ligne {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  animation: me-choix-ligne 4s infinite;
+}
+
+.mini-lignes { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+
+.mini-case {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--ink-mute);
+  border-radius: 6px;
+  color: var(--on-accent);
+  animation: me-choix-case 4s infinite;
+}
+
+.mini-case svg { width: 18px; height: 18px; opacity: 0; animation: me-choix-coche 4s infinite; }
+.demo-choix .doigt { animation: me-choix-doigt 4s infinite; }
+
+@keyframes me-choix-ligne { 0%, 40% { background: var(--surface); } 44%, 88% { background: var(--star-soft); } 95%, 100% { background: var(--surface); } }
+@keyframes me-choix-case {
+  0%, 40% { background: transparent; border-color: var(--ink-mute); }
+  44%, 88% { background: var(--accent); border-color: var(--accent); }
+  95%, 100% { background: transparent; border-color: var(--ink-mute); }
+}
+@keyframes me-choix-coche { 0%, 42% { opacity: 0; } 46%, 88% { opacity: 1; } 95%, 100% { opacity: 0; } }
+
+@keyframes me-choix-doigt {
+  0% { left: 40%; top: 115%; opacity: 0; transform: scale(1); }
+  15% { opacity: 1; }
+  34% { left: 38px; top: 50%; transform: scale(1); }
+  40% { transform: scale(.75); }
+  46% { transform: scale(1); }
+  60% { left: 38px; top: 50%; opacity: 1; }
+  75%, 100% { left: 40%; top: 115%; opacity: 0; }
+}
+
+/* ---- Mes répliques : pincer, puis garder le doigt sur un numéro ---- */
+.demo-pincer .mini-texte-pincer,
+.demo-pincer .mini-grille { position: absolute; inset: 14px; }
+
+.mini-texte-pincer { display: flex; flex-direction: column; gap: 8px; animation: me-pincer-texte 7s infinite; }
+
+.mini-grille {
+  display: grid;
+  grid-template-columns: repeat(4, 44px);
+  gap: 10px;
+  align-content: center;
+  justify-content: center;
+  opacity: 0;
+  animation: me-pincer-grille 7s infinite;
+}
+
+.mini-numero-grille {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  background: var(--surface);
+  border-radius: 10px;
+  box-shadow: var(--shadow-card);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.mini-numero-grille.vise { animation: me-pincer-tuile 7s infinite; }
+.demo-pincer .reperee-demo { animation: me-pincer-halo 7s infinite; }
+.demo-pincer .doigt-a { animation: me-pincer-a 7s infinite; }
+.demo-pincer .doigt-b { animation: me-pincer-b 7s infinite; }
+.demo-pincer .doigt-c { animation: me-pincer-c 7s infinite; }
+
+@keyframes me-pincer-texte {
+  0%, 12% { opacity: 1; transform: none; filter: none; }
+  26% { opacity: 0; transform: scale(.85); filter: blur(6px); }
+  72% { opacity: 0; transform: scale(1.12); filter: blur(6px); }
+  80%, 100% { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes me-pincer-grille {
+  0%, 22% { opacity: 0; transform: scale(1.12); }
+  30%, 70% { opacity: 1; transform: none; }
+  76%, 100% { opacity: 0; transform: scale(.88); }
+}
+
+@keyframes me-pincer-tuile {
+  0%, 47% { background: var(--surface); color: var(--ink); }
+  64%, 72% { background: var(--accent); color: var(--on-accent); }
+  78%, 100% { background: var(--surface); color: var(--ink); }
+}
+
+@keyframes me-pincer-halo {
+  0%, 78% { box-shadow: var(--shadow-card); }
+  82%, 92% { box-shadow: 0 0 0 3px var(--accent), var(--shadow-card); }
+  100% { box-shadow: var(--shadow-card); }
+}
+
+/* Deux doigts qui se rapprochent : le pincement. */
+@keyframes me-pincer-a { 0% { left: 50%; top: 18%; opacity: 0; } 4% { opacity: 1; } 22% { left: 50%; top: 42%; opacity: 1; } 28%, 100% { left: 50%; top: 42%; opacity: 0; } }
+@keyframes me-pincer-b { 0% { left: 50%; top: 86%; opacity: 0; } 4% { opacity: 1; } 22% { left: 50%; top: 60%; opacity: 1; } 28%, 100% { left: 50%; top: 60%; opacity: 0; } }
+
+/* Puis un doigt qui reste posé sur le 6 (2e ligne, 2e colonne de la grille). */
+@keyframes me-pincer-c {
+  0%, 34% { left: calc(50% + 40px); top: 115%; opacity: 0; transform: scale(1); }
+  38% { opacity: 1; }
+  45% { left: calc(50% - 27px); top: 112px; transform: scale(1); }
+  48%, 62% { left: calc(50% - 27px); top: 112px; transform: scale(.78); opacity: 1; }
+  66% { transform: scale(1); opacity: 1; }
+  72%, 100% { left: calc(50% - 27px); top: 112px; opacity: 0; transform: scale(1); }
+}
+
+/* ---- Le bouton lecture : toucher, toucher, garder le doigt ---- */
+.demo-lecture { align-items: center; justify-content: center; }
+
+.mini-bouton-lecture {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 60px;
+  overflow: hidden;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  color: var(--accent-dark);
+}
+
+.mini-bouton-lecture .pile-icones svg { width: 26px; height: 26px; }
+
+/* Le remplissage de l'appui long, comme le vrai bouton (voir style.css). */
+.mini-bouton-lecture::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--ink) 14%, transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: me-lecture-remplir 5s infinite;
+}
+
+.mini-progression {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 7px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  animation: me-lecture-piste 5s infinite;
+}
+
+.mini-progression i { display: block; height: 100%; background: var(--accent); animation: me-lecture-avance 5s infinite; }
+.demo-lecture .icone-lecture { animation: me-lecture-icone-l 5s infinite; }
+.demo-lecture .icone-pause { animation: me-lecture-icone-p 5s infinite; }
+.demo-lecture .doigt { animation: me-lecture-doigt 5s infinite; }
+
+@keyframes me-lecture-icone-l { 0%, 15% { opacity: 1; } 16%, 42% { opacity: 0; } 43%, 100% { opacity: 1; } }
+@keyframes me-lecture-icone-p { 0%, 15% { opacity: 0; } 16%, 42% { opacity: 1; } 43%, 100% { opacity: 0; } }
+@keyframes me-lecture-piste { 0%, 15% { opacity: 0; } 16%, 78% { opacity: 1; } 80%, 100% { opacity: 0; } }
+@keyframes me-lecture-avance { 0%, 16% { width: 0; } 42%, 78% { width: 45%; } 80%, 100% { width: 0; } }
+@keyframes me-lecture-remplir { 0%, 58% { transform: scaleX(0); } 78% { transform: scaleX(1); } 80%, 100% { transform: scaleX(0); } }
+
+@keyframes me-lecture-doigt {
+  0% { left: 70%; top: 115%; opacity: 0; transform: scale(1); }
+  8% { opacity: 1; }
+  12% { left: 50%; top: 50%; transform: scale(1); }
+  14% { transform: scale(.75); }
+  18%, 40% { transform: scale(1); }
+  42% { transform: scale(.75); }
+  46%, 56% { transform: scale(1); }
+  58%, 78% { left: 50%; top: 50%; transform: scale(.78); opacity: 1; }
+  82% { transform: scale(1); opacity: 1; }
+  92%, 100% { left: 70%; top: 115%; opacity: 0; transform: scale(1); }
+}
+
+/* ---- Fiches en mode Gestes : toucher pour voir, puis pour écouter ---- */
+.demo-toucher-carte { justify-content: center; }
+.demo-toucher-carte .mini-masque { animation: me-carte-masque 5s infinite; }
+.demo-toucher-carte .mini-texte { animation: me-carte-texte 5s infinite; }
+.demo-toucher-carte .mini-carte { animation: me-carte-anneau 5s infinite; }
+.demo-toucher-carte .doigt { animation: me-carte-doigt 5s infinite; }
+
+@keyframes me-carte-masque { 0%, 28% { opacity: 1; } 32%, 92% { opacity: 0; } 97%, 100% { opacity: 1; } }
+@keyframes me-carte-texte { 0%, 28% { opacity: 0; } 32%, 92% { opacity: 1; } 97%, 100% { opacity: 0; } }
+@keyframes me-carte-anneau {
+  0%, 56% { box-shadow: var(--shadow-card); }
+  60%, 88% { box-shadow: 0 0 0 3px var(--accent), var(--shadow-card); }
+  92%, 100% { box-shadow: var(--shadow-card); }
+}
+
+@keyframes me-carte-doigt {
+  0% { left: 75%; top: 115%; opacity: 0; transform: scale(1); }
+  10% { opacity: 1; }
+  24% { left: 55%; top: 50%; transform: scale(1); }
+  28% { transform: scale(.75); }
+  33%, 52% { transform: scale(1); }
+  56% { transform: scale(.75); }
+  61% { transform: scale(1); }
+  72% { left: 55%; top: 50%; opacity: 1; }
+  85%, 100% { left: 75%; top: 115%; opacity: 0; }
+}
+
+/* ---- Fiches en mode Gestes : glisser à droite, puis à gauche ---- */
+.demo-glisser { justify-content: center; }
+.cadre-glisse-demo { position: relative; }
+.cadre-glisse-demo .indice-glisse { border-radius: 12px; padding-inline: 14px; font-size: 14px; }
+.cadre-glisse-demo .indice-glisse svg { width: 22px; height: 22px; }
+.cadre-glisse-demo .indice-droite { animation: me-glisser-droite 6s infinite; }
+.cadre-glisse-demo .indice-gauche { animation: me-glisser-gauche 6s infinite; }
+.carte-glisse-demo { position: relative; z-index: 1; padding-block: 18px; animation: me-glisser-carte 6s infinite; }
+.demo-glisser .doigt { animation: me-glisser-doigt 6s infinite; }
+
+@keyframes me-glisser-carte {
+  0%, 10% { transform: none; opacity: 1; }
+  28% { transform: translateX(45%) rotate(6deg); opacity: 1; }
+  36% { transform: translateX(130%) rotate(14deg); opacity: 0; }
+  38% { transform: none; opacity: 0; }
+  44%, 52% { transform: none; opacity: 1; }
+  70% { transform: translateX(-45%) rotate(-6deg); opacity: 1; }
+  78% { transform: translateX(-130%) rotate(-14deg); opacity: 0; }
+  80% { transform: none; opacity: 0; }
+  88%, 100% { transform: none; opacity: 1; }
+}
+
+@keyframes me-glisser-droite { 0%, 10% { opacity: 0; } 28%, 34% { opacity: 1; } 40%, 100% { opacity: 0; } }
+@keyframes me-glisser-gauche { 0%, 52% { opacity: 0; } 70%, 76% { opacity: 1; } 82%, 100% { opacity: 0; } }
+
+@keyframes me-glisser-doigt {
+  0% { left: 40%; top: 50%; opacity: 0; transform: scale(1); }
+  8% { left: 40%; top: 50%; opacity: 1; transform: scale(.85); }
+  28% { left: 78%; top: 50%; opacity: 1; transform: scale(.85); }
+  33% { left: 82%; top: 50%; opacity: 0; transform: scale(1); }
+  48% { left: 60%; top: 50%; opacity: 0; transform: scale(1); }
+  52% { left: 60%; top: 50%; opacity: 1; transform: scale(.85); }
+  70% { left: 22%; top: 50%; opacity: 1; transform: scale(.85); }
+  75%, 100% { left: 18%; top: 50%; opacity: 0; transform: scale(1); }
+}
+
+/* ---- Fiches avec boutons : voir, écouter, je savais ---- */
+/* --x0, --x1, --x2 : le milieu des trois premiers boutons ; --y : le milieu de la barre. */
+.demo-boutons {
+  --h: 48px;
+  --x0: calc(14px + (100% - 52px) * .125);
+  --x1: calc(22px + (100% - 52px) * .375);
+  --x2: calc(30px + (100% - 52px) * .625);
+  --y: calc(100% - 14px - var(--h) / 2);
+  height: 180px;
+}
+
+.demo-boutons:has(.avec-label) { --h: 58px; height: 190px; }
+.mini-barre { margin-top: auto; }
+.demo-boutons .carte-boutons { animation: me-btn-carte 6s infinite; }
+.demo-boutons .mini-masque { animation: me-btn-masque 6s infinite; }
+.demo-boutons .mini-texte { animation: me-btn-texte 6s infinite; }
+.demo-boutons .icone-lecture { animation: me-btn-lecture 6s infinite; }
+.demo-boutons .icone-pause { animation: me-btn-pause 6s infinite; }
+.demo-boutons .doigt { animation: me-btn-doigt 6s infinite; }
+
+@keyframes me-btn-carte { 0%, 58% { opacity: 1; transform: none; } 63%, 70% { opacity: 0; transform: translateY(-6px); } 76%, 100% { opacity: 1; transform: none; } }
+@keyframes me-btn-masque { 0%, 19% { opacity: 1; } 22%, 64% { opacity: 0; } 66%, 100% { opacity: 1; } }
+@keyframes me-btn-texte { 0%, 19% { opacity: 0; } 22%, 64% { opacity: 1; } 66%, 100% { opacity: 0; } }
+@keyframes me-btn-lecture { 0%, 37% { opacity: 1; } 39%, 60% { opacity: 0; } 62%, 100% { opacity: 1; } }
+@keyframes me-btn-pause { 0%, 37% { opacity: 0; } 39%, 60% { opacity: 1; } 62%, 100% { opacity: 0; } }
+
+@keyframes me-btn-doigt {
+  0% { left: 50%; top: 115%; opacity: 0; transform: scale(1); }
+  8% { opacity: 1; }
+  15% { left: var(--x0); top: var(--y); transform: scale(1); }
+  18% { transform: scale(.75); }
+  22% { left: var(--x0); top: var(--y); transform: scale(1); }
+  34% { left: var(--x1); top: var(--y); transform: scale(1); }
+  37% { transform: scale(.75); }
+  41% { left: var(--x1); top: var(--y); transform: scale(1); }
+  54% { left: var(--x2); top: var(--y); transform: scale(1); }
+  57% { transform: scale(.75); }
+  61% { left: var(--x2); top: var(--y); transform: scale(1); opacity: 1; }
+  72%, 100% { left: 70%; top: 115%; opacity: 0; transform: scale(1); }
+}
+
+/* ---- Filage : l'app lit, s'arrête sur ta réplique, tu touches Suivant ---- */
+.demo-filage { height: 250px; }
+.mini-journal { display: flex; flex-direction: column; gap: 8px; }
+.mini-commandes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: auto; }
+.mini-commandes > * { min-height: 40px; padding: 0 8px; font-size: 13px; }
+.demo-filage .filage-1 { animation: me-filage-1 8s infinite; }
+.demo-filage .filage-2 { animation: me-filage-2 8s infinite; }
+.demo-filage .filage-3 { animation: me-filage-3 8s infinite; }
+.demo-filage .filage-3 .mini-masque { animation: me-filage-pulsation 8s infinite; }
+.demo-filage .doigt { animation: me-filage-doigt 8s infinite; }
+
+/* La réplique lue passe en sauge avec un anneau, comme dans le vrai filage. */
+@keyframes me-filage-1 {
+  0% { opacity: 0; transform: translateY(8px); background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent), var(--shadow-card); }
+  6%, 30% { opacity: 1; transform: none; background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent), var(--shadow-card); }
+  33%, 88% { opacity: 1; transform: none; background: var(--surface); box-shadow: var(--shadow-card); }
+  95%, 100% { opacity: 0; transform: none; background: var(--surface); box-shadow: var(--shadow-card); }
+}
+
+@keyframes me-filage-2 {
+  0%, 30% { opacity: 0; transform: translateY(8px); background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent), var(--shadow-card); }
+  36%, 56% { opacity: 1; transform: none; background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent), var(--shadow-card); }
+  59%, 88% { opacity: 1; transform: none; background: var(--surface); box-shadow: var(--shadow-card); }
+  95%, 100% { opacity: 0; transform: none; background: var(--surface); box-shadow: var(--shadow-card); }
+}
+
+@keyframes me-filage-3 {
+  0%, 58% { opacity: 0; transform: translateY(8px); }
+  64%, 88% { opacity: 1; transform: none; }
+  95%, 100% { opacity: 0; transform: none; }
+}
+
+@keyframes me-filage-pulsation { 0%, 64% { opacity: 1; } 70% { opacity: .45; } 76% { opacity: 1; } 82% { opacity: .45; } 88%, 100% { opacity: 1; } }
+
+@keyframes me-filage-doigt {
+  0%, 66% { left: 80%; top: 115%; opacity: 0; transform: scale(1); }
+  70% { opacity: 1; }
+  77% { left: calc(22px + (100% - 36px) * .75); top: calc(100% - 34px); transform: scale(1); }
+  81% { transform: scale(.75); }
+  85% { left: calc(22px + (100% - 36px) * .75); top: calc(100% - 34px); transform: scale(1); opacity: 1; }
+  94%, 100% { left: 80%; top: 115%; opacity: 0; transform: scale(1); }
+}
+
+/* Si le téléphone demande de réduire les animations : des images fixes, et les pictogrammes. */
+@media (prefers-reduced-motion: reduce) {
+  .demo *, .demo *::before { animation: none !important; }
+  .demo .doigt { display: none; }
+}

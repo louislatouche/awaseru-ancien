@@ -4,17 +4,22 @@
 import { brancherAppuiLong, el, icone, rebond, remplacer, signaler } from './dom.js';
 import { langueActive, t, traduire } from './langues.js';
 import { creerJaponais, texteAParler } from './texte.js';
-import { changerReglage, lireReglages } from './stockage.js';
+import { changerAffichagePiece, changerReglage, lireAffichage, lireReglages } from './stockage.js';
 import { roleDe } from './pieces.js';
 import {
   aideInstallation, arreterVoix, jouerFichier, lectureDisponible, messagePourResultat, mettreEnPauseVoix, parler,
   progressionVoix, reprendreVoix, voixJaponaises, voixPretes,
 } from './voix.js';
 
+// La pièce affichée : ses propres choix de furigana et de traduction passent avant le choix général.
+let pieceAffichee = null;
+
 // Furigana et traduction se masquent avec une classe sur <html> : le CSS fait le reste.
 // Pas besoin de reconstruire la page, et le choix s'applique à tous les écrans à la fois.
-export function appliquerAffichage() {
-  const { furigana, traduction } = lireReglages();
+// Le routeur donne la pièce à chaque changement d'écran (null hors d'une pièce : le choix général).
+export function appliquerAffichage(pieceId = pieceAffichee) {
+  pieceAffichee = pieceId;
+  const { furigana, traduction } = lireAffichage(pieceId);
   document.documentElement.lang = langueActive();
   document.documentElement.classList.toggle('sans-furigana', !furigana);
   document.documentElement.classList.toggle('sans-traduction', !traduction);
@@ -64,17 +69,19 @@ export function creerChoixUnique(options, valeurInitiale, surChoix) {
   return el('div', { className: 'chips' }, chips.map((element) => element.chip));
 }
 
-function creerInterrupteur(libelle, nomReglage) {
-  return creerBascule(libelle, lireReglages()[nomReglage], (actif) => {
-    changerReglage(nomReglage, actif);
-    appliquerAffichage();
+// Sur les écrans d'une pièce : ces interrupteurs ne changent que cette pièce.
+// Le choix pour toutes les pièces se fait dans les Réglages.
+function creerInterrupteur(libelle, nom, pieceId) {
+  return creerBascule(libelle, lireAffichage(pieceId)[nom], (actif) => {
+    changerAffichagePiece(pieceId, nom, actif);
+    appliquerAffichage(pieceId);
   });
 }
 
-export function creerInterrupteurs() {
+export function creerInterrupteurs(pieceId) {
   return el('div', { className: 'interrupteurs' },
-    creerInterrupteur(t('Furigana'), 'furigana'),
-    creerInterrupteur(t('Traduction'), 'traduction'));
+    creerInterrupteur(t('Furigana'), 'furigana', pieceId),
+    creerInterrupteur(t('Traduction'), 'traduction', pieceId));
 }
 
 // Le grand titre d'un écran, avec éventuellement un complément à sa droite.
@@ -107,27 +114,40 @@ export async function lireReplique(ligne) {
   return resultat;
 }
 
-// Un bouton réduit à son icône. Le libellé reste écrit dans aria-label (lu par les lecteurs d'écran)
-// et dans title (affiché au survol sur ordinateur).
-export function creerBoutonIcone(nomIcone, libelle, classe, onclick) {
-  return el('button', { type: 'button', className: `${classe} bouton-icone`, title: libelle, 'aria-label': libelle, onclick },
-    icone(nomIcone));
+// Le réglage Navigation demande-t-il le nom sous chaque icône ?
+const avecLabels = () => lireReglages().navigation === 'icones-labels';
+
+// Un bouton à icône. Selon le réglage Navigation, son nom s'écrit dessous, ou reste seulement
+// dans aria-label (lu par les lecteurs d'écran) et dans title (affiché au survol sur ordinateur).
+// mot : un nom plus court pour l'écrire sous l'icône, si le libellé complet est trop long.
+export function creerBoutonIcone(nomIcone, libelle, classe, onclick, mot = libelle) {
+  const ecrit = avecLabels();
+  return el('button', {
+    type: 'button', className: `${classe} bouton-icone${ecrit ? ' avec-label' : ''}`, title: libelle, 'aria-label': libelle, onclick,
+  }, icone(nomIcone), ecrit && el('span', { className: 'label' }, mot));
 }
 
-// L'écoute de ma réplique, partagée par le bouton ▶ et par la carte de la réplique.
+// L'écoute d'une réplique : la mienne (partagée par le bouton ▶ et par sa carte), ou mon signal.
 // Un toucher lance la lecture, le suivant la met en pause, le suivant la reprend là où elle était.
 // Un appui long sur le bouton arrête tout et revient au début. Un trait au pied du bouton montre
 // où en est la lecture (seulement avec les voix enregistrées : la voix du téléphone ne le dit pas).
 //
-// Renvoie { bouton, toucher } : le bouton à placer dans la page, et toucher() pour la carte.
+// Renvoie { bouton, toucher, arreter } : le bouton à placer dans la page, et de quoi piloter la
+// lecture depuis la carte (toucher, et arreter pour l'appui long du mode Gestes).
 // surLecture est appelée à chaque lancement (les fiches s'en servent pour permettre l'évaluation).
-export function creerEcoute(ligne, { surLecture = null } = {}) {
+// surEtat reçoit chaque changement ('arret', 'lecture', 'pause') : la carte s'en sert pour
+// afficher l'anneau de lecture, seul signe visible quand il n'y a pas de bouton.
+// libelle : le nom du bouton à l'arrêt (le signal des fiches dit « Réécouter ») ; classe : une classe en plus.
+export function creerEcoute(ligne, {
+  surLecture = null, surEtat = null, libelle: libelleArret = t('Écouter ma réplique'), classe = '',
+} = {}) {
   let etat = 'arret'; // 'arret', 'lecture' ou 'pause'
   // Le jeton change à chaque arrêt voulu : la fin d'une lecture abandonnée ne touche plus au bouton.
   let jeton = 0;
 
+  const ecrit = avecLabels();
   const trait = el('span', { className: 'progression', hidden: true });
-  const bouton = el('button', { type: 'button', className: 'btn-ghost bouton-icone' });
+  const bouton = el('button', { type: 'button', className: `btn-ghost bouton-icone${ecrit ? ' avec-label' : ''} ${classe}` });
 
   function majTrait() {
     const avance = progressionVoix();
@@ -141,12 +161,15 @@ export function creerEcoute(ligne, { surLecture = null } = {}) {
     if (etat === 'lecture') requestAnimationFrame(suivre);
   }
 
-  function dessiner() {
-    const libelle = { arret: t('Écouter ma réplique'), lecture: t('Pause'), pause: t('Reprendre') }[etat];
+  function dessiner(annoncer = true) {
+    const libelle = { arret: libelleArret, lecture: t('Pause'), pause: t('Reprendre') }[etat];
+    // Sous l'icône, le mot court : « Écouter » tient dans un quart d'écran, pas la phrase entière.
+    const mot = etat === 'arret' ? t('Écouter') : libelle;
     bouton.title = libelle;
     bouton.setAttribute('aria-label', libelle);
-    remplacer(bouton, icone(etat === 'lecture' ? 'pause' : 'lecture'), trait);
+    remplacer(bouton, icone(etat === 'lecture' ? 'pause' : 'lecture'), ecrit && el('span', { className: 'label' }, mot), trait);
     majTrait();
+    if (annoncer) surEtat?.(etat);
   }
 
   async function lancer() {
@@ -190,8 +213,8 @@ export function creerEcoute(ligne, { surLecture = null } = {}) {
   }
 
   brancherAppuiLong(bouton, { toucher, maintenir: arreter });
-  dessiner();
-  return { bouton, toucher };
+  dessiner(false); // au départ, rien à annoncer : la carte n'existe peut-être pas encore
+  return { bouton, toucher, arreter };
 }
 
 // Un encadré qui apparaît seulement s'il n'y a vraiment aucune voix japonaise.

@@ -93,6 +93,34 @@ function creerVoixEnregistrees() {
       })));
 }
 
+// Comment on commande les fiches et le filage : des boutons (avec ou sans leur nom), ou des gestes.
+// Le mode d'emploi, en images, montre ce que fait chaque choix.
+function creerNavigation() {
+  return el('section', { className: 'card pile' },
+    el('h2', { className: 'titre-section' }, t('Navigation')),
+    creerChoixUnique([
+      { valeur: 'icones', libelle: t('Icônes') },
+      { valeur: 'icones-labels', libelle: t('Icônes et labels') },
+      { valeur: 'gestes', libelle: t('Gestes') },
+    ], lireReglages().navigation, (choix) => {
+      changerReglage('navigation', choix);
+    }),
+    el('a', { className: 'btn-ghost', href: '#/mode-emploi' }, t("Mode d'emploi")));
+}
+
+// Furigana et traduction pour toutes les pièces. Sur les écrans d'une pièce, les mêmes
+// interrupteurs changent le choix pour cette pièce seulement (voir lireAffichage dans stockage.js).
+function creerAffichageGeneral() {
+  const interrupteur = (libelle, nom) => creerBascule(libelle, lireReglages()[nom], (actif) => {
+    changerReglage(nom, actif);
+    appliquerAffichage();
+  });
+  return el('section', { className: 'card pile' },
+    el('h2', { className: 'titre-section' }, t('Affichage')),
+    el('div', { className: 'interrupteurs' }, interrupteur(t('Furigana'), 'furigana'), interrupteur(t('Traduction'), 'traduction')),
+    el('p', { className: 'legende' }, t('Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.')));
+}
+
 function creerDidascalies() {
   return el('div', { className: 'chips' },
     creerBascule(t('Lire aussi les didascalies'), lireReglages().lireDidascalies, (actif) => {
@@ -270,6 +298,8 @@ export async function afficherReglages(racine) {
       creerChoixVoix(),
       el('button', { type: 'button', className: 'btn-ghost', onclick: () => lireReplique(PHRASE_ESSAI) }, t('Essayer la voix du téléphone')),
       creerDidascalies()),
+    creerAffichageGeneral(),
+    creerNavigation(),
     el('section', { className: 'card pile' },
       el('h2', { className: 'titre-section' }, t('Progression')),
       trierParUtilisation([...fournies, ...importees]).map(creerRemiseAZero)),
