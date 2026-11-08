@@ -106,7 +106,7 @@ export default {
   'Réplique {n}': 'セリフ {n}',
   'Des rôles entiers': '役ごとに選ぶ',
   'Réplique par réplique': 'セリフごとに選ぶ',
-  'Écarte deux doigts pour revoir le texte.': '2本の指で広げると本文に戻ります。',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': '番号を長押しするとそのセリフへ移動します。2本の指で広げると本文に戻ります。',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": '2本の指でつまむと番号だけを表示します。',
   Texte: '本文',
   Grille: '番号',

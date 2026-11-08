@@ -105,7 +105,7 @@ export default {
   'Réplique {n}': 'Zeile {n}',
   'Des rôles entiers': 'Ganze Rollen',
   'Réplique par réplique': 'Zeile für Zeile',
-  'Écarte deux doigts pour revoir le texte.': 'Zieh zwei Finger auseinander, um den Text wieder zu sehen.',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': 'Halte eine Nummer gedrückt, um zu ihrer Zeile zu springen. Zieh zwei Finger auseinander, um den Text wieder zu sehen.',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": 'Zieh zwei Finger auf dem Bildschirm zusammen, um nur die Nummern anzuzeigen.',
   Texte: 'Text',
   Grille: 'Raster',

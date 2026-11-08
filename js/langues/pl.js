@@ -106,7 +106,7 @@ export default {
   'Réplique {n}': 'Kwestia {n}',
   'Des rôles entiers': 'Całe role',
   'Réplique par réplique': 'Kwestia po kwestii',
-  'Écarte deux doigts pour revoir le texte.': 'Rozsuń dwa palce, aby znów zobaczyć tekst.',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': 'Przytrzymaj numer, aby przejść do jego kwestii. Rozsuń dwa palce, aby znów zobaczyć tekst.',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": 'Zsuń dwa palce na ekranie, aby wyświetlić tylko numery.',
   Texte: 'Tekst',
   Grille: 'Siatka',

@@ -37,7 +37,16 @@ const ICONES = {
   fiches: 'M8 8h12v12H8zM4 16V4h12',
   filage: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM10 8.5v7l6-3.5z',
   chevron: 'M6 9l6 6 6-6',
+  // Les boutons de répétition (fiches et filage).
+  voir: 'M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12zM12 9.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6z',
+  lecture: 'M7.5 4.8v14.4L19 12z',
+  pause: 'M7 5.5h3v13H7zM14 5.5h3v13h-3z',
+  su: 'M5 12.5l4.5 4.5L19 7.5',
+  revoir: 'M12 4A8 8 0 1 1 4.48 9.26M12 4l2.6-2.6M12 4l2.6 2.6',
 };
+
+// Lecture et pause sont remplies : à petite taille, on les reconnaît mieux que de simples contours.
+const ICONES_PLEINES = new Set(['lecture', 'pause']);
 
 // Un dessin SVG n'est pas du HTML ordinaire : createElement ne suffit pas, il faut indiquer
 // son « espace de noms », sinon le navigateur crée un élément qu'il ne sait pas dessiner.
@@ -54,6 +63,7 @@ export function icone(nom) {
   svg.setAttribute('aria-hidden', 'true'); // décoratif : le libellé à côté dit déjà tout
   const trace = document.createElementNS(ESPACE_SVG, 'path');
   trace.setAttribute('d', ICONES[nom]);
+  if (ICONES_PLEINES.has(nom)) trace.setAttribute('fill', 'currentColor');
   svg.append(trace);
   return svg;
 }
@@ -93,6 +103,52 @@ export function cascade(conteneur, parRangee = 1) {
       };
       tuile.addEventListener('animationend', fin);
     });
+  });
+}
+
+// L'appui long : au bout d'une demi-seconde, maintenir() est appelée, et le « click » qui suit
+// le lâcher du doigt est ignoré. Un toucher ordinaire appelle toucher().
+// Pendant l'appui, l'élément porte la classe en-appui : il se remplit (voir style.css).
+export function brancherAppuiLong(element, { toucher, maintenir }) {
+  let minuterie = null;
+  let appuiLong = false;
+  let doigt = null; // le doigt qui appuie : son numéro et l'endroit où il s'est posé
+
+  function relacher() {
+    clearTimeout(minuterie);
+    element.classList.remove('en-appui');
+    document.removeEventListener('pointerdown', surAutreDoigt);
+    doigt = null;
+  }
+
+  // Un second doigt posé n'importe où, c'est un pincement : pas un appui long.
+  function surAutreDoigt(evenement) {
+    if (doigt && evenement.pointerId !== doigt.numero) relacher();
+  }
+
+  element.addEventListener('pointerdown', (evenement) => {
+    appuiLong = false;
+    doigt = { numero: evenement.pointerId, x: evenement.clientX, y: evenement.clientY };
+    element.classList.add('en-appui');
+    document.addEventListener('pointerdown', surAutreDoigt);
+    minuterie = setTimeout(() => {
+      appuiLong = true;
+      relacher();
+      navigator.vibrate?.(20); // un petit retour sous le doigt, sur les téléphones qui vibrent
+      maintenir();
+    }, 550);
+  });
+
+  // Un doigt qui glisse de plus de 10 pixels fait défiler l'écran : ce n'est pas un appui long.
+  element.addEventListener('pointermove', (evenement) => {
+    if (doigt && Math.hypot(evenement.clientX - doigt.x, evenement.clientY - doigt.y) > 10) relacher();
+  });
+  // Doigt levé trop tôt, sorti de l'élément, ou geste repris par le navigateur.
+  for (const type of ['pointerup', 'pointercancel', 'pointerleave']) element.addEventListener(type, relacher);
+  element.addEventListener('contextmenu', (evenement) => evenement.preventDefault()); // pas de menu Android
+  element.addEventListener('click', () => {
+    if (appuiLong) appuiLong = false;
+    else toucher();
   });
 }
 

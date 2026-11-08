@@ -105,7 +105,7 @@ export default {
   'Réplique {n}': 'Réplica {n}',
   'Des rôles entiers': 'Papeles completos',
   'Réplique par réplique': 'Réplica a réplica',
-  'Écarte deux doigts pour revoir le texte.': 'Separa dos dedos para volver a ver el texto.',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': 'Mantén pulsado un número para ir a su réplica. Separa dos dedos para volver a ver el texto.',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": 'Pellizca la pantalla con dos dedos para mostrar solo los números.',
   Texte: 'Texto',
   Grille: 'Cuadrícula',

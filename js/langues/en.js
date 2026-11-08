@@ -105,7 +105,7 @@ export default {
   'Réplique {n}': 'Line {n}',
   'Des rôles entiers': 'Whole roles',
   'Réplique par réplique': 'Line by line',
-  'Écarte deux doigts pour revoir le texte.': 'Spread two fingers to see the text again.',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': 'Hold a number to jump to its line. Spread two fingers to see the text again.',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": 'Pinch the screen with two fingers to show only the numbers.',
   Texte: 'Text',
   Grille: 'Grid',

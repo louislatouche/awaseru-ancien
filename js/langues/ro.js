@@ -105,7 +105,7 @@ export default {
   'Réplique {n}': 'Replica {n}',
   'Des rôles entiers': 'Roluri întregi',
   'Réplique par réplique': 'Replică cu replică',
-  'Écarte deux doigts pour revoir le texte.': 'Depărtează două degete pentru a vedea din nou textul.',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': 'Ține apăsat un număr ca să mergi la replica lui. Depărtează două degete pentru a vedea din nou textul.',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": 'Apropie două degete pe ecran pentru a afișa doar numerele.',
   Texte: 'Text',
   Grille: 'Grilă',

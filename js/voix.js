@@ -115,6 +115,34 @@ export function jouerFichier(url) {
   });
 }
 
+// Met en pause le fichier audio en cours sans le perdre : reprendreVoix() repartira du même endroit.
+// La voix du téléphone, elle, n'a pas de pause fiable sur Android (voir mettreEnPause dans filage.js) :
+// dans ce cas, on l'arrête, et la fonction renvoie false pour prévenir que la place est perdue.
+export function mettreEnPauseVoix() {
+  if (audioEnCours && !audioEnCours.paused) {
+    audioEnCours.pause();
+    return true;
+  }
+  arreterVoix();
+  return false;
+}
+
+// Relance le fichier mis en pause. Renvoie false s'il n'y a plus rien à reprendre.
+export function reprendreVoix() {
+  if (!audioEnCours) return false;
+  // Si la reprise échoue, la lecture se termine en erreur, comme un fichier illisible.
+  audioEnCours.play().catch(() => terminerEnCours?.('erreur:fichier'));
+  return true;
+}
+
+// Où en est la lecture du fichier audio : de 0 (début) à 1 (fin).
+// null quand on ne peut pas le savoir : voix du téléphone, ou fichier encore en chargement.
+export function progressionVoix() {
+  const duree = audioEnCours?.duration;
+  if (!Number.isFinite(duree) || duree === 0) return null;
+  return audioEnCours.currentTime / duree;
+}
+
 // Lit un texte. Renvoie une promesse qui donne : 'fini', 'annule', 'sans-voix' ou 'erreur:code'.
 export function parler(texte) {
   arreterVoix();

@@ -2,12 +2,13 @@
 
 import { cascade, el, hautDePage, remplacer, salve } from '../dom.js';
 import {
-  creerAvisEnchainement, creerAvisSansSelection, creerAvisVoix, creerBascule, creerChoixUnique,
-  creerInterrupteurs, creerReplique, creerTitreVue, lireReplique,
+  creerAvisEnchainement, creerAvisSansSelection, creerAvisVoix, creerBascule, creerBoutonIcone, creerChoixUnique,
+  creerEcoute, creerInterrupteurs, creerReplique, creerTitreVue, lireReplique,
 } from '../affichage.js';
 import { t } from '../langues.js';
 import { enchainementsDe, lignesDe, signalDe } from '../pieces.js';
 import { changerStatut, lireSelection, lireStatuts } from '../stockage.js';
+import { arreterVoix } from '../voix.js';
 
 // Mélange de Fisher-Yates : la méthode classique pour que chaque ordre ait la même chance.
 // (Le célèbre tri par Math.random() - 0.5 est, lui, biaisé.)
@@ -69,6 +70,7 @@ export function afficherFiches(racine, piece) {
     let position = 0;
 
     function noter(ligne, statut) {
+      arreterVoix(); // une réplique en pause ne doit pas reprendre sur la fiche suivante
       changerStatut(piece.id, ligne.numero, statut);
       if (statut === 'su') salve();
       resultats[statut].push(ligne);
@@ -85,25 +87,38 @@ export function afficherFiches(racine, piece) {
       const signal = signalDe(lignes, index);
       const selection = lireSelection(piece);
 
+      // On ne peut s'évaluer qu'après avoir vu ou entendu la réplique : d'ici là, ces deux boutons sont grisés.
+      const boutonSu = creerBoutonIcone('su', t('Je savais'), 'btn', () => noter(ligne, 'su'));
+      const boutonRevoir = creerBoutonIcone('revoir', t('À revoir'), 'btn btn--muted', () => noter(ligne, 'a_revoir'));
+      boutonSu.disabled = true;
+      boutonRevoir.disabled = true;
+      const permettreNote = () => {
+        boutonSu.disabled = false;
+        boutonRevoir.disabled = false;
+      };
+
+      const ecoute = creerEcoute(ligne, { surLecture: permettreNote });
+
+      function devoiler() {
+        carteMoi.classList.remove('est-cachee');
+        boutonVoir.disabled = true;
+        permettreNote();
+        carteMoi.scrollIntoView({ block: 'center' }); // la carte vient de grandir
+      }
+
+      // La carte elle-même se touche : une première fois pour la voir, ensuite pour l'écouter
+      // (et la mettre en pause, comme le bouton ▶).
       const carteMoi = creerReplique(ligne, piece, {
-        mienne: true, cachee: true, statut: lireStatuts(piece.id)[ligne.numero],
+        mienne: true,
+        cachee: true,
+        statut: lireStatuts(piece.id)[ligne.numero],
+        surTouche: () => {
+          if (carteMoi.classList.contains('est-cachee')) devoiler();
+          else ecoute.toucher();
+        },
       });
 
-      // On ne peut s'évaluer qu'après avoir vu ou entendu la réplique.
-      const boutonsNote = el('div', { className: 'boutons boutons-apparition', hidden: true },
-        el('button', { type: 'button', className: 'btn', onclick: () => noter(ligne, 'su') }, t('Je savais')),
-        el('button', { type: 'button', className: 'btn btn--muted', onclick: () => noter(ligne, 'a_revoir') }, t('À revoir')));
-
-      const boutonVoir = el('button', {
-        type: 'button',
-        className: 'btn-ghost',
-        onclick: () => {
-          carteMoi.classList.remove('est-cachee');
-          boutonVoir.disabled = true;
-          boutonsNote.hidden = false;
-          carteMoi.scrollIntoView({ block: 'center' }); // la carte vient de grandir
-        },
-      }, t('Voir'));
+      const boutonVoir = creerBoutonIcone('voir', t('Voir'), 'btn-ghost', devoiler);
 
       remplacer(racine,
         el('p', { className: 'eyebrow fiche-compteur' }, t('Fiche {position} sur {total}', { position: position + 1, total: paquet.length })),
@@ -119,17 +134,7 @@ export function afficherFiches(racine, piece) {
         creerInterrupteurs(),
         // Collés en bas de l'écran : on répète le téléphone à la main, sans avoir à faire défiler.
         el('div', { className: 'commandes' },
-          el('div', { className: 'boutons' },
-            boutonVoir,
-            el('button', {
-              type: 'button',
-              className: 'btn-ghost',
-              onclick: () => {
-                boutonsNote.hidden = false;
-                lireReplique(ligne);
-              },
-            }, t('Écouter ma réplique'))),
-          boutonsNote),
+          el('div', { className: 'boutons boutons-quatre' }, boutonVoir, ecoute.bouton, boutonSu, boutonRevoir)),
       );
       // Passer à la fiche suivante : un fondu court, comme les étapes de Faktur.
       for (const bloc of racine.children) bloc.classList.add('etape');

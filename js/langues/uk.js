@@ -105,7 +105,7 @@ export default {
   'Réplique {n}': 'Репліка {n}',
   'Des rôles entiers': 'Ролі повністю',
   'Réplique par réplique': 'Репліка за реплікою',
-  'Écarte deux doigts pour revoir le texte.': 'Розведи два пальці, щоб знову побачити текст.',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': 'Утримуй номер, щоб перейти до його репліки. Розведи два пальці, щоб знову побачити текст.',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": 'Зведи два пальці на екрані, щоб показати лише номери.',
   Texte: 'Текст',
   Grille: 'Сітка',

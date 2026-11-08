@@ -105,7 +105,7 @@ export default {
   'Réplique {n}': 'Regel {n}',
   'Des rôles entiers': 'Hele rollen',
   'Réplique par réplique': 'Regel voor regel',
-  'Écarte deux doigts pour revoir le texte.': 'Spreid twee vingers om de tekst weer te zien.',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': 'Houd een nummer ingedrukt om naar die regel te gaan. Spreid twee vingers om de tekst weer te zien.',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": 'Knijp met twee vingers in het scherm om alleen de nummers te tonen.',
   Texte: 'Tekst',
   Grille: 'Raster',

@@ -106,7 +106,7 @@ export default {
   'Réplique {n}': 'Ατάκα {n}',
   'Des rôles entiers': 'Ολόκληροι ρόλοι',
   'Réplique par réplique': 'Ατάκα ατάκα',
-  'Écarte deux doigts pour revoir le texte.': 'Άνοιξε δύο δάχτυλα για να ξαναδείς το κείμενο.',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': 'Κράτα πατημένο έναν αριθμό για να πας στην ατάκα του. Άνοιξε δύο δάχτυλα για να ξαναδείς το κείμενο.',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": 'Πίεσε την οθόνη με δύο δάχτυλα για να εμφανιστούν μόνο οι αριθμοί.',
   Texte: 'Κείμενο',
   Grille: 'Πλέγμα',

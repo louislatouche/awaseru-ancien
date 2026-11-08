@@ -6,7 +6,7 @@
 // Deux affichages de la même liste : le texte complet, et une grille de numéros pour aller vite.
 // Pincer l'écran passe à la grille, écarter les doigts revient au texte.
 
-import { cascade, el, rebond, remplacer } from '../dom.js';
+import { brancherAppuiLong, cascade, el, rebond, remplacer } from '../dom.js';
 import { surPincement } from '../pincement.js';
 import { t, traduire } from '../langues.js';
 import { creerJaponais } from '../texte.js';
@@ -102,12 +102,16 @@ export function afficherMesRepliques(racine, piece) {
         el('span', { className: 'replique-fr traduction' }, traduire(ligne, 'fr'))));
   }
 
+  // Un numéro de la grille : le toucher choisit la réplique (ou la retire),
+  // l'appui long ramène au texte, sur cette réplique.
   function creerBoutonGrille(ligne) {
     const bouton = el('button', {
       type: 'button',
       className: 'bouton-numero',
       'aria-label': t('Réplique {n}', { n: ligne.numero }),
-      onclick: () => {
+    }, String(ligne.numero));
+    brancherAppuiLong(bouton, {
+      toucher: () => {
         if (selection.has(ligne.numero)) {
           selection.delete(ligne.numero);
         } else {
@@ -116,7 +120,8 @@ export function afficherMesRepliques(racine, piece) {
         }
         surChangement();
       },
-    }, String(ligne.numero));
+      maintenir: () => allerA(ligne.numero),
+    });
     boutonsGrille.set(ligne.numero, bouton);
     return bouton;
   }
@@ -178,7 +183,7 @@ export function afficherMesRepliques(racine, piece) {
     vueGrille.hidden = !grille;
     vueTexte.hidden = grille;
     aide.textContent = grille
-      ? t('Écarte deux doigts pour revoir le texte.')
+      ? t('Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.')
       : t("Pince l'écran avec deux doigts pour n'afficher que les numéros.");
     bascule.textContent = grille ? t('Texte') : t('Grille');
   }
@@ -199,13 +204,16 @@ export function afficherMesRepliques(racine, piece) {
   let positionTexte = 0;
   let grilleDejaVue = false;
 
-  function montrerGrille(oui) {
+  // versElement : en revenant au texte, l'endroit à montrer au milieu de l'écran, au lieu de
+  // la position quittée. Il faut le placer avant le zoom, qui se centre sur ce qui est visible.
+  function montrerGrille(oui, versElement = null) {
     if (oui === !vueGrille.hidden) return; // déjà sur cette vue
     const zone = document.getElementById('ecran');
     if (oui) positionTexte = zone.scrollTop;
     afficherVue(oui);
     // behavior: 'instant' : la zone défile en douceur d'habitude, mais ici le saut doit être invisible.
-    zone.scrollTo({ top: oui ? 0 : positionTexte, behavior: 'instant' });
+    if (versElement) versElement.scrollIntoView({ block: 'center', behavior: 'instant' });
+    else zone.scrollTo({ top: oui ? 0 : positionTexte, behavior: 'instant' });
     if (!mouvementReduit()) arriverEnZoomFlou(oui ? vueGrille : vueTexte, oui ? 'zoom-depuis-grand' : 'zoom-depuis-petit');
     // La vague de boutons ne se joue qu'une fois, comme les tuiles de Faktur. Ensuite, un simple
     // fondu : on vient ici pour aller vite, on ne va pas attendre l'animation à chaque pincement.
@@ -213,6 +221,16 @@ export function afficherMesRepliques(racine, piece) {
       grilleDejaVue = true;
       cascade(vueGrille, getComputedStyle(vueGrille).gridTemplateColumns.split(' ').length);
     }
+  }
+
+  // L'appui long sur un numéro : retour au texte, centré sur cette réplique, qu'un halo signale un instant.
+  function allerA(numero) {
+    const carte = casesRepliques.get(numero).closest('.coche-replique');
+    montrerGrille(false, carte);
+    carte.classList.remove('reperee');
+    void carte.offsetWidth; // fait rejouer le halo, même sur la même réplique
+    carte.classList.add('reperee');
+    carte.addEventListener('animationend', () => carte.classList.remove('reperee'), { once: true });
   }
 
   racine.classList.add('zone-pincement');

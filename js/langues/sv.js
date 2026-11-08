@@ -105,7 +105,7 @@ export default {
   'Réplique {n}': 'Replik {n}',
   'Des rôles entiers': 'Hela roller',
   'Réplique par réplique': 'Replik för replik',
-  'Écarte deux doigts pour revoir le texte.': 'Dra isär två fingrar för att se texten igen.',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': 'Håll fingret på ett nummer för att gå till dess replik. Dra isär två fingrar för att se texten igen.',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": 'Nyp ihop skärmen med två fingrar för att bara visa numren.',
   Texte: 'Text',
   Grille: 'Rutnät',

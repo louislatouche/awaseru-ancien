@@ -105,7 +105,7 @@ export default {
   'Réplique {n}': '대사 {n}',
   'Des rôles entiers': '역할별로 고르기',
   'Réplique par réplique': '대사별로 고르기',
-  'Écarte deux doigts pour revoir le texte.': '두 손가락을 벌리면 본문으로 돌아가요.',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': '번호를 길게 누르면 그 대사로 이동해요. 두 손가락을 벌리면 본문으로 돌아가요.',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": '두 손가락을 모으면 번호만 표시돼요.',
   Texte: '본문',
   Grille: '번호',

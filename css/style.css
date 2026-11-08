@@ -191,6 +191,32 @@ body:has(.tabbar:not([hidden])) { --place-bas: calc(var(--tabbar-h) + var(--safe
 .btn-petit { flex: none; width: auto; min-height: 44px; padding: 8px 16px; font-size: 14px; }
 
 .boutons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.boutons-quatre { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+/* Les boutons réduits à leur icône (fiches et filage) : moins hauts, sans texte. */
+.bouton-icone {
+  position: relative; /* repère pour le trait de progression */
+  min-height: 48px;
+  padding: 0;
+  overflow: hidden; /* le remplissage de l'appui long reste dans les coins arrondis */
+  -webkit-touch-callout: none; /* pas de menu Android sur un appui long */
+  user-select: none;
+}
+
+.bouton-icone svg { display: block; width: 24px; height: 24px; }
+
+/* Le trait au pied du bouton ▶ : jusqu'où la réplique a été lue. */
+.progression {
+  position: absolute;
+  inset-inline: 12px;
+  bottom: 6px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.progression::after { content: ""; display: block; width: var(--p, 0%); height: 100%; background: var(--accent); }
 
 /* ---- Titres ---- */
 .vue-tete { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -347,6 +373,8 @@ rt { font-size: 0.55em; color: var(--ink-soft); }
 
 button.replique { cursor: pointer; transition: transform 0.18s cubic-bezier(.34, 1.56, .64, 1); }
 button.replique:active { transform: scale(0.985); }
+/* Ma réplique déjà passée, dans le journal du filage : elle ne se touche plus. */
+button.replique:disabled { cursor: default; }
 
 /* Mes répliques : surlignées en ambre, le second accent du kit. */
 .replique.mienne { background: var(--star-soft); }
@@ -406,6 +434,10 @@ button.replique:active { transform: scale(0.985); }
 .grille-numeros { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 8px; }
 
 .bouton-numero {
+  position: relative; /* repère pour le remplissage de l'appui long */
+  overflow: hidden;
+  -webkit-touch-callout: none; /* pas de menu Android sur un appui long */
+  user-select: none;
   aspect-ratio: 1;
   display: flex;
   align-items: center;
@@ -487,6 +519,25 @@ button.replique:active { transform: scale(0.985); }
 
 /* Le toucher : l'élément s'enfonce, et les boutons foncent. */
 .btn:active, .btn-ghost:active { filter: brightness(.92); }
+
+/* L'appui long (sur ▶, sur un numéro de la grille) : le bouton se remplit de gauche à droite,
+   et au bout l'action se déclenche. Le remplissage attend 0,15 s pour ne pas clignoter à chaque
+   toucher ordinaire. */
+.bouton-icone::before, .bouton-numero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--ink) 14%, transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+@keyframes remplir { to { transform: scaleX(1); } }
+.en-appui::before { animation: remplir .4s linear .15s forwards; }
+
+/* La réplique atteinte depuis la grille : un halo sauge qui s'efface doucement. */
+@keyframes repere { 0%, 35% { box-shadow: 0 0 0 3px var(--accent), var(--shadow-card); } }
+.reperee { animation: repere 1.6s ease-out; }
 .chip { transition: background .2s, border-color .2s, color .2s, transform .09s; }
 .chip:active { transform: scale(.94); }
 button.replique, .coche-replique, .bouton-numero { transition: background .28s, box-shadow .28s, color .2s, transform .09s; }
@@ -546,7 +597,7 @@ button.replique:active, .coche-replique:active, .bouton-numero:active { transfor
 /* Si le téléphone demande de réduire les animations, on les coupe toutes. */
 @media (prefers-reduced-motion: reduce) {
   .ecran-contenu, .vue-texte, .grille-numeros, .cascade, .etape, .journal > *, .boutons-apparition, .rebond,
-  .clignote, .chargement::after, .courante .replique-masque { animation: none; }
+  .clignote, .chargement::after, .courante .replique-masque, .en-appui::before { animation: none; }
   .chip:active, button.replique:active, .coche-replique:active, .bouton-numero:active, .tab:active svg { transform: none; }
   .vue-texte, .grille-numeros { transition: none; }
 }

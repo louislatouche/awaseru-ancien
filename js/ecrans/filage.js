@@ -10,8 +10,8 @@
 
 import { cascade, el, remplacer } from '../dom.js';
 import {
-  audioActif, creerAvisEnchainement, creerAvisVoix, creerChoixUnique, creerInterrupteurs, creerReplique,
-  creerTitreScene, creerTitreVue, lireReplique,
+  audioActif, creerAvisEnchainement, creerAvisVoix, creerBoutonIcone, creerChoixUnique, creerEcoute,
+  creerInterrupteurs, creerReplique, creerTitreScene, creerTitreVue, lireReplique,
 } from '../affichage.js';
 import { t, traduire } from '../langues.js';
 import { enchainementsDe, lignesDe } from '../pieces.js';
@@ -32,6 +32,8 @@ export function afficherFilage(racine, piece) {
   let position = 0;
   let sansVoix = false;
   let carteCourante = null;
+  let ecouteCourante = null; // l'écoute de ma réplique en cours (voir creerEcoute)
+  let boutonVoir = null;
   let derniereScene = null;
   // Le « jeton » change à chaque nouvelle étape. Une tâche qui a attendu (fin de lecture, silence)
   // compare son jeton au jeton actuel : s'il a changé, c'est que l'utilisateur a appuyé sur
@@ -67,19 +69,9 @@ export function afficherFilage(racine, piece) {
     const boutons = [];
 
     if (aMoi) {
-      const voir = el('button', {
-        type: 'button',
-        className: 'btn-ghost',
-        onclick: () => {
-          carteCourante.classList.remove('est-cachee');
-          voir.disabled = true;
-          carteCourante.scrollIntoView({ block: 'center' }); // la carte vient de grandir
-        },
-      }, t('Voir'));
-      voir.disabled = !carteCourante.classList.contains('est-cachee');
-      boutons.push(el('div', { className: 'boutons boutons-apparition' },
-        voir,
-        el('button', { type: 'button', className: 'btn-ghost', onclick: () => lireReplique(lignes[position]) }, t('Écouter ma réplique'))));
+      boutonVoir = creerBoutonIcone('voir', t('Voir'), 'btn-ghost', devoiler);
+      boutonVoir.disabled = !carteCourante.classList.contains('est-cachee');
+      boutons.push(el('div', { className: 'boutons boutons-apparition' }, boutonVoir, ecouteCourante.bouton));
     }
 
     const enPause = etat === 'pause';
@@ -99,6 +91,13 @@ export function afficherFilage(racine, piece) {
     carteCourante.scrollIntoView({ block: 'center' });
   }
 
+  // Ma réplique se dévoile : par le bouton Voir, ou en touchant la carte.
+  function devoiler() {
+    carteCourante.classList.remove('est-cachee');
+    if (boutonVoir) boutonVoir.disabled = true;
+    carteCourante.scrollIntoView({ block: 'center' }); // la carte vient de grandir
+  }
+
   // ---- Le déroulement ----
 
   function montrerLigne(ligne) {
@@ -110,7 +109,20 @@ export function afficherFilage(racine, piece) {
     const index = lignes.indexOf(ligne);
     const avis = mienne ? creerAvisEnchainement(piece, ligne, enchainementsDe(lignes, index, selection)) : [];
     const statut = lireStatuts(piece.id)[ligne.numero];
-    carteCourante = creerReplique(ligne, piece, { mienne, cachee: mienne, statut });
+    // Pour ma réplique : une écoute partagée entre le bouton ▶ et la carte, que l'on peut toucher
+    // pour la voir, puis pour l'écouter. Une fois passée, la carte reste dans le journal sans réagir.
+    ecouteCourante = mienne ? creerEcoute(ligne) : null;
+    const carte = creerReplique(ligne, piece, {
+      mienne,
+      cachee: mienne,
+      statut,
+      surTouche: mienne ? () => {
+        if (carte !== carteCourante || etat !== 'a-moi') return;
+        if (carte.classList.contains('est-cachee')) devoiler();
+        else ecouteCourante.toucher();
+      } : null,
+    });
+    carteCourante = carte;
     journal.append(...avis, carteCourante);
     carteCourante.classList.add('courante');
   }
@@ -155,6 +167,8 @@ export function afficherFilage(racine, piece) {
     arreterVoix();
     if (!verrouEcran) garderEcranAllume(); // « Suivant » peut être touché pendant une pause
     carteCourante?.classList.remove('est-cachee', 'courante', 'is-syncing');
+    // Une carte touchable (ma réplique) devient inerte : seule la réplique en cours répond au doigt.
+    if (carteCourante instanceof HTMLButtonElement) carteCourante.disabled = true;
     position += 1;
     if (position >= lignes.length) terminer();
     else jouerEtape();

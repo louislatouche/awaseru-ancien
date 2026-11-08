@@ -105,7 +105,7 @@ export default {
   'Réplique {n}': 'Battuta {n}',
   'Des rôles entiers': 'Ruoli interi',
   'Réplique par réplique': 'Battuta per battuta',
-  'Écarte deux doigts pour revoir le texte.': 'Allarga due dita per rivedere il testo.',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': 'Tieni premuto un numero per andare alla sua battuta. Allarga due dita per rivedere il testo.',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": 'Pizzica lo schermo con due dita per mostrare solo i numeri.',
   Texte: 'Testo',
   Grille: 'Griglia',

@@ -106,7 +106,7 @@ export default {
   'Réplique {n}': 'Repliikki {n}',
   'Des rôles entiers': 'Kokonaisia rooleja',
   'Réplique par réplique': 'Repliikki kerrallaan',
-  'Écarte deux doigts pour revoir le texte.': 'Levitä kaksi sormea nähdäksesi tekstin uudelleen.',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': 'Pidä numeroa painettuna siirtyäksesi sen repliikkiin. Levitä kaksi sormea nähdäksesi tekstin uudelleen.',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": 'Purista näyttöä kahdella sormella, niin näet vain numerot.',
   Texte: 'Teksti',
   Grille: 'Ruudukko',

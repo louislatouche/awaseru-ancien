@@ -106,7 +106,7 @@ export default {
   'Réplique {n}': '{n}. replika',
   'Des rôles entiers': 'Teljes szerepek',
   'Réplique par réplique': 'Replikánként',
-  'Écarte deux doigts pour revoir le texte.': 'Húzd szét két ujjadat, hogy újra lásd a szöveget.',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': 'Tarts lenyomva egy számot, hogy a replikájához ugorj. Húzd szét két ujjadat, hogy újra lásd a szöveget.',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": 'Csippentsd össze két ujjaddal a képernyőt, hogy csak a számok látszódjanak.',
   Texte: 'Szöveg',
   Grille: 'Rács',

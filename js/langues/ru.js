@@ -105,7 +105,7 @@ export default {
   'Réplique {n}': 'Реплика {n}',
   'Des rôles entiers': 'Роли целиком',
   'Réplique par réplique': 'Реплика за репликой',
-  'Écarte deux doigts pour revoir le texte.': 'Разведи два пальца, чтобы снова увидеть текст.',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': 'Удерживай номер, чтобы перейти к его реплике. Разведи два пальца, чтобы снова увидеть текст.',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": 'Сведи два пальца на экране, чтобы показать только номера.',
   Texte: 'Текст',
   Grille: 'Сетка',

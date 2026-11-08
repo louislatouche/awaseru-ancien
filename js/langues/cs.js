@@ -106,7 +106,7 @@ export default {
   'Réplique {n}': 'Replika {n}',
   'Des rôles entiers': 'Celé role',
   'Réplique par réplique': 'Replika po replice',
-  'Écarte deux doigts pour revoir le texte.': 'Roztáhni dva prsty a zase uvidíš text.',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': 'Podrž číslo a přejdeš na jeho repliku. Roztáhni dva prsty a zase uvidíš text.',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": 'Stáhni na obrazovce dva prsty k sobě, aby se zobrazila jen čísla.',
   Texte: 'Text',
   Grille: 'Mřížka',

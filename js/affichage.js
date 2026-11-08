@@ -1,13 +1,14 @@
 // Les briques d'affichage réutilisées par plusieurs écrans.
 // Les noms de classes (btn, card, chip, pill, eyebrow...) sont ceux du design kit.
 
-import { el, rebond, signaler } from './dom.js';
+import { brancherAppuiLong, el, icone, rebond, remplacer, signaler } from './dom.js';
 import { langueActive, t, traduire } from './langues.js';
 import { creerJaponais, texteAParler } from './texte.js';
 import { changerReglage, lireReglages } from './stockage.js';
 import { roleDe } from './pieces.js';
 import {
-  aideInstallation, jouerFichier, lectureDisponible, messagePourResultat, parler, voixJaponaises, voixPretes,
+  aideInstallation, arreterVoix, jouerFichier, lectureDisponible, messagePourResultat, mettreEnPauseVoix, parler,
+  progressionVoix, reprendreVoix, voixJaponaises, voixPretes,
 } from './voix.js';
 
 // Furigana et traduction se masquent avec une classe sur <html> : le CSS fait le reste.
@@ -104,6 +105,93 @@ export async function lireReplique(ligne) {
   const message = messagePourResultat(resultat);
   if (message) signaler(message, 9000);
   return resultat;
+}
+
+// Un bouton réduit à son icône. Le libellé reste écrit dans aria-label (lu par les lecteurs d'écran)
+// et dans title (affiché au survol sur ordinateur).
+export function creerBoutonIcone(nomIcone, libelle, classe, onclick) {
+  return el('button', { type: 'button', className: `${classe} bouton-icone`, title: libelle, 'aria-label': libelle, onclick },
+    icone(nomIcone));
+}
+
+// L'écoute de ma réplique, partagée par le bouton ▶ et par la carte de la réplique.
+// Un toucher lance la lecture, le suivant la met en pause, le suivant la reprend là où elle était.
+// Un appui long sur le bouton arrête tout et revient au début. Un trait au pied du bouton montre
+// où en est la lecture (seulement avec les voix enregistrées : la voix du téléphone ne le dit pas).
+//
+// Renvoie { bouton, toucher } : le bouton à placer dans la page, et toucher() pour la carte.
+// surLecture est appelée à chaque lancement (les fiches s'en servent pour permettre l'évaluation).
+export function creerEcoute(ligne, { surLecture = null } = {}) {
+  let etat = 'arret'; // 'arret', 'lecture' ou 'pause'
+  // Le jeton change à chaque arrêt voulu : la fin d'une lecture abandonnée ne touche plus au bouton.
+  let jeton = 0;
+
+  const trait = el('span', { className: 'progression', hidden: true });
+  const bouton = el('button', { type: 'button', className: 'btn-ghost bouton-icone' });
+
+  function majTrait() {
+    const avance = progressionVoix();
+    trait.hidden = etat === 'arret' || avance === null;
+    trait.style.setProperty('--p', `${(avance ?? 0) * 100}%`);
+  }
+
+  // Pendant la lecture, le trait avance à chaque image affichée par l'écran.
+  function suivre() {
+    majTrait();
+    if (etat === 'lecture') requestAnimationFrame(suivre);
+  }
+
+  function dessiner() {
+    const libelle = { arret: t('Écouter ma réplique'), lecture: t('Pause'), pause: t('Reprendre') }[etat];
+    bouton.title = libelle;
+    bouton.setAttribute('aria-label', libelle);
+    remplacer(bouton, icone(etat === 'lecture' ? 'pause' : 'lecture'), trait);
+    majTrait();
+  }
+
+  async function lancer() {
+    const moi = ++jeton;
+    etat = 'lecture';
+    dessiner();
+    suivre();
+    surLecture?.();
+    // La promesse se termine à la fin de la réplique, ou si une autre lecture prend la place
+    // (le signal qu'on réécoute, la fiche suivante, un changement d'écran...).
+    await lireReplique(ligne);
+    if (moi !== jeton) return;
+    etat = 'arret';
+    dessiner();
+  }
+
+  function arreter() {
+    jeton += 1;
+    arreterVoix();
+    etat = 'arret';
+    dessiner();
+  }
+
+  function toucher() {
+    if (etat === 'arret') {
+      lancer();
+    } else if (etat === 'lecture') {
+      // Avec la voix du téléphone, la pause est impossible : la lecture s'arrête, et la fin
+      // de lancer() remettra le bouton au départ.
+      if (mettreEnPauseVoix()) {
+        etat = 'pause';
+        dessiner();
+      }
+    } else if (reprendreVoix()) {
+      etat = 'lecture';
+      dessiner();
+      suivre();
+    } else {
+      lancer(); // plus rien à reprendre : on recommence
+    }
+  }
+
+  brancherAppuiLong(bouton, { toucher, maintenir: arreter });
+  dessiner();
+  return { bouton, toucher };
 }
 
 // Un encadré qui apparaît seulement s'il n'y a vraiment aucune voix japonaise.

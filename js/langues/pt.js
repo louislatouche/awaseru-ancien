@@ -105,7 +105,7 @@ export default {
   'Réplique {n}': 'Fala {n}',
   'Des rôles entiers': 'Papéis inteiros',
   'Réplique par réplique': 'Fala a fala',
-  'Écarte deux doigts pour revoir le texte.': 'Afasta dois dedos para voltar a ver o texto.',
+  'Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.': 'Mantém premido um número para ir à sua fala. Afasta dois dedos para voltar a ver o texto.',
   "Pince l'écran avec deux doigts pour n'afficher que les numéros.": 'Junta dois dedos no ecrã para mostrar só os números.',
   Texte: 'Texto',
   Grille: 'Grelha',
