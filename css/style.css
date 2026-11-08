@@ -590,9 +590,10 @@ button.replique:disabled { cursor: default; }
 /* Le texte : chaque mot se touche, sans en avoir l'air. Touché, il se surligne. */
 .carte-texte-tete { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 /* Le bouton lecture remonte un peu : plus haut que la ligne du numéro et du rôle, il descendait
-   sinon presque jusqu'aux furigana de la première ligne. translate le déplace sans toucher à la
-   mise en page : le texte, lui, ne bouge pas. */
-.bouton-ligne { flex: none; width: auto; min-width: 44px; min-height: 40px; padding-inline: 8px; translate: 0 -5px; }
+   sinon presque jusqu'aux furigana de la première ligne. Il glisse d'autant vers la droite, pour
+   rester calé dans le coin à égale distance du haut et du bord droit de la carte (9 px chacun).
+   translate le déplace sans toucher à la mise en page : le texte, lui, ne bouge pas. */
+.bouton-ligne { flex: none; width: auto; min-width: 44px; min-height: 40px; padding-inline: 8px; translate: 5px -5px; }
 .mot-touchable { border-radius: 4px; cursor: pointer; }
 
 .mot-touchable.choisi .morceau-ja { background: color-mix(in srgb, var(--star) 40%, var(--surface)); }
