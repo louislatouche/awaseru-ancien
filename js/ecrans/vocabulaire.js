@@ -165,8 +165,36 @@ export function afficherVocabulaire(racine, piece) {
   const panneau = el('div', { className: 'commandes panneau-mot', 'aria-live': 'polite' });
   let statuts = {};
 
+  // ---- Quand l'explication n'est plus utile ----
+  // Elle sert le temps de regarder un mot. Faire défiler le texte, ou lancer la lecture d'une
+  // réplique, c'est reprendre la lecture : elle se ferme d'elle-même. Toucher un autre mot la remplace.
+  const ecran = document.getElementById('ecran'); // la zone qui défile
+  const SEUIL = 40; // en pixels : un doigt qui bouge un peu en touchant un mot ne ferme rien
+  let motOuvert = false;
+  let repere = 0; // la position du défilement quand l'explication s'est ouverte
+  // Quand l'app fait défiler l'écran elle-même (voir montrer), ce n'est pas une reprise de la lecture.
+  let defilementDeLApp = false;
+  let minuterieDefilement = null;
+
+  function finirDefilementDeLApp() {
+    clearTimeout(minuterieDefilement);
+    defilementDeLApp = false;
+    repere = ecran.scrollTop; // le point de départ devient la position où l'app a amené l'écran
+  }
+
+  // Le panneau peut défiler lui-même s'il est long : ses défilements à lui ne comptent pas, car
+  // l'événement scroll ne remonte pas d'un élément à ceux qui le contiennent.
+  const arret = new AbortController(); // retire ces écouteurs quand on quitte l'écran
+  ecran.addEventListener('scroll', () => {
+    if (motOuvert && !defilementDeLApp && Math.abs(ecran.scrollTop - repere) > SEUIL) fermer();
+  }, { passive: true, signal: arret.signal });
+  ecran.addEventListener('scrollend', () => {
+    if (defilementDeLApp) finirDefilementDeLApp();
+  }, { signal: arret.signal });
+
   // Avant le premier toucher, le panneau dit comment s'en servir.
   function afficherAide() {
+    motOuvert = false;
     remplacer(panneau, el('p', { className: 'legende aide-mot' }, t('Touche un mot pour voir son explication.')));
   }
 
@@ -174,9 +202,49 @@ export function afficherVocabulaire(racine, piece) {
     for (const ancien of zone.querySelectorAll('.mot-touchable.surligne')) ancien.classList.remove('surligne', 'choisi');
   }
 
-  function fermer() {
+  // La fermeture de l'explication, en deux temps, avec les mouvements du reste de l'app (style.css) :
+  // 1. l'explication s'efface en glissant de 8 px vers le bas : l'inverse de l'arrivée d'une fiche
+  //    (wizfade), à la vitesse du changement d'écran (fondu, 180 ms) ;
+  // 2. le panneau redescend en douceur jusqu'à la hauteur de la ligne d'aide, avec la courbe
+  //    « feutre » de SessionConnect, pendant que cette ligne arrive comme une fiche (wizfade).
+  const FEUTRE = 'cubic-bezier(.22, 1, .36, 1)'; // la même que --feutre dans style.css
+  let fermeture = []; // les animations en cours : un mot touché entre-temps les arrête
+
+  function arreterFermeture() {
+    fermeture.forEach((animation) => animation.cancel());
+    fermeture = [];
+  }
+
+  async function fermer() {
+    arreterFermeture();
+    motOuvert = false; // tout de suite : un défilement pendant l'animation ne relance rien
     effacerSurlignage();
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      afficherAide();
+      return;
+    }
+
+    // 1. L'explication s'efface. Le fond du panneau, lui, reste : seul son contenu bouge.
+    fermeture = [...panneau.children].map((enfant) => enfant.animate(
+      [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(8px)' }],
+      { duration: 180, easing: 'ease-in', fill: 'forwards' }));
+    try {
+      await Promise.all(fermeture.map((animation) => animation.finished));
+    } catch {
+      return; // annulée : un autre mot a été touché, son explication a déjà pris la place
+    }
+
+    // 2. La ligne d'aide prend la place, et le panneau passe en douceur de l'ancienne hauteur à la nouvelle.
+    const hauteurAvant = panneau.getBoundingClientRect().height;
     afficherAide();
+    const hauteurApres = panneau.getBoundingClientRect().height;
+    fermeture = [
+      panneau.animate([{ height: `${hauteurAvant}px` }, { height: `${hauteurApres}px` }], { duration: 280, easing: FEUTRE }),
+      panneau.firstElementChild.animate(
+        [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 250, delay: 60, easing: 'ease', fill: 'backwards' }),
+    ];
+    Promise.all(fermeture.map((animation) => animation.finished)).then(() => { fermeture = []; }, () => {});
   }
 
   // Amène une carte dans la partie visible de l'écran : entre l'en-tête et le panneau du bas, qui
@@ -184,7 +252,6 @@ export function afficherVocabulaire(racine, piece) {
   // si elle se voit déjà en entier. Une carte trop haute pour tenir à l'écran montre au moins le mot
   // touché, ou à défaut son début (là où la lecture commence).
   function montrer(carte, motTouche = null) {
-    const ecran = document.getElementById('ecran'); // la zone qui défile
     const MARGE = 12;
     // L'en-tête passe par-dessus le haut de cette zone : la partie visible commence sous lui.
     const entete = document.querySelector('.app-header');
@@ -199,7 +266,14 @@ export function afficherVocabulaire(racine, piece) {
     } else {
       decalage = cadre.top - haut;
     }
-    if (Math.abs(decalage) < 1) return;
+    // Là où l'écran arrivera : il ne peut pas défiler au-delà du haut ni du bas de la page.
+    const arrivee = Math.min(Math.max(ecran.scrollTop + decalage, 0), ecran.scrollHeight - ecran.clientHeight);
+    if (Math.abs(arrivee - ecran.scrollTop) < 1) return;
+    // Ce défilement-là ne ferme pas l'explication. Il se termine par l'événement scrollend ; au cas
+    // où il manquerait, la minuterie rend la main au bout de deux secondes.
+    defilementDeLApp = true;
+    clearTimeout(minuterieDefilement);
+    minuterieDefilement = setTimeout(finirDefilementDeLApp, 2000);
     const reduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
     ecran.scrollBy({ top: decalage, behavior: reduit ? 'instant' : 'smooth' });
   }
@@ -207,6 +281,7 @@ export function afficherVocabulaire(racine, piece) {
   // Un mot touché : toutes ses apparitions se surlignent (celle-ci plus fort), et le panneau donne
   // sa lecture, sa prononciation, son sens, son sens dans cette phrase, et où il revient ailleurs.
   function choisir(mot, morceau, bouton) {
+    arreterFermeture(); // si l'explication d'avant était en train de se fermer
     effacerSurlignage();
     const toutes = apparitions.get(mot.id) ?? [];
     for (const { bouton: autre } of toutes) autre.classList.add('surligne');
@@ -244,14 +319,24 @@ export function afficherVocabulaire(racine, piece) {
             montrer(apparition.bouton.closest('.carte-texte'), apparition.bouton);
           },
         }, String(apparition.ligne.numero)))));
+    motOuvert = true;
+    repere = ecran.scrollTop;
   }
 
   // Une réplique du texte. Son bouton lecture la lit, la met en pause, ou l'arrête d'un appui long,
   // et son trait montre où en est la lecture : la carte n'a donc pas de filet, contrairement aux
   // fiches et au filage. Chacun de ses mots se touche.
   // Lancer sa lecture, ou la toucher (un mot ou ailleurs), l'amène dans la partie visible de l'écran.
+  // Lancer sa lecture ferme aussi l'explication du mot : on écoute la réplique, plus le mot.
   function creerCarteTexte(ligne) {
-    const ecoute = creerEcoute(ligne, { surLecture: () => montrer(carte) });
+    const ecoute = creerEcoute(ligne, {
+      surLecture: () => {
+        // montrer mesure le panneau encore ouvert : la carte se cale au-dessus, puis le panneau
+        // redescend sous elle, et elle reste visible.
+        if (motOuvert) fermer();
+        montrer(carte);
+      },
+    });
     ecoute.bouton.classList.add('bouton-ligne');
     const carte = el('div', {
       className: `replique carte-texte${selection.has(ligne.numero) ? ' mienne' : ''}`,
@@ -275,6 +360,7 @@ export function afficherVocabulaire(racine, piece) {
   const boutonReviser = el('button', { type: 'button', className: 'btn' }, t('Réviser'));
 
   function dessinerTexte() {
+    arreterFermeture();
     definirRetour(null);
     arreterVoix();
     apparitions = new Map();
@@ -416,4 +502,10 @@ export function afficherVocabulaire(racine, piece) {
   }
 
   afficherListe();
+
+  // En quittant l'écran : la zone qui défile reste, ses écouteurs pour ce Vocabulaire-ci partent.
+  return () => {
+    arret.abort();
+    clearTimeout(minuterieDefilement);
+  };
 }
