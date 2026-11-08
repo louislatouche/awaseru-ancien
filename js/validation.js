@@ -64,6 +64,43 @@ export function validerPiece(piece) {
     });
   }
 
+  // Le vocabulaire (facultatif) : les mots de la pièce, chacun avec un id court, le mot en japonais
+  // (furigana compris) et sa traduction. Les répliques y renvoient par cet id (voir « mots » plus bas).
+  const idsMots = new Set();
+  if (piece.vocabulaire !== undefined) {
+    if (!Array.isArray(piece.vocabulaire)) {
+      erreurs.push('« vocabulaire » doit être une liste.');
+    } else {
+      piece.vocabulaire.forEach((mot, position) => {
+        const lieu = `vocabulaire, mot n° ${position + 1}`;
+        if (!estObjet(mot)) { erreurs.push(`${lieu} : ce n'est pas un objet.`); return; }
+        if (!estTexteRempli(mot.id)) erreurs.push(`${lieu} : « id » manquant.`);
+        else if (idsMots.has(mot.id)) erreurs.push(`${lieu} : l'id « ${mot.id} » est utilisé deux fois.`);
+        else idsMots.add(mot.id);
+        exigerJaponais(mot.mot, `${lieu}, « mot »`);
+        exigerFrancais(mot.fr, `${lieu}, « fr »`);
+        if (mot.en !== undefined && typeof mot.en !== 'string') erreurs.push(`${lieu} : « en » doit être un texte.`);
+      });
+    }
+  }
+
+  // Le mot à mot d'une réplique (facultatif) : une liste de morceaux { t, v, fr, en }. Mis bout à
+  // bout, les « t » redonnent exactement le texte de la réplique. « v » renvoie au vocabulaire ;
+  // « fr » et « en » traduisent le mot tel qu'il est employé ici (sinon on prend celle du vocabulaire).
+  const verifierMots = (replique, lieu) => {
+    if (!Array.isArray(replique.mots)) { erreurs.push(`${lieu} : « mots » doit être une liste.`); return; }
+    if (!replique.mots.every((morceau) => estObjet(morceau) && typeof morceau.t === 'string')) {
+      erreurs.push(`${lieu} : chaque morceau de « mots » doit avoir un texte « t ».`);
+      return;
+    }
+    if (replique.mots.map((morceau) => morceau.t).join('') !== replique.texte) {
+      erreurs.push(`${lieu} : les « mots » mis bout à bout ne redonnent pas le texte de la réplique.`);
+    }
+    for (const morceau of replique.mots) {
+      if (morceau.v !== undefined && !idsMots.has(morceau.v)) erreurs.push(`${lieu} : le mot « ${morceau.v} » n'existe pas dans « vocabulaire ».`);
+    }
+  };
+
   // Les scènes et leurs répliques. Les numéros servent de clé pour la progression et la sélection,
   // ils doivent donc être uniques dans TOUTE la pièce, pas seulement dans une scène.
   const numeros = new Set();
@@ -88,6 +125,7 @@ export function validerPiece(piece) {
         if (replique.role !== null && !idsRoles.has(replique.role)) erreurs.push(`${lieu} : le rôle « ${replique.role} » n'existe pas dans « roles ».`);
         exigerJaponais(replique.texte, `${lieu}, « texte »`);
         if (typeof replique.fr !== 'string') erreurs.push(`${lieu} : « fr » doit être un texte.`);
+        if (replique.mots !== undefined) verifierMots(replique, lieu);
       });
     });
     if (numeros.size === 0) erreurs.push('la pièce ne contient aucune réplique.');

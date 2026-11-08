@@ -5,7 +5,7 @@
 // >>> À AUGMENTER à chaque modification de l'app, y compris pour une nouvelle pièce. <<<
 // Le navigateur ne détecte une mise à jour que si ce fichier-ci change d'au moins un octet.
 // Sans cela, le téléphone continuerait de servir l'ancienne copie, indéfiniment.
-const VERSION = 48;
+const VERSION = 51;
 
 // Sur GitHub Pages, tous tes projets partagent le même site, donc le même espace de caches.
 // Le préfixe nous permet de ne jamais toucher à ceux des autres.
@@ -66,6 +66,7 @@ const FICHIERS = [
   'js/ecrans/mes-repliques.js',
   'js/ecrans/reglages.js',
   'js/ecrans/script.js',
+  'js/ecrans/vocabulaire.js',
   'pieces/index.json',
   'polices/fraunces.woff2',
   'polices/karla.woff2',

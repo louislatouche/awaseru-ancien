@@ -157,12 +157,14 @@ body:has(.tabbar:not([hidden])) { --place-bas: calc(var(--tabbar-h) + var(--safe
   align-items: center;
   justify-content: center;
   gap: 3px;
-  font-size: 12px;
+  font-size: 11px; /* cinq onglets sur un téléphone : 12 pixels faisaient passer « Mes répliques » sur deux lignes */
   font-weight: 700;
-  letter-spacing: 0.02em;
   line-height: 1.2;
   color: var(--ink-mute);
 }
+
+/* Le nom reste sur une ligne, sous son icône : trop long dans une langue, il se termine par « … ». */
+.tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .tab svg { display: block; width: 23px; height: 23px; }
 .tab.is-active { color: var(--accent-dark); }
@@ -571,6 +573,72 @@ button.replique:disabled { cursor: default; }
   backdrop-filter: blur(10px);
   border-top: 1px solid var(--border);
 }
+
+/* ---- Vocabulaire ---- */
+.chips-vocabulaire, .pile-vocabulaire, .autres-contextes { display: flex; flex-direction: column; gap: 10px; }
+.pile-vocabulaire { gap: 14px; }
+
+/* Une carte de mot : le mot, sa lecture, son sens, et la réplique où il apparaît. */
+.carte-mot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+
+.mot-tete { display: flex; align-items: center; gap: 10px; }
+.mot-japonais { margin-inline-end: auto; font-size: 2rem; font-weight: 700; line-height: 1.7; }
+.mot-japonais rt { font-size: .45em; }
+.bouton-mot { flex: none; width: auto; min-width: 52px; padding-inline: 10px; }
+.mot-lecture { color: var(--ink-soft); font-size: 15px; }
+.mot-lecture b { color: var(--ink); }
+.mot-sens { color: var(--accent-dark); font-size: 17px; font-weight: 700; }
+
+/* Su ou à revoir : une pastille ronde avec l'icône, sauge ou ambre comme les pastilles des répliques. */
+.pastille-mot { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; }
+.pastille-mot svg { width: 18px; height: 18px; }
+.pastille-mot.su { background: var(--accent-soft); color: var(--accent-dark); }
+.pastille-mot.a-revoir { background: var(--star-soft); color: var(--star-dark); }
+
+/* Le contexte : la réplique, le mot surligné comme au feutre, et la traduction de la phrase. */
+.contexte { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; padding: 10px 12px; background: var(--bg-soft); border-radius: var(--radius-sm); }
+.morceau.surligne .morceau-ja { background: var(--star-soft); border-radius: 4px; box-shadow: inset 0 -2px 0 var(--star); }
+.autres-contextes-bouton { align-self: flex-start; margin: 0; padding-inline: 0; color: var(--accent-dark); font-weight: 700; }
+
+/* Le mot à mot : chaque mot en colonne, le japonais dessus, sa traduction dessous. */
+.mot-a-mot { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px 6px; margin-block: 6px; }
+.mot-a-mot .saut { flex-basis: 100%; height: 0; }
+.morceau.avec-glose { display: inline-flex; flex-direction: column; align-items: center; }
+.mot-a-mot .morceau-ja { font-size: 1.2rem; line-height: 1.95; }
+.glose { max-width: 7em; color: var(--ink-soft); font-size: 12px; line-height: 1.25; text-align: center; }
+
+/* La révision : le mot en grand. Ses furigana restent cachés tant que la carte n'est pas retournée. */
+.grand-mot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 26px 16px 20px;
+  background: var(--star-soft);
+  color: inherit;
+  border: 0;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.grand-mot .mot-japonais { margin: 0; font-size: 3.2rem; line-height: 1.5; }
+.grand-mot:not(.est-devoile) rt { visibility: hidden; }
+.grand-mot.est-devoile .grand-mot-masque { display: none; }
+.grand-mot-masque { color: var(--ink-soft); font-weight: 700; }
+.reponse-mot { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.bilan-mots { display: flex; align-items: center; justify-content: center; gap: 10px 14px; font-size: 22px; font-weight: 700; }
 
 /* ---- Réglages ---- */
 .champ { display: flex; flex-direction: column; gap: 4px; }

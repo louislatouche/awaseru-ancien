@@ -36,7 +36,7 @@ function erreurDansDonnee(cle, valeur) {
   if (cle.startsWith('selection:')) {
     return Array.isArray(valeur) && valeur.every(Number.isInteger) ? null : t('une sélection de répliques est illisible.');
   }
-  if (cle.startsWith('progression:')) {
+  if (cle.startsWith('progression:') || cle.startsWith('vocabulaire:')) {
     const valide = estObjet(valeur) && Object.values(valeur).every((statut) => statut === 'su' || statut === 'a_revoir');
     return valide ? null : t('une progression est illisible.');
   }

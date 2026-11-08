@@ -5,7 +5,7 @@
 // ce qui suit le # (le « hash ») ne part jamais au serveur. On peut donc changer d'écran sans
 // recharger, garder des chemins relatifs, et le bouton Retour d'Android fonctionne tout seul.
 
-import { definirRetour, el, hautDePage, icone, remonterDansEcran, remplacer } from './dom.js';
+import { el, hautDePage, icone, oublierRetour, remonterDansEcran, remplacer } from './dom.js';
 import { chargerLangue, langueActive, t, traduire } from './langues.js';
 import { noterUtilisation } from './stockage.js';
 import { piecesRetirees } from './telechargement.js';
@@ -21,12 +21,14 @@ import { afficherFilage } from './ecrans/filage.js';
 import { afficherMesRepliques } from './ecrans/mes-repliques.js';
 import { afficherReglages } from './ecrans/reglages.js';
 import { afficherScript } from './ecrans/script.js';
+import { afficherVocabulaire } from './ecrans/vocabulaire.js';
 
 const ONGLETS = [
   { chemin: 'script', libelle: () => t('Script'), icone: 'script', afficher: afficherScript },
   { chemin: 'mes-repliques', libelle: () => t('Mes répliques'), icone: 'repliques', afficher: afficherMesRepliques },
   { chemin: 'fiches', libelle: () => t('Fiches'), icone: 'fiches', afficher: afficherFiches },
   { chemin: 'filage', libelle: () => t('Filage'), icone: 'filage', afficher: afficherFilage },
+  { chemin: 'vocabulaire', libelle: () => t('Vocabulaire'), icone: 'vocabulaire', afficher: afficherVocabulaire },
 ];
 
 const zoneBarre = document.getElementById('barre');
@@ -109,7 +111,7 @@ async function router() {
   const adresse = location.hash || '#/';
   noterAdresse(adresse); // pour revenir ici si Android relance l'app (voir reprise.js)
   noterParcours(adresse);
-  definirRetour(null); // le nouvel écran dira lui-même s'il a des étapes
+  oublierRetour(); // le nouvel écran dira lui-même s'il a des étapes
 
   // Si le chargement traîne (premier lancement, réseau lent), on l'annonce avec le reflet de Faktur.
   const attente = setTimeout(() => {

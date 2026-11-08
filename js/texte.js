@@ -39,7 +39,9 @@ function decouperDidascalies(texte) {
 }
 
 // Ajoute un texte dans un élément en transformant [漢字|よみ] en <ruby>漢字<rt>よみ</rt></ruby>.
-function ajouterAvecFurigana(parent, texte) {
+// Ajoute un texte à un élément, ses [漢字|よみ] devenant des kanji surmontés de leur lecture.
+// (Exportée pour le mot à mot du vocabulaire, qui dessine les mots un par un.)
+export function ajouterAvecFurigana(parent, texte) {
   let position = 0;
   for (const trouve of texte.matchAll(MOTIF_FURIGANA)) {
     parent.append(texte.slice(position, trouve.index));
@@ -114,6 +116,61 @@ export function furiganaDe(texte, garderDidascalies = false) {
 // Le texte sans balisage, pour les endroits qui n'acceptent pas de <ruby> (menu déroulant, onglet).
 export function texteBrut(texte) {
   return texte.replace(MOTIF_FURIGANA, '$1');
+}
+
+// La lecture d'un mot en kana : chaque kanji remplacé par ses furigana. [優|やさ]しい donne やさしい.
+export function lectureEnKana(texte) {
+  return texte.replace(MOTIF_FURIGANA, '$2');
+}
+
+// ---- La prononciation en lettres latines (romaji, système Hepburn) ----
+
+// Les syllabes en hiragana. Les katakana sont ramenés aux hiragana avant (même son, autre écriture).
+const SYLLABES = {
+  あ: 'a', い: 'i', う: 'u', え: 'e', お: 'o', か: 'ka', き: 'ki', く: 'ku', け: 'ke', こ: 'ko',
+  さ: 'sa', し: 'shi', す: 'su', せ: 'se', そ: 'so', た: 'ta', ち: 'chi', つ: 'tsu', て: 'te', と: 'to',
+  な: 'na', に: 'ni', ぬ: 'nu', ね: 'ne', の: 'no', は: 'ha', ひ: 'hi', ふ: 'fu', へ: 'he', ほ: 'ho',
+  ま: 'ma', み: 'mi', む: 'mu', め: 'me', も: 'mo', や: 'ya', ゆ: 'yu', よ: 'yo',
+  ら: 'ra', り: 'ri', る: 'ru', れ: 're', ろ: 'ro', わ: 'wa', を: 'o', ん: 'n',
+  が: 'ga', ぎ: 'gi', ぐ: 'gu', げ: 'ge', ご: 'go', ざ: 'za', じ: 'ji', ず: 'zu', ぜ: 'ze', ぞ: 'zo',
+  だ: 'da', ぢ: 'ji', づ: 'zu', で: 'de', ど: 'do', ば: 'ba', び: 'bi', ぶ: 'bu', べ: 'be', ぼ: 'bo',
+  ぱ: 'pa', ぴ: 'pi', ぷ: 'pu', ぺ: 'pe', ぽ: 'po', ゔ: 'vu',
+  ぁ: 'a', ぃ: 'i', ぅ: 'u', ぇ: 'e', ぉ: 'o',
+};
+
+// Les petits ゃ ゅ ょ se fondent dans la syllabe d'avant : き + ゃ donne kya, し + ゃ donne sha.
+const PETITS = { ゃ: 'a', ゅ: 'u', ょ: 'o' };
+
+// Les particules s'écrivent は, へ, を mais se disent wa, e, o.
+const PARTICULES = { は: 'wa', へ: 'e', を: 'o' };
+
+export function enRomaji(kana) {
+  if (PARTICULES[kana]) return PARTICULES[kana];
+  // Katakana vers hiragana : leurs codes Unicode sont décalés de 0x60.
+  const hiragana = [...kana].map((c) => (c >= 'ァ' && c <= 'ヶ' ? String.fromCharCode(c.charCodeAt(0) - 0x60) : c));
+  let resultat = '';
+  let doubler = false; // le petit っ double la consonne qui suit : がっこう donne gakkou
+  for (let i = 0; i < hiragana.length; i += 1) {
+    const caractere = hiragana[i];
+    if (caractere === 'っ') { doubler = true; continue; }
+    if (caractere === 'ー') { resultat += resultat.slice(-1); continue; } // ー allonge la voyelle d'avant
+    let syllabe = SYLLABES[caractere];
+    if (syllabe === undefined) { resultat += caractere; continue; } // ponctuation, espaces...
+    const petit = PETITS[hiragana[i + 1]];
+    if (petit) {
+      // ki + ya donne kya ; shi, chi, ji perdent leur i : sha, cha, ja.
+      syllabe = /^(sh|ch|j)i$/.test(syllabe) ? syllabe.slice(0, -1) + petit : `${syllabe.slice(0, -1)}y${petit}`;
+      i += 1;
+    }
+    if (doubler) {
+      resultat += syllabe.startsWith('ch') ? 't' : syllabe[0]; // っち s'écrit tchi
+      doubler = false;
+    }
+    // ん devant une voyelle ou y s'écrit n' pour ne pas se confondre : きんえん donne kin'en.
+    if (resultat.endsWith('n') && hiragana[i - 1] === 'ん' && /^[aiueoy]/.test(syllabe)) resultat += "'";
+    resultat += syllabe;
+  }
+  return resultat;
 }
 
 // Vérifie le balisage d'un texte. Renvoie un message d'erreur, ou null si tout va bien.

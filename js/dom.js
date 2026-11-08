@@ -36,6 +36,7 @@ const ICONES = {
   repliques: 'M4 5h16v11H9l-5 4zM9 10.5l2 2 4-4',
   fiches: 'M8 8h12v12H8zM4 16V4h12',
   filage: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM10 8.5v7l6-3.5z',
+  vocabulaire: 'M3 5h5.5A3.5 3.5 0 0 1 12 8.5V20a2.5 2.5 0 0 0-2.5-2.5H3zM21 5h-5.5A3.5 3.5 0 0 0 12 8.5V20a2.5 2.5 0 0 1 2.5-2.5H21z',
   chevron: 'M6 9l6 6 6-6',
   // Les boutons de répétition (fiches et filage).
   voir: 'M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12zM12 9.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6z',
@@ -201,14 +202,43 @@ export function compter(cible, afficher) {
   requestAnimationFrame(image);
 }
 
-// ---- La flèche de retour, en haut à gauche : elle remonte d'un niveau ----
-// Un écran qui a des étapes (une série de fiches, un filage lancé, la grille des numéros) dit
-// comment revenir à son propre début. Sans étape en cours, la flèche mène à l'écran du dessus
-// (voir remonter dans app.js). Le routeur efface ce retour à chaque changement d'écran.
+// ---- Remonter d'un niveau : la flèche en haut à gauche, et le geste retour d'Android ----
+// Un écran qui a des étapes (une série de fiches, un filage lancé, la grille des numéros, une
+// révision de mots) dit comment revenir à son propre début. Sans étape en cours, la flèche mène
+// à l'écran du dessus (voir remonter dans app.js).
+//
+// Le geste retour d'Android, lui, ne connaît que l'historique des pages : sans précaution, il
+// sauterait l'étape et quitterait l'écran, parfois jusqu'à Mes pièces. Pendant une étape, on
+// ajoute donc une marche à l'historique, à la même adresse : le geste la consomme, et l'écran
+// revient à son début au lieu d'être quitté (voir l'écouteur popstate plus bas).
 let retourDansEcran = null;
+let marchePosee = false;        // une marche d'historique attend pour l'étape en cours
+let ignorerProchainRetour = false; // le retour dans l'historique que l'on fait soi-même
+
+// Retire la marche quand l'étape se termine autrement que par le geste (un bouton, la flèche) :
+// sinon le geste suivant tomberait sur une marche vide et ne ferait rien.
+function retirerMarche() {
+  if (!marchePosee) return;
+  marchePosee = false;
+  ignorerProchainRetour = true;
+  history.back();
+}
 
 export function definirRetour(fonction) {
   retourDansEcran = fonction;
+  if (fonction && !marchePosee) {
+    history.pushState({ etapeReplik: true }, ''); // même adresse : rien ne se recharge
+    marchePosee = true;
+  } else if (!fonction) {
+    retirerMarche();
+  }
+}
+
+// Le routeur change d'écran : l'étape ne compte plus. Sa marche reste dans l'historique, car on ne
+// peut plus la retirer sans revenir en arrière ; elle mène simplement au début de l'écran quitté.
+export function oublierRetour() {
+  retourDansEcran = null;
+  marchePosee = false;
 }
 
 // Appelée par la flèche : vrai si l'écran a pu revenir à son début.
@@ -216,9 +246,23 @@ export function remonterDansEcran() {
   if (!retourDansEcran) return false;
   const revenir = retourDansEcran;
   retourDansEcran = null;
+  retirerMarche();
   revenir();
   return true;
 }
+
+// Le geste retour (ou le bouton Précédent) vient de consommer une marche.
+window.addEventListener('popstate', () => {
+  if (ignorerProchainRetour) {
+    ignorerProchainRetour = false;
+    return;
+  }
+  if (!marchePosee || !retourDansEcran) return; // un vrai changement d'écran : le routeur s'en charge
+  marchePosee = false;
+  const revenir = retourDansEcran;
+  retourDansEcran = null;
+  revenir();
+});
 
 // Remonte en haut de l'écran. La zone qui défile est <main>, pas la fenêtre (voir style.css).
 export function hautDePage() {

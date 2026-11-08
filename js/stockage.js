@@ -97,6 +97,18 @@ export function changerStatut(pieceId, numero, statut) {
 
 export function effacerProgression(pieceId) {
   localStorage.removeItem(`${PREFIXE}progression:${pieceId}`);
+  localStorage.removeItem(`${PREFIXE}vocabulaire:${pieceId}`);
+}
+
+// ---- Les mots du vocabulaire : su ou à revoir, comme les répliques ----
+// Rangés par id de mot (voir « vocabulaire » dans le fichier de la pièce) : { horu: 'su', ... }
+
+export function lireStatutsMots(pieceId) {
+  return lire(`vocabulaire:${pieceId}`, {});
+}
+
+export function changerStatutMot(pieceId, idMot, statut) {
+  ecrire(`vocabulaire:${pieceId}`, { ...lireStatutsMots(pieceId), [idMot]: statut });
 }
 
 // ---- Dernière utilisation : le moment où une pièce a été ouverte, en millisecondes ----
