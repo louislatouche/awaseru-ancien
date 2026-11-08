@@ -157,6 +157,7 @@ export default {
   'Sauvegarde restaurée.': 'Back-up hersteld.',
   'Restauration impossible : {erreur}': 'Herstellen mislukt: {erreur}',
   Crédits: 'Credits',
+  "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Ontworpen in {annee} door {auteur}, ontwikkeld met de AI {assistant}.',
   'Awaseru, version {n}': 'Awaseru, versie {n}',
   'Navigation': 'Navigatie',
   'Affichage': 'Weergave',

@@ -157,6 +157,7 @@ export default {
   'Sauvegarde restaurée.': '복원했어요.',
   'Restauration impossible : {erreur}': '복원할 수 없어요: {erreur}',
   Crédits: '크레딧',
+  "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": '{annee}년 {auteur} 기획. AI {assistant}와 함께 개발.',
   'Awaseru, version {n}': 'Awaseru 버전 {n}',
   'Navigation': '탐색',
   'Affichage': '표시',

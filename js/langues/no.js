@@ -157,6 +157,7 @@ export default {
   'Sauvegarde restaurée.': 'Sikkerhetskopien er gjenopprettet.',
   'Restauration impossible : {erreur}': 'Kunne ikke gjenopprette: {erreur}',
   Crédits: 'Credits',
+  "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Utformet i {annee} av {auteur}, utviklet med KI-modellen {assistant}.',
   'Awaseru, version {n}': 'Awaseru, versjon {n}',
   'Navigation': 'Navigasjon',
   'Affichage': 'Visning',

@@ -158,6 +158,7 @@ export default {
   'Sauvegarde restaurée.': '復元しました。',
   'Restauration impossible : {erreur}': '復元できません：{erreur}',
   Crédits: 'クレジット',
+  "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": '{annee}年、{auteur}が企画。AI「{assistant}」と共に開発。',
   'Awaseru, version {n}': 'Awaseru バージョン {n}',
   'Navigation': 'ナビゲーション',
   'Affichage': '表示',

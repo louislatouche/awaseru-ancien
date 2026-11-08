@@ -157,6 +157,7 @@ export default {
   'Sauvegarde restaurée.': 'Copie restaurată.',
   'Restauration impossible : {erreur}': 'Restaurarea nu a reușit: {erreur}',
   Crédits: 'Credite',
+  "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Conceput în {annee} de {auteur}, dezvoltat cu ajutorul IA {assistant}.',
   'Awaseru, version {n}': 'Awaseru, versiunea {n}',
   'Navigation': 'Navigare',
   'Affichage': 'Afișare',

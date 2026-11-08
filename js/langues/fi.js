@@ -158,6 +158,7 @@ export default {
   'Sauvegarde restaurée.': 'Varmuuskopio palautettu.',
   'Restauration impossible : {erreur}': 'Palautus epäonnistui: {erreur}',
   Crédits: 'Tekijät',
+  "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Suunnitellut {auteur} vuonna {annee}, kehitetty tekoäly {assistant}n avulla.',
   'Awaseru, version {n}': 'Awaseru, versio {n}',
   'Navigation': 'Navigointi',
   'Affichage': 'Näyttö',

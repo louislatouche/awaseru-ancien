@@ -157,6 +157,7 @@ export default {
   'Sauvegarde restaurée.': 'Säkerhetskopian har återställts.',
   'Restauration impossible : {erreur}': 'Det gick inte att återställa: {erreur}',
   Crédits: 'Credits',
+  "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Utformad {annee} av {auteur}, utvecklad med AI-modellen {assistant}.',
   'Awaseru, version {n}': 'Awaseru, version {n}',
   'Navigation': 'Navigering',
   'Affichage': 'Visning',

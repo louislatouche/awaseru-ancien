@@ -157,6 +157,7 @@ export default {
   'Sauvegarde restaurée.': 'Sikkerhedskopien er gendannet.',
   'Restauration impossible : {erreur}': 'Kunne ikke gendanne: {erreur}',
   Crédits: 'Credits',
+  "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Designet i {annee} af {auteur}, udviklet med AI-modellen {assistant}.',
   'Awaseru, version {n}': 'Awaseru, version {n}',
   'Navigation': 'Navigation',
   'Affichage': 'Visning',

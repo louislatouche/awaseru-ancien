@@ -228,12 +228,16 @@ function creerSauvegarde() {
     champFichier);
 }
 
-// Les voix enregistrées ont des auteurs : une entrée par pièce qui en utilise.
+// Les crédits : l'app elle-même, puis les auteurs des voix enregistrées, une entrée par pièce qui en utilise.
+// Les noms passent en valeurs à part : aucune traduction ne doit les toucher.
 function creerCredits(pieces) {
   const avecVoix = pieces.filter((piece) => piece.audio);
-  if (avecVoix.length === 0) return null;
   return el('section', { className: 'card pile' },
     el('h2', { className: 'titre-section' }, t('Crédits')),
+    el('div', { className: 'credit' },
+      el('span', {}, 'Awaseru ', el('span', { lang: 'ja' }, '合わせる')),
+      el('p', { className: 'legende' }, t("Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.",
+        { auteur: 'Louis Latouche', annee: 2026, assistant: 'Claude' }))),
     avecVoix.map((piece) => el('div', { className: 'credit' },
       el('span', { lang: 'ja' }, texteBrut(piece.titre)),
       el('p', { className: 'legende' }, traduire(piece.audio, 'credit')))));

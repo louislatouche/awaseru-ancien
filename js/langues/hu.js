@@ -158,6 +158,7 @@ export default {
   'Sauvegarde restaurée.': 'A mentés visszaállítva.',
   'Restauration impossible : {erreur}': 'A visszaállítás nem sikerült: {erreur}',
   Crédits: 'Készítők',
+  "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Tervezte: {auteur} ({annee}). Fejlesztve a {assistant} MI segítségével.',
   'Awaseru, version {n}': 'Awaseru, verzió: {n}',
   'Navigation': 'Navigáció',
   'Affichage': 'Megjelenítés',

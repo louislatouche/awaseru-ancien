@@ -61,11 +61,21 @@ export function afficherVocabulaire(racine, piece) {
 
   // ---- Les briques ----
 
-  // Dire un mot avec la voix du téléphone : il n'existe pas d'enregistrement mot par mot.
+  // Dire du japonais avec la voix du téléphone : il n'existe pas d'enregistrement mot par mot.
   // On lui donne la lecture en kana, que les moteurs prononcent sans hésiter.
-  async function direMot(mot) {
-    const message = messagePourResultat(await parler(lectureEnKana(mot.mot)));
+  async function dire(japonais) {
+    const message = messagePourResultat(await parler(lectureEnKana(japonais)));
     if (message) signaler(message, 9000);
+  }
+
+  // Un mot du vocabulaire, à sa forme du dictionnaire (好きな).
+  const direMot = (mot) => dire(mot.mot);
+
+  // Un mot touché dans le texte : son explication s'affiche en bas, et on l'entend tel qu'il est
+  // écrit dans la réplique (好きだった), pas à sa forme du dictionnaire.
+  function toucherMot(mot, morceau, bouton) {
+    choisir(mot, morceau, bouton);
+    dire(morceau.t);
   }
 
   // Les mots du texte affiché : pour chacun, ses apparitions (le bouton, la réplique, le morceau),
@@ -90,11 +100,11 @@ export function afficherVocabulaire(racine, piece) {
       className: `${classes} mot-touchable`,
       role: 'button',
       tabIndex: 0,
-      onclick: () => choisir(mot, morceau, bouton),
+      onclick: () => toucherMot(mot, morceau, bouton),
       onkeydown: (evenement) => {
         if (evenement.key === 'Enter' || evenement.key === ' ') {
           evenement.preventDefault();
-          choisir(mot, morceau, bouton);
+          toucherMot(mot, morceau, bouton);
         }
       },
     }, japonais, glose);

@@ -158,6 +158,7 @@ export default {
   'Sauvegarde restaurée.': 'Záloha byla obnovena.',
   'Restauration impossible : {erreur}': 'Obnovení se nezdařilo: {erreur}',
   Crédits: 'Autoři',
+  "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Navrhl {auteur} v roce {annee}, vyvíjeno s pomocí AI {assistant}.',
   'Awaseru, version {n}': 'Awaseru, verze {n}',
   'Navigation': 'Navigace',
   'Affichage': 'Zobrazení',

@@ -157,6 +157,7 @@ export default {
   'Sauvegarde restaurée.': 'Copia restaurada.',
   'Restauration impossible : {erreur}': 'No se puede restaurar: {erreur}',
   Crédits: 'Créditos',
+  "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Diseñado en {annee} por {auteur}, desarrollado con la IA {assistant}.',
   'Awaseru, version {n}': 'Awaseru, versión {n}',
   'Navigation': 'Navegación',
   'Affichage': 'Visualización',

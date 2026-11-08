@@ -157,6 +157,7 @@ export default {
   'Sauvegarde restaurée.': 'Копия восстановлена.',
   'Restauration impossible : {erreur}': 'Не удалось восстановить: {erreur}',
   Crédits: 'Авторы',
+  "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Автор идеи: {auteur}, {annee}. Разработано с помощью ИИ {assistant}.',
   'Awaseru, version {n}': 'Awaseru, версия {n}',
   'Navigation': 'Навигация',
   'Affichage': 'Отображение',

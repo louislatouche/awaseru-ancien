@@ -158,6 +158,7 @@ export default {
   'Sauvegarde restaurée.': 'Kopia przywrócona.',
   'Restauration impossible : {erreur}': 'Nie udało się przywrócić: {erreur}',
   Crédits: 'Autorzy',
+  "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Zaprojektowane w {annee} roku przez {auteur}, rozwijane z pomocą AI {assistant}.',
   'Awaseru, version {n}': 'Awaseru, wersja {n}',
   'Navigation': 'Nawigacja',
   'Affichage': 'Wyświetlanie',

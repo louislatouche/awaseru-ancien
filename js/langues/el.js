@@ -158,6 +158,7 @@ export default {
   'Sauvegarde restaurée.': 'Το αντίγραφο επαναφέρθηκε.',
   'Restauration impossible : {erreur}': 'Η επαναφορά απέτυχε: {erreur}',
   Crédits: 'Συντελεστές',
+  "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Σχεδιάστηκε το {annee} από τον {auteur}, αναπτύχθηκε με τη βοήθεια της τεχνητής νοημοσύνης {assistant}.',
   'Awaseru, version {n}': 'Awaseru, έκδοση {n}',
   'Navigation': 'Πλοήγηση',
   'Affichage': 'Εμφάνιση',
