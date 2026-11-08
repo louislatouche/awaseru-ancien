@@ -206,6 +206,7 @@ body:has(.tabbar:not([hidden])) { --place-bas: calc(var(--tabbar-h) + var(--safe
 
 .boutons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .boutons-quatre { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.boutons-trois { grid-template-columns: repeat(3, 1fr); gap: 8px; } /* fiches « mes répliques seules » : sans Voir */
 
 /* Les boutons réduits à leur icône (fiches et filage) : moins hauts, sans texte. */
 .bouton-icone {

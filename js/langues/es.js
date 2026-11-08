@@ -68,6 +68,7 @@ export default {
   "Dans l'ordre": 'En orden',
   Mélangées: 'Mezcladas',
   Répliques: 'Réplicas',
+  'Mes répliques seules': 'Solo mis réplicas',
   'Seulement les À revoir ({n})': 'Solo las que hay que repasar ({n})',
   'Une réplique précise': 'Una réplica concreta',
   'Touche un numéro pour travailler cette réplique seule.': 'Toca un número para trabajar solo esa réplica.',

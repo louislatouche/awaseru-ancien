@@ -69,6 +69,7 @@ export default {
   "Dans l'ordre": 'Järjestyksessä',
   Mélangées: 'Sekoitettu',
   Répliques: 'Repliikit',
+  'Mes répliques seules': 'Vain omat repliikit',
   'Seulement les À revoir ({n})': 'Vain kerrattavat ({n})',
   'Une réplique précise': 'Tietty repliikki',
   'Touche un numéro pour travailler cette réplique seule.': 'Napauta numeroa harjoitellaksesi vain sitä repliikkiä.',

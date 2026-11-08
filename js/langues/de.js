@@ -68,6 +68,7 @@ export default {
   "Dans l'ordre": 'Der Reihe nach',
   Mélangées: 'Gemischt',
   Répliques: 'Zeilen',
+  'Mes répliques seules': 'Nur meine Zeilen',
   'Seulement les À revoir ({n})': 'Nur zu Wiederholende ({n})',
   'Une réplique précise': 'Eine bestimmte Zeile',
   'Touche un numéro pour travailler cette réplique seule.': 'Tippe auf eine Nummer, um nur diese Zeile zu üben.',

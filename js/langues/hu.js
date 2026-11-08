@@ -69,6 +69,7 @@ export default {
   "Dans l'ordre": 'Sorban',
   Mélangées: 'Összekeverve',
   Répliques: 'Replikák',
+  'Mes répliques seules': 'Csak a replikáim',
   'Seulement les À revoir ({n})': 'Csak az átnézendők ({n})',
   'Une réplique précise': 'Egy adott replika',
   'Touche un numéro pour travailler cette réplique seule.': 'Koppints egy számra, hogy csak azt a replikát gyakorold.',

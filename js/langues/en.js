@@ -68,6 +68,7 @@ export default {
   "Dans l'ordre": 'In order',
   Mélangées: 'Shuffled',
   Répliques: 'Lines',
+  'Mes répliques seules': 'Only my lines',
   'Seulement les À revoir ({n})': 'Only those to review ({n})',
   'Une réplique précise': 'A specific line',
   'Touche un numéro pour travailler cette réplique seule.': 'Tap a number to practise that line on its own.',

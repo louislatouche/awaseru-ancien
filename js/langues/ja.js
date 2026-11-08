@@ -69,6 +69,7 @@ export default {
   "Dans l'ordre": '台本の順',
   Mélangées: 'シャッフル',
   Répliques: 'セリフ',
+  'Mes répliques seules': '自分のセリフだけ',
   'Seulement les À revoir ({n})': '要復習のみ（{n}）',
   'Une réplique précise': '特定のセリフ',
   'Touche un numéro pour travailler cette réplique seule.': '番号をタップすると、そのセリフだけを練習できます。',

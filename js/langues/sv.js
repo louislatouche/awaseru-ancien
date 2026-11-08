@@ -68,6 +68,7 @@ export default {
   "Dans l'ordre": 'I ordning',
   Mélangées: 'Blandade',
   Répliques: 'Repliker',
+  'Mes répliques seules': 'Bara mina repliker',
   'Seulement les À revoir ({n})': 'Bara de att repetera ({n})',
   'Une réplique précise': 'En viss replik',
   'Touche un numéro pour travailler cette réplique seule.': 'Tryck på ett nummer för att öva bara den repliken.',

@@ -69,6 +69,7 @@ export default {
   "Dans l'ordre": 'Με τη σειρά',
   Mélangées: 'Ανακατεμένες',
   Répliques: 'Ατάκες',
+  'Mes répliques seules': 'Μόνο οι ατάκες μου',
   'Seulement les À revoir ({n})': 'Μόνο για επανάληψη ({n})',
   'Une réplique précise': 'Μια συγκεκριμένη ατάκα',
   'Touche un numéro pour travailler cette réplique seule.': 'Πάτα έναν αριθμό για να δουλέψεις μόνο αυτή την ατάκα.',

@@ -69,6 +69,7 @@ export default {
   "Dans l'ordre": 'Po kolei',
   Mélangées: 'Pomieszane',
   Répliques: 'Kwestie',
+  'Mes répliques seules': 'Tylko moje kwestie',
   'Seulement les À revoir ({n})': 'Tylko do powtórki ({n})',
   'Une réplique précise': 'Konkretna kwestia',
   'Touche un numéro pour travailler cette réplique seule.': 'Dotknij numeru, aby ćwiczyć tylko tę kwestię.',

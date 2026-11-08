@@ -68,6 +68,7 @@ export default {
   "Dans l'ordre": 'In ordine',
   Mélangées: 'Mescolate',
   Répliques: 'Battute',
+  'Mes répliques seules': 'Solo le mie battute',
   'Seulement les À revoir ({n})': 'Solo quelle da rivedere ({n})',
   'Une réplique précise': 'Una battuta precisa',
   'Touche un numéro pour travailler cette réplique seule.': 'Tocca un numero per lavorare solo su quella battuta.',

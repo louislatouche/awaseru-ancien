@@ -68,6 +68,7 @@ export default {
   "Dans l'ordre": 'Por ordem',
   Mélangées: 'Misturadas',
   Répliques: 'Falas',
+  'Mes répliques seules': 'Só as minhas falas',
   'Seulement les À revoir ({n})': 'Só as a rever ({n})',
   'Une réplique précise': 'Uma fala específica',
   'Touche un numéro pour travailler cette réplique seule.': 'Toca num número para trabalhar só essa fala.',

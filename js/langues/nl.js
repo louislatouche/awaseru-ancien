@@ -68,6 +68,7 @@ export default {
   "Dans l'ordre": 'In volgorde',
   Mélangées: 'Geschud',
   Répliques: 'Regels',
+  'Mes répliques seules': 'Alleen mijn regels',
   'Seulement les À revoir ({n})': 'Alleen de te herhalen ({n})',
   'Une réplique précise': 'Eén bepaalde regel',
   'Touche un numéro pour travailler cette réplique seule.': 'Tik op een nummer om alleen die regel te oefenen.',

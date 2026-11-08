@@ -68,6 +68,7 @@ export default {
   "Dans l'ordre": '대본 순서',
   Mélangées: '섞기',
   Répliques: '대사',
+  'Mes répliques seules': '내 대사만',
   'Seulement les À revoir ({n})': '복습 필요만 ({n})',
   'Une réplique précise': '특정 대사',
   'Touche un numéro pour travailler cette réplique seule.': '번호를 누르면 그 대사만 연습할 수 있어요.',

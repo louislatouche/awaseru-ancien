@@ -68,6 +68,7 @@ export default {
   "Dans l'ordre": 'По порядку',
   Mélangées: 'Вперемешку',
   Répliques: 'Реплики',
+  'Mes répliques seules': 'Только мои реплики',
   'Seulement les À revoir ({n})': 'Только «Повторить» ({n})',
   'Une réplique précise': 'Конкретная реплика',
   'Touche un numéro pour travailler cette réplique seule.': 'Коснись номера, чтобы поработать только с этой репликой.',

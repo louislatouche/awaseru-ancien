@@ -69,6 +69,7 @@ export default {
   "Dans l'ordre": 'Popořadě',
   Mélangées: 'Zamíchané',
   Répliques: 'Repliky',
+  'Mes répliques seules': 'Jen moje repliky',
   'Seulement les À revoir ({n})': 'Jen k opakování ({n})',
   'Une réplique précise': 'Konkrétní replika',
   'Touche un numéro pour travailler cette réplique seule.': 'Klepni na číslo a procvičíš jen tuhle repliku.',

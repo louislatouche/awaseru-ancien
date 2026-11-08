@@ -68,6 +68,7 @@ export default {
   "Dans l'ordre": 'În ordine',
   Mélangées: 'Amestecate',
   Répliques: 'Replici',
+  'Mes répliques seules': 'Doar replicile mele',
   'Seulement les À revoir ({n})': 'Doar cele de repetat ({n})',
   'Une réplique précise': 'O anumită replică',
   'Touche un numéro pour travailler cette réplique seule.': 'Atinge un număr ca să lucrezi doar acea replică.',

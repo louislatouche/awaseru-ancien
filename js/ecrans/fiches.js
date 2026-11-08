@@ -81,6 +81,7 @@ export function afficherFiches(racine, piece) {
 
     let melangees = false;
     let seulementARevoir = false;
+    let seules = false; // mes répliques seules : sans les signaux, et déjà visibles
 
     remplacer(racine,
       creerTitreVue(t('Fiches'), el('span', { className: 'pill pill--ok' }, t(miennes.length > 1 ? '{n} répliques' : '{n} réplique', { n: miennes.length }))),
@@ -93,6 +94,8 @@ export function afficherFiches(racine, piece) {
         ], false, (valeur) => { melangees = valeur; }),
         el('p', { className: 'eyebrow' }, t('Répliques')),
         el('div', { className: 'chips' },
+          // Pour relire ses répliques à la suite : chaque fiche ne montre plus que la mienne, déjà visible.
+          creerBascule(t('Mes répliques seules'), false, (actif) => { seules = actif; }),
           creerBascule(t('Seulement les À revoir ({n})', { n: aRevoir.length }), false, (actif) => { seulementARevoir = actif; }, {
             desactive: aRevoir.length === 0,
           }))),
@@ -102,7 +105,7 @@ export function afficherFiches(racine, piece) {
         className: 'btn',
         onclick: () => {
           const base = seulementARevoir ? aRevoir : miennes;
-          lancer(melangees ? melanger(base) : base);
+          lancer(melangees ? melanger(base) : base, null, { seules });
         },
       }, t('Commencer')),
       // Ou une seule réplique, choisie par son numéro. Sa couleur rappelle où elle en est :
@@ -114,14 +117,15 @@ export function afficherFiches(racine, piece) {
           type: 'button',
           className: `bouton-numero ${CLASSES_STATUT[statuts[ligne.numero]] ?? ''}`,
           'aria-label': t('Réplique {n}', { n: ligne.numero }),
-          onclick: () => lancer([ligne]),
+          onclick: () => lancer([ligne], null, { seules }),
         }, String(ligne.numero))))),
     );
     cascade(racine);
   }
 
   // reprise : la série retrouvée après une relance de l'app (voir la fin de ce fichier).
-  function lancer(paquet, reprise = null) {
+  // seules : mes répliques seules, sans les signaux et déjà visibles (une relecture, toujours notée).
+  function lancer(paquet, reprise = null, { seules = false } = {}) {
     const resultats = reprise?.resultats ?? { su: [], a_revoir: [] };
     let position = reprise?.position ?? 0;
     // Après une relance, le navigateur refuse de parler tant qu'on n'a rien touché :
@@ -140,7 +144,7 @@ export function afficherFiches(racine, piece) {
       resultats[statut].push(ligne);
       position += 1;
       if (position < paquet.length) montrerFiche();
-      else ecranFin(paquet.length, resultats);
+      else ecranFin(paquet.length, resultats, { seules });
     }
 
     function montrerFiche() {
@@ -149,12 +153,12 @@ export function afficherFiches(racine, piece) {
       // Les répliques sont notées par leur numéro : c'est tout ce qu'il faut pour reconstruire la série.
       const numeros = (liste) => liste.map((l) => l.numero);
       noterPosition('fiches', {
-        paquet: numeros(paquet), position, su: numeros(resultats.su), aRevoir: numeros(resultats.a_revoir),
+        paquet: numeros(paquet), position, su: numeros(resultats.su), aRevoir: numeros(resultats.a_revoir), seules,
       });
       // On cherche dans la pièce entière, pas dans le paquet : même mélangée,
-      // une fiche doit montrer ce qui la précède VRAIMENT dans la pièce.
+      // une fiche doit montrer ce qui la précède VRAIMENT dans la pièce. Sauf en « mes répliques seules ».
       const index = lignes.indexOf(ligne);
-      const signal = signalDe(lignes, index);
+      const signal = seules ? null : signalDe(lignes, index);
       const selection = lireSelection(piece);
 
       // Le réglage Navigation : des boutons en bas de l'écran, ou des gestes sur la carte.
@@ -200,10 +204,10 @@ export function afficherFiches(racine, piece) {
       }
 
       // La carte elle-même se touche : une première fois pour la voir, ensuite pour l'écouter
-      // (et la mettre en pause, comme le bouton ▶).
+      // (et la mettre en pause, comme le bouton ▶). En « mes répliques seules », elle est visible d'emblée.
       const carteMoi = creerReplique(ligne, piece, {
         mienne: true,
-        cachee: true,
+        cachee: !seules,
         statut: lireStatuts(piece.id)[ligne.numero],
         surTouche: () => {
           if (carteMoi.classList.contains('est-cachee')) devoiler();
@@ -218,6 +222,8 @@ export function afficherFiches(racine, piece) {
       }
 
       const boutonVoir = creerBoutonIcone('voir', t('Voir'), 'btn-ghost', devoiler);
+      // Déjà visible : je peux m'évaluer tout de suite, et le bouton Voir n'a plus rien à montrer.
+      if (seules) permettreNote();
 
       // Mode Gestes : la carte se glisse à droite (je savais) ou à gauche (à revoir), et un appui
       // long arrête l'écoute. Les boutons ne sont alors pas affichés.
@@ -236,14 +242,16 @@ export function afficherFiches(racine, piece) {
       remplacer(racine,
         el('p', { className: 'eyebrow fiche-compteur' }, t('Fiche {position} sur {total}', { position: position + 1, total: paquet.length })),
         creerAvisEnchainement(piece, ligne, enchainementsDe(lignes, index, selection)),
-        el('h2', { className: 'titre-section' }, t('Ton signal')),
-        carteSignal || el('p', { className: 'avis' }, t('Début de la pièce : pas de réplique avant la tienne.')),
+        !seules && el('h2', { className: 'titre-section' }, t('Ton signal')),
+        !seules && (carteSignal || el('p', { className: 'avis' }, t('Début de la pièce : pas de réplique avant la tienne.'))),
         el('h2', { className: 'titre-section' }, t('À toi')),
         zoneMoi,
         creerInterrupteurs(piece.id),
         // Collés en bas de l'écran : on répète le téléphone à la main, sans avoir à faire défiler.
+        // En « mes répliques seules », pas de bouton Voir : trois boutons au lieu de quatre.
         !gestes && el('div', { className: 'commandes' },
-          el('div', { className: 'boutons boutons-quatre' }, boutonVoir, ecoute.bouton, boutonSu, boutonRevoir)),
+          el('div', { className: `boutons ${seules ? 'boutons-trois' : 'boutons-quatre'}` },
+            !seules && boutonVoir, ecoute.bouton, boutonSu, boutonRevoir)),
       );
       // Passer à la fiche suivante : un fondu court, comme les étapes de Faktur.
       for (const bloc of racine.children) bloc.classList.add('etape');
@@ -259,7 +267,8 @@ export function afficherFiches(racine, piece) {
     montrerFiche();
   }
 
-  function ecranFin(total, resultats) {
+  // seules : la série était en « mes répliques seules ». Retravailler les à revoir garde ce mode.
+  function ecranFin(total, resultats, { seules = false } = {}) {
     oublierPosition(); // la série est finie : plus rien à reprendre
     const nbSues = resultats.su.length;
     const nbARevoir = resultats.a_revoir.length;
@@ -274,7 +283,7 @@ export function afficherFiches(racine, piece) {
       nbARevoir > 0 && el('button', {
         type: 'button',
         className: 'btn',
-        onclick: () => lancer(resultats.a_revoir),
+        onclick: () => lancer(resultats.a_revoir, null, { seules }),
       }, nbARevoir > 1 ? t('Retravailler les {n} à revoir', { n: nbARevoir }) : t('Retravailler celle à revoir')),
       el('button', { type: 'button', className: 'btn-ghost', onclick: ecranDepart }, t('Revenir au choix des fiches')),
     );
@@ -292,7 +301,7 @@ export function afficherFiches(racine, piece) {
     lancer(paquetRepris, {
       position: reprise.position,
       resultats: { su: retrouver(reprise.su), a_revoir: retrouver(reprise.aRevoir) },
-    });
+    }, { seules: reprise.seules === true });
   } else {
     ecranDepart();
   }

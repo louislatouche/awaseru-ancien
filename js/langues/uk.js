@@ -68,6 +68,7 @@ export default {
   "Dans l'ordre": 'За порядком',
   Mélangées: 'Перемішані',
   Répliques: 'Репліки',
+  'Mes répliques seules': 'Тільки мої репліки',
   'Seulement les À revoir ({n})': 'Тільки «Повторити» ({n})',
   'Une réplique précise': 'Конкретна репліка',
   'Touche un numéro pour travailler cette réplique seule.': 'Торкнися номера, щоб попрацювати лише з цією реплікою.',
