@@ -80,7 +80,9 @@ export function afficherFilage(racine, piece) {
 
   // ---- Les boutons, selon l'état ----
 
-  function afficherCommandes() {
+  // recentrer : ramener l'écran sur la réplique en cours. Sauf quand on vient de toucher une réplique
+  // passée, plus haut dans le journal : l'écran doit alors rester où il est (voir relire).
+  function afficherCommandes({ recentrer = true } = {}) {
     const aMoi = etat === 'a-moi';
     const boutons = [];
     majTemoin();
@@ -101,7 +103,7 @@ export function afficherFilage(racine, piece) {
           className: 'btn-ghost',
           // Pause n'a de sens que si l'app est en train de lire.
           disabled: !(etat === 'lecture' || enPause),
-          onclick: enPause ? reprendre : mettreEnPause,
+          onclick: enPause ? reprendre : () => mettreEnPause(),
         }, enPause ? t('Reprendre') : t('Pause')),
         el('button', { type: 'button', className: 'btn', onclick: avancer }, t('Suivant'))));
     }
@@ -109,7 +111,7 @@ export function afficherFilage(racine, piece) {
     remplacer(commandes, boutons);
     commandes.hidden = boutons.length === 0; // vide, la barre du bas n'aurait plus rien à montrer
     // Après les boutons, et pas avant : leur hauteur change, et la carte pourrait se retrouver dessous.
-    carteCourante.scrollIntoView({ block: 'center' });
+    if (recentrer) carteCourante.scrollIntoView({ block: 'center' });
   }
 
   // Mode Gestes : sur la réplique des autres qui se lit, une petite icône dit ce que fera un toucher.
@@ -143,24 +145,30 @@ export function afficherFilage(racine, piece) {
     const avis = mienne ? creerAvisEnchainement(piece, ligne, enchainementsDe(lignes, index, selection)) : [];
     const statut = lireStatuts(piece.id)[ligne.numero];
     // Pour ma réplique : une écoute partagée entre le bouton ▶ et la carte, que l'on peut toucher
-    // pour la voir, puis pour l'écouter. Une fois passée, la carte reste dans le journal sans réagir.
+    // pour la voir, puis pour l'écouter. Une fois passée, avec les boutons, la carte reste dans le
+    // journal sans réagir ; en mode Gestes, la toucher la relit (voir relire).
     ecouteCourante = mienne ? creerEcoute(ligne) : null;
     const ecoute = ecouteCourante;
     const enCours = () => carte === carteCourante && etat === 'a-moi';
 
     // Ce que fait un toucher sur la carte. Ma réplique : la voir, puis l'écouter. Celle d'un autre,
     // en mode Gestes seulement : la mettre en pause, puis reprendre (avec les boutons, c'est Pause).
+    // En mode Gestes, une carte passée, la mienne comme celle d'un autre, se relit.
     let surTouche = null;
     if (mienne) {
       surTouche = () => {
+        if (gestes && carte !== carteCourante) {
+          relire(ligne, carte);
+          return;
+        }
         if (!enCours()) return;
         if (carte.classList.contains('est-cachee')) devoiler();
         else ecoute.toucher();
       };
     } else if (gestes) {
       surTouche = () => {
-        if (carte !== carteCourante) return;
-        if (etat === 'lecture') mettreEnPause();
+        if (carte !== carteCourante) relire(ligne, carte);
+        else if (etat === 'lecture') mettreEnPause();
         else if (etat === 'pause') reprendre();
       };
     }
@@ -228,8 +236,9 @@ export function afficherFilage(racine, piece) {
     arreterVoix();
     if (!verrouEcran) garderEcranAllume(); // « Suivant » peut être touché pendant une pause
     carteCourante?.classList.remove('est-cachee', 'courante', 'is-syncing');
-    // Une carte touchable devient inerte : seule la réplique en cours répond au doigt.
-    if (carteCourante instanceof HTMLButtonElement) carteCourante.disabled = true;
+    // Avec les boutons, une carte touchable devient inerte : seule la réplique en cours répond au
+    // doigt. En mode Gestes, elle reste touchable : la toucher la relit (voir relire).
+    if (!gestes && carteCourante instanceof HTMLButtonElement) carteCourante.disabled = true;
     temoin?.remove();
     temoin = null;
     position += 1;
@@ -240,12 +249,41 @@ export function afficherFilage(racine, piece) {
   // Sur Android, speechSynthesis.pause() coupe la voix sans jamais prévenir qu'elle a fini
   // (c'est documenté dans le code d'EasySpeech). On annule donc vraiment la lecture,
   // et « Reprendre » relit la réplique depuis son début.
-  function mettreEnPause() {
+  // recentrer : voir afficherCommandes.
+  function mettreEnPause({ recentrer = true } = {}) {
     jeton += 1;
     arreterVoix();
     libererEcran();
     etat = 'pause';
-    afficherCommandes();
+    afficherCommandes({ recentrer });
+  }
+
+  // ---- Relire une réplique passée (mode Gestes) ----
+  //
+  // Toucher une réplique déjà passée, plus haut dans le journal, la relit sans bouger l'écran. Ce qui
+  // se lisait s'interrompt : la réplique en cours, si l'app la lisait, passe en pause (un toucher sur
+  // elle la reprendra, depuis son début), et mon écoute s'arrête. Le filage n'avance pas tout seul
+  // ensuite. Toucher la réplique passée pendant qu'elle se relit l'arrête.
+  let relue = null; // la carte passée qui se relit en ce moment
+
+  async function relire(ligne, carte) {
+    if (relue === carte) {
+      arreterVoix(); // la lecture se termine : la fin de relire, plus bas, éteint la carte
+      return;
+    }
+    // Sans voix, ou une ligne qui n'est qu'une didascalie : il n'y a rien à faire entendre.
+    if (sansVoix || !texteAParler(ligne.texte, lireReglages().lireDidascalies)) return;
+    if (etat === 'lecture') mettreEnPause({ recentrer: false });
+    ecouteCourante?.arreter();
+    relue = carte;
+    carte.classList.add('en-lecture');
+    const finirFilet = suivreLecture(carte);
+    // La promesse se termine à la fin de la réplique, ou dès qu'une autre lecture prend la place
+    // (une autre réplique touchée, la reprise du filage, le geste vers le haut, un arrêt...).
+    await lireReplique(ligne);
+    finirFilet();
+    carte.classList.remove('en-lecture');
+    if (relue === carte) relue = null;
   }
 
   function reprendre() {
@@ -323,6 +361,7 @@ export function afficherFilage(racine, piece) {
   function ecranDepart() {
     etat = 'depart';
     jeton += 1;
+    arreterVoix(); // par exemple une réplique passée qu'on relisait, quand on touche « Recommencer »
     oublierPosition(); // pas de filage en cours : rien à reprendre si l'app est relancée
     definirRetour(null); // la flèche de retour quitte alors le filage
     libererEcran();
