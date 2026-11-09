@@ -132,11 +132,11 @@ export function creerBoutonIcone(nomIcone, libelle, classe, onclick, mot = libel
 // Un appui long arrête tout et revient au début. Un trait au pied du bouton, et le filet de la
 // carte, montrent où en est la lecture (avec les voix enregistrées : la voix du téléphone ne le dit pas).
 //
-// Renvoie { bouton, toucher, arreter, lierCarte } : le bouton à placer dans la page, et de quoi
-// piloter la lecture depuis la carte (toucher, et arreter pour l'appui long).
+// Renvoie { bouton, toucher, ecouter, arreter, lierCarte } : le bouton à placer dans la page, et de
+// quoi piloter la lecture depuis la carte (toucher ; ecouter, qui lance sans jamais interrompre ;
+// et arreter pour l'appui long).
 // lierCarte(carte) : le filet de la carte suit alors la lecture (voir dessinerFilet). Seulement quand
-// le bouton n'est pas à l'écran (mode Gestes, signal des fiches) : sinon son trait suffit. Avec
-// { avecTemoin: true }, une petite icône lecture / pause s'affiche aussi dans son en-tête.
+// le bouton n'est pas à l'écran (mode Gestes, signal des fiches) : sinon son trait suffit.
 // surLecture est appelée à chaque lancement de sa réplique (les fiches s'en servent pour permettre
 // l'évaluation). libelle : le nom du bouton à l'arrêt. surEtat(etat, ligneLue) est appelée à chaque
 // changement : lecture, pause ou arrêt, et quelle réplique est concernée.
@@ -149,7 +149,6 @@ export function creerEcoute(ligne, { surLecture = null, libelle: libelleArret = 
   // Le jeton change à chaque arrêt voulu : la fin d'une lecture abandonnée ne touche plus au bouton.
   let jeton = 0;
   let carte = null;   // la carte liée, dont le filet suit la lecture
-  let temoin = null;  // la petite icône dans l'en-tête de la carte
   let enCours = ligne; // la réplique qui se lit, ou s'est lue en dernier
   let pret = false;   // surEtat n'est appelée qu'après la création : la page n'a pas encore ses cartes
 
@@ -179,7 +178,6 @@ export function creerEcoute(ligne, { surLecture = null, libelle: libelleArret = 
     bouton.title = libelle;
     bouton.setAttribute('aria-label', libelle);
     remplacer(bouton, icone(nomIcone), ecrit && el('span', { className: 'label' }, mot), trait);
-    if (temoin) remplacer(temoin, icone(nomIcone));
     majTrait();
     if (pret) surEtat?.(etat, enCours);
   }
@@ -233,12 +231,8 @@ export function creerEcoute(ligne, { surLecture = null, libelle: libelleArret = 
   }
 
   // La carte se lie après coup : elle a besoin de toucher() pour exister, et l'écoute a besoin d'elle.
-  function lierCarte(nouvelleCarte, { avecTemoin = false } = {}) {
+  function lierCarte(nouvelleCarte) {
     carte = nouvelleCarte;
-    if (avecTemoin) {
-      temoin = el('span', { className: 'temoin-lecture', 'aria-hidden': 'true' });
-      carte.querySelector('.replique-tete')?.append(temoin);
-    }
     dessiner();
   }
 

@@ -180,8 +180,8 @@ export function afficherFiches(racine, piece) {
       // ---- La lecture ----
       // Avec les boutons, un seul bouton ▶, en bas, pilote la lecture en cours : celle du signal comme
       // celle de ma réplique. Il passe en pause et son trait avance quelle que soit la carte lue : le
-      // signal n'a donc ni filet ni petite icône. En mode Gestes, il n'y a pas de bouton : chaque carte
-      // a sa propre écoute, et c'est son filet (avec, pour le signal, une petite icône) qui suit la lecture.
+      // signal n'a donc pas de filet. En mode Gestes, il n'y a pas de bouton : chaque carte a sa propre
+      // écoute, et c'est son filet qui suit la lecture. Aucune icône sur les cartes : Louis n'en veut pas.
       // Dans les deux cas, la carte qui se lit passe au premier plan (voir mettreEnAvant).
       const carteDe = (laLigne) => (laLigne === ligne ? carteMoi : carteSignal);
       const suivreEtat = (etat, laLigne) => mettreEnAvant(carteDe(laLigne), etat !== 'arret');
@@ -215,10 +215,10 @@ export function afficherFiches(racine, piece) {
         },
       });
 
-      // Mode Gestes : les filets (et la petite icône du signal), une fois les deux cartes créées.
+      // Mode Gestes : les filets, une fois les deux cartes créées.
       if (gestes) {
         ecoute.lierCarte(carteMoi);
-        if (carteSignal) ecouteSignal.lierCarte(carteSignal, { avecTemoin: true });
+        if (carteSignal) ecouteSignal.lierCarte(carteSignal);
       }
 
       const boutonVoir = creerBoutonIcone('voir', t('Voir'), 'btn-ghost', devoiler);
