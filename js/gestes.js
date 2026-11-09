@@ -206,6 +206,7 @@ export function brancherBalayage(zone, { haut, bas, permis = () => true }) {
   let precedent = null;    // la position et l'heure du mouvement d'avant, pour mesurer la vitesse
   let vitesse = 0;
   let ignorerClic = false; // après un balayage, le « click » du lâcher ne compte pas
+  let glissade = null;     // l'animation qui poursuit le dernier balayage (voir poursuivre)
 
   zone.classList.add('zone-balayable');
 
@@ -216,13 +217,45 @@ export function brancherBalayage(zone, { haut, bas, permis = () => true }) {
     zone.style.transform = `translateY(${decalage}px)`;
   }
 
-  // La zone revient en souplesse à sa place, avec la courbe « feutre » de style.css.
+  // Geste trop court, ou qui ne mène nulle part : la zone revient en souplesse à sa place, avec la
+  // courbe « feutre » de style.css.
   function revenir() {
     zone.classList.remove('en-glisse');
     if (!zone.style.transform) return;
     zone.style.transition = 'transform .25s cubic-bezier(.22, 1, .36, 1)';
     zone.style.transform = '';
     setTimeout(() => { zone.style.transition = ''; }, 250);
+  }
+
+  // Geste validé : la zone ne revient pas en arrière, elle poursuit sa course dans le sens du doigt.
+  //
+  // Sans précaution, deux mouvements se contrariaient : la zone revenait à sa place (vers le bas,
+  // après un geste vers le haut) pendant que l'écran défilait doucement jusqu'à la nouvelle
+  // réplique (vers le haut). D'où un petit rebond. On n'en fait donc plus qu'un seul :
+  // 1. on note où se trouve la zone à l'écran, là où le doigt l'a laissée ;
+  // 2. on fait l'action en sautant directement à la nouvelle réplique, sans défilement doux ;
+  // 3. on mesure où la zone est arrivée, on la ramène visuellement à son point de départ, puis on
+  //    la fait glisser jusqu'à sa vraie place. Le mouvement part vite, comme lancé par le doigt.
+  function poursuivre(action) {
+    zone.classList.remove('en-glisse');
+    if (mouvementReduit()) {
+      zone.style.transform = '';
+      action();
+      return;
+    }
+    const ecran = document.getElementById('ecran'); // la zone principale de l'app, celle qui défile
+    const depart = zone.getBoundingClientRect().top;
+    zone.style.transition = '';
+    zone.style.transform = '';
+    ecran.style.scrollBehavior = 'auto'; // le défilement de l'action se fait d'un coup...
+    action();
+    ecran.style.scrollBehavior = '';     // ... puis le défilement doux de style.css revient
+    const arrivee = zone.getBoundingClientRect().top;
+    // element.animate() : le navigateur anime la zone d'un état à l'autre, puis la laisse à sa place.
+    glissade = zone.animate(
+      [{ transform: `translateY(${depart - arrivee}px)` }, { transform: 'none' }],
+      { duration: 350, easing: 'cubic-bezier(.22, 1, .36, 1)' },
+    );
   }
 
   function abandonner() {
@@ -237,6 +270,9 @@ export function brancherBalayage(zone, { haut, bas, permis = () => true }) {
       abandonner();
       return;
     }
+    // Un nouveau geste pendant que le précédent glisse encore : celui-ci se termine d'un coup, pour
+    // que la zone suive tout de suite le doigt.
+    glissade?.finish();
     doigt = { numero: evenement.pointerId, x: evenement.clientX, y: evenement.clientY };
     sens = null;
     ecart = 0;
@@ -275,15 +311,15 @@ export function brancherBalayage(zone, { haut, bas, permis = () => true }) {
     sens = null;
     if (!vertical) return;
 
-    revenir();
     const assezLoin = Math.abs(ecart) > SEUIL_BALAYAGE;
     const lance = Math.abs(vitesse) > VITESSE_LANCER && Math.abs(ecart) > DISTANCE_LANCER
       && Math.sign(vitesse) === Math.sign(ecart);
-    if (!assezLoin && !lance) return;
-    if (!permis(sensDe(ecart))) return;
+    if ((!assezLoin && !lance) || !permis(sensDe(ecart))) {
+      revenir();
+      return;
+    }
     navigator.vibrate?.(15);
-    if (ecart < 0) haut();
-    else bas();
+    poursuivre(ecart < 0 ? haut : bas);
   });
 
   zone.addEventListener('pointercancel', abandonner);

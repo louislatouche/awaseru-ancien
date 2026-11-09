@@ -326,11 +326,9 @@ export function afficherFilage(racine, piece) {
     carteCourante = null;
     remplacer(journal);
     traces.clear();
-    // Les interrupteurs restent en haut, au-dessus de la première réplique. En mode Gestes, ils
-    // sortent donc de l'écran au fil du filage : sous la réplique en cours, ils gênaient le pouce.
+    // Pas d'interrupteurs Furigana et Traduction ici : ils se règlent avant, sur l'écran de départ.
     remplacer(racine,
       sansVoix && creerAvisVoix(piece),
-      creerInterrupteurs(piece.id),
       journal,
       commandes,
     );
@@ -382,6 +380,9 @@ export function afficherFilage(racine, piece) {
           montrerLegende();
         }),
         legende),
+      // Furigana et Traduction se choisissent ici, juste avant de lancer : pendant le filage, l'écran
+      // ne montre que les répliques.
+      creerInterrupteurs(piece.id),
       // Ce toucher autorise aussi le navigateur à parler pour toute la suite du filage.
       el('button', { type: 'button', className: 'btn', onclick: () => demarrer(depart) }, t('Lancer le filage')),
     );
