@@ -165,11 +165,9 @@ export function parler(texte) {
   return new Promise((resolve) => {
     const choisie = voixChoisie();
     const vitesse = lireReglages().vitesse;
-    const enonce = new SpeechSynthesisUtterance(texte);
-    enonce.voice = choisie;
-    enonce.lang = 'ja-JP'; // on règle aussi la langue, pas seulement la voix
-    enonce.rate = vitesse;
-    enonce.volume = lireReglages().muet ? 0 : 1; // son coupé : la phrase se dit, sans bruit
+    // Garde-fou : si « end » n'arrive jamais, le filage resterait bloqué pour toujours.
+    // On laisse largement le temps (0,4 s par caractère, bien plus lent qu'une vraie lecture).
+    const dureeMax = (texte.length * 400) / vitesse + 5000;
 
     let garde = null;
     const terminer = (resultat) => {
@@ -180,26 +178,51 @@ export function parler(texte) {
       resolve(resultat);
     };
     terminerEnCours = terminer;
-    enonceEnCours = enonce;
 
-    enonce.onend = () => terminer('fini');
-    enonce.onerror = (evenement) => {
-      const annulee = evenement.error === 'canceled' || evenement.error === 'interrupted';
-      terminer(annulee ? 'annule' : `erreur:${evenement.error}`);
-    };
+    // Prononce le texte. avecVoix : avec la voix choisie (réglage, ou la première voix locale) ;
+    // sinon, seulement la langue : le téléphone prend alors sa propre voix japonaise par défaut.
+    function dire(avecVoix) {
+      const enonce = new SpeechSynthesisUtterance(texte);
+      if (avecVoix) enonce.voice = choisie;
+      enonce.lang = 'ja-JP'; // on règle aussi la langue, pas seulement la voix
+      enonce.rate = vitesse;
+      enonce.volume = lireReglages().muet ? 0 : 1; // son coupé : la phrase se dit, sans bruit
+      enonceEnCours = enonce;
 
-    // Un court délai après cancel() : c'est ce que fait EasySpeech avant chaque lecture.
-    setTimeout(() => {
-      if (terminerEnCours !== terminer) return; // annulée entre-temps
+      enonce.onend = () => terminer('fini');
+      enonce.onerror = (evenement) => {
+        const annulee = evenement.error === 'canceled' || evenement.error === 'interrupted';
+        if (annulee) {
+          terminer('annule');
+          return;
+        }
+        // Sur Chrome pour Android, une voix imposée par la page peut échouer alors que la voix par
+        // défaut du téléphone marche : voix « réseau », ou voix dont les données ne sont pas
+        // installées (voir les tickets Chromium 374263394 et 331977824). Avant d'afficher l'erreur,
+        // on réessaie donc une fois, sans imposer de voix. Pas pour un refus du navigateur
+        // (not-allowed) : une seconde tentative serait refusée de la même façon.
+        if (avecVoix && evenement.error !== 'not-allowed') {
+          clearTimeout(garde);
+          setTimeout(() => {
+            if (terminerEnCours === terminer) dire(false); // sauf si on a arrêté entre-temps
+          }, 10);
+          return;
+        }
+        terminer(`erreur:${evenement.error}`);
+      };
+
       window.speechSynthesis.speak(enonce);
-
-      // Garde-fou : si « end » n'arrive jamais, le filage resterait bloqué pour toujours.
-      // On laisse largement le temps (0,4 s par caractère, bien plus lent qu'une vraie lecture).
-      const dureeMax = (texte.length * 400) / vitesse + 5000;
+      clearTimeout(garde);
       garde = setTimeout(() => {
         window.speechSynthesis.cancel();
         terminer('fini');
       }, dureeMax);
+    }
+
+    // Un court délai après cancel() : c'est ce que fait EasySpeech avant chaque lecture.
+    setTimeout(() => {
+      if (terminerEnCours !== terminer) return; // annulée entre-temps
+      dire(true);
     }, 10);
   });
 }
