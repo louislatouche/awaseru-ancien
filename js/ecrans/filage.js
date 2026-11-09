@@ -21,7 +21,7 @@ import { t, traduire } from '../langues.js';
 import { enchainementsDe, lignesDe } from '../pieces.js';
 import { lireReglages, lireSelection, lireStatuts } from '../stockage.js';
 import { creerJaponais, texteAParler } from '../texte.js';
-import { arreterVoix, voixJaponaises, voixPretes } from '../voix.js';
+import { arreterVoix, mettreEnPauseVoix, reprendreVoix, voixJaponaises, voixPretes } from '../voix.js';
 import { noterPosition, oublierPosition, positionAReprendre } from '../reprise.js';
 import { brancherBalayage, brancherGestes } from '../gestes.js';
 
@@ -49,6 +49,7 @@ export function afficherFilage(racine, piece) {
   // Pause ou Suivant pendant l'attente, et cette tâche doit simplement s'arrêter sans rien faire.
   let jeton = 0;
   let verrouEcran = null;
+  let pauseFichier = false; // vrai quand la pause garde un fichier audio arrêté là où il en était
 
   const journal = el('div', { className: 'journal' });
   const commandes = el('div', { className: 'commandes' });
@@ -179,7 +180,7 @@ export function afficherFilage(racine, piece) {
         maintenir: () => {
           if (relue === carte) arreterVoix(); // la fin de relire éteint la carte
           else if (enCours()) ecoute.arreter();
-          else if (carte === carteCourante && etat === 'lecture') mettreEnPause();
+          else if (carte === carteCourante && (etat === 'lecture' || etat === 'pause')) arreterLecture();
         },
       });
     }
@@ -229,6 +230,7 @@ export function afficherFilage(racine, piece) {
 
   function avancer() {
     jeton += 1;
+    pauseFichier = false;
     arreterVoix();
     if (!verrouEcran) garderEcranAllume(); // « Suivant » peut être touché pendant une pause
     carteCourante?.classList.remove('est-cachee', 'courante', 'is-syncing');
@@ -240,12 +242,29 @@ export function afficherFilage(racine, piece) {
     else jouerEtape();
   }
 
-  // Sur Android, speechSynthesis.pause() coupe la voix sans jamais prévenir qu'elle a fini
-  // (c'est documenté dans le code d'EasySpeech). On annule donc vraiment la lecture,
-  // et « Reprendre » relit la réplique depuis son début.
+  // Pause (un toucher, ou le bouton Pause) : avec les voix enregistrées, le fichier audio s'arrête
+  // là où il en est, et la reprise repart de là. La tâche de jouerEtape, qui attend la fin de la
+  // lecture, attend simplement plus longtemps. La voix du téléphone, elle, ne sait pas faire de pause
+  // sur Android : speechSynthesis.pause() coupe la voix sans jamais prévenir qu'elle a fini (c'est
+  // documenté dans le code d'EasySpeech). Pour elle, comme pour une didascalie ou le silence entre
+  // deux répliques, la pause est donc un arrêt : la réplique repartira de son début.
   // recentrer : voir afficherCommandes.
   function mettreEnPause({ recentrer = true } = {}) {
-    jeton += 1;
+    if (etat === 'lecture' && mettreEnPauseVoix()) {
+      pauseFichier = true;
+      libererEcran();
+      etat = 'pause';
+      afficherCommandes({ recentrer });
+      return;
+    }
+    arreterLecture({ recentrer });
+  }
+
+  // Arrêt (un appui long) : la lecture s'annule pour de bon, même si elle était en pause. Le filage
+  // attend ; un toucher (ou Reprendre) relira la réplique depuis son début.
+  function arreterLecture({ recentrer = true } = {}) {
+    jeton += 1; // la tâche qui attendait la fin de la lecture s'arrête d'elle-même (voir jouerEtape)
+    pauseFichier = false;
     arreterVoix();
     libererEcran();
     etat = 'pause';
@@ -255,9 +274,10 @@ export function afficherFilage(racine, piece) {
   // ---- Relire une réplique passée (mode Gestes) ----
   //
   // Toucher une réplique déjà passée, plus haut dans le journal, la relit sans bouger l'écran. Ce qui
-  // se lisait s'interrompt : la réplique en cours, si l'app la lisait, passe en pause (un toucher sur
-  // elle la reprendra, depuis son début), et mon écoute s'arrête. Le filage n'avance pas tout seul
-  // ensuite. Toucher la réplique passée pendant qu'elle se relit l'arrête.
+  // se lisait s'interrompt : la réplique en cours, si l'app la lisait ou l'avait mise en pause,
+  // s'arrête (un toucher sur elle la reprendra, depuis son début), et mon écoute s'arrête aussi.
+  // Le filage n'avance pas tout seul ensuite. Toucher la réplique passée pendant qu'elle se relit
+  // l'arrête.
   let relue = null; // la carte passée qui se relit en ce moment
 
   async function relire(ligne, carte) {
@@ -267,7 +287,9 @@ export function afficherFilage(racine, piece) {
     }
     // Sans voix, ou une ligne qui n'est qu'une didascalie : il n'y a rien à faire entendre.
     if (sansVoix || !texteAParler(ligne.texte, lireReglages().lireDidascalies)) return;
-    if (etat === 'lecture') mettreEnPause({ recentrer: false });
+    // La réplique en cours s'arrête, même si elle était en pause : il n'y a qu'un lecteur audio, et
+    // la relecture va le prendre. Un toucher sur elle la reprendra donc depuis son début.
+    if (etat === 'lecture' || pauseFichier) arreterLecture({ recentrer: false });
     ecouteCourante?.arreter();
     relue = carte;
     carte.classList.add('en-lecture');
@@ -286,6 +308,15 @@ export function afficherFilage(racine, piece) {
 
   function reprendre() {
     garderEcranAllume();
+    // Un fichier en pause repart d'où il était ; la tâche de jouerEtape verra sa fin et enchaînera.
+    if (pauseFichier && reprendreVoix()) {
+      pauseFichier = false;
+      etat = 'lecture';
+      afficherCommandes();
+      return;
+    }
+    // Sinon (arrêt, voix du téléphone, fichier perdu entre-temps) : la réplique repart de son début.
+    pauseFichier = false;
     jouerEtape(true);
   }
 
@@ -309,7 +340,7 @@ export function afficherFilage(racine, piece) {
   function surVisibilite() {
     if (document.hidden) {
       if (etat === 'lecture') mettreEnPause();
-      else arreterVoix();
+      else if (!pauseFichier) arreterVoix(); // un fichier en pause garde sa place pour la reprise
     } else if (etat === 'a-moi' || etat === 'manuel') {
       garderEcranAllume();
     }
@@ -363,6 +394,7 @@ export function afficherFilage(racine, piece) {
   function ecranDepart() {
     etat = 'depart';
     jeton += 1;
+    pauseFichier = false;
     arreterVoix(); // par exemple une réplique passée qu'on relisait, quand on touche « Recommencer »
     oublierPosition(); // pas de filage en cours : rien à reprendre si l'app est relancée
     definirRetour(null); // la flèche de retour quitte alors le filage
