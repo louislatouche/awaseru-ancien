@@ -226,6 +226,12 @@ export function creerEcoute(ligne, { surLecture = null, libelle: libelleArret = 
     }
   }
 
+  // Lance sa réplique, mais seulement si rien ne se lit ni n'est en pause. Contrairement à
+  // toucher(), qui met en pause une lecture en cours, ecouter() ne l'interrompt jamais.
+  function ecouter() {
+    if (etat === 'arret') lancer(ligne);
+  }
+
   // La carte se lie après coup : elle a besoin de toucher() pour exister, et l'écoute a besoin d'elle.
   function lierCarte(nouvelleCarte, { avecTemoin = false } = {}) {
     carte = nouvelleCarte;
@@ -240,7 +246,7 @@ export function creerEcoute(ligne, { surLecture = null, libelle: libelleArret = 
   brancherAppuiLong(bouton, { toucher: () => toucher(), maintenir: arreter });
   dessiner();
   pret = true;
-  return { bouton, toucher, arreter, lierCarte };
+  return { bouton, toucher, ecouter, arreter, lierCarte };
 }
 
 // ---- Le filet de lecture : un trait qui fait le tour de la carte à mesure qu'elle est lue ----

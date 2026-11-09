@@ -128,11 +128,14 @@ export function afficherFilage(racine, piece) {
     if (nom) remplacer(temoin, icone(nom));
   }
 
-  // Ma réplique se dévoile : par le bouton Voir, ou en touchant la carte.
+  // Ma réplique se dévoile : par le bouton Voir, ou en touchant la carte. Elle se lit aussitôt, pour
+  // que je compare ce que j'ai dit à ce qu'il fallait dire. Le filage, lui, ne repart pas tout seul :
+  // il attend toujours Suivant (ou le geste vers le haut).
   function devoiler() {
     carteCourante.classList.remove('est-cachee');
     if (boutonVoir) boutonVoir.disabled = true;
     carteCourante.scrollIntoView({ block: 'center' }); // la carte vient de grandir
+    ecouteCourante.ecouter(); // sauf si je l'écoutais déjà, cachée, avec le bouton ▶
   }
 
   // ---- Le déroulement ----
