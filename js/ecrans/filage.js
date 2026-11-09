@@ -326,14 +326,12 @@ export function afficherFilage(racine, piece) {
     carteCourante = null;
     remplacer(journal);
     traces.clear();
-    // En mode Gestes, le journal ne défile plus au doigt : en haut, les interrupteurs seraient
-    // vite hors d'atteinte. Ils passent donc dessous, juste après la réplique en cours, comme dans les fiches.
-    const interrupteurs = creerInterrupteurs(piece.id);
+    // Les interrupteurs restent en haut, au-dessus de la première réplique. En mode Gestes, ils
+    // sortent donc de l'écran au fil du filage : sous la réplique en cours, ils gênaient le pouce.
     remplacer(racine,
       sansVoix && creerAvisVoix(piece),
-      !gestes && interrupteurs,
+      creerInterrupteurs(piece.id),
       journal,
-      gestes && interrupteurs,
       commandes,
     );
     if (!repris) {
