@@ -170,11 +170,18 @@ export function afficherFilage(racine, piece) {
     const carte = creerReplique(ligne, piece, { mienne, cachee: mienne, statut, surTouche });
 
     // Mode Gestes : il n'y a pas de bouton ▶. Quand j'écoute ma réplique, c'est donc le filet de sa
-    // carte qui suit la lecture (avec les boutons, le trait du bouton le fait déjà), et un appui long
-    // sur la carte arrête l'écoute.
-    if (mienne && gestes) {
-      ecoute.lierCarte(carte);
-      brancherGestes(carte, { maintenir: () => { if (enCours()) ecoute.arreter(); } });
+    // carte qui suit la lecture (avec les boutons, le trait du bouton le fait déjà).
+    // Sur toute carte, un appui long arrête ce qu'elle lit : une réplique passée qui se relit, mon
+    // écoute en cours, ou la réplique d'un autre que l'app lit (le filage reste alors en pause).
+    if (gestes) {
+      if (mienne) ecoute.lierCarte(carte);
+      brancherGestes(carte, {
+        maintenir: () => {
+          if (relue === carte) arreterVoix(); // la fin de relire éteint la carte
+          else if (enCours()) ecoute.arreter();
+          else if (carte === carteCourante && etat === 'lecture') mettreEnPause();
+        },
+      });
     }
     carteCourante = carte;
     carteCourante.classList.add('courante');
@@ -284,6 +291,9 @@ export function afficherFilage(racine, piece) {
 
   function terminer() {
     etat = 'fin';
+    // Plus de réplique en cours : la dernière devient une réplique passée comme les autres, et en
+    // mode Gestes, la toucher la relit.
+    carteCourante = null;
     oublierPosition();
     libererEcran();
     const fin = el('p', { className: 'avis fin-piece' }, t('Fin de la pièce.'));
