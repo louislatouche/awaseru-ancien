@@ -197,6 +197,7 @@ export function brancherGestes(carte, { maintenir = null, glisser = null }) {
 const SEUIL_BALAYAGE = 60; // pixels à parcourir vers le haut pour valider
 const AMORTI = 0.35;       // la zone suit le doigt, mais de loin : un tiers de son trajet
 const MARGE_BOUT = 40;     // pixels : à moins de cette distance du bas, l'écran est « en bas du journal »
+const DUREE_POURSUITE = 350; // millisecondes pour que l'écran, lancé par le doigt, atteigne la réplique suivante
 
 // zone : l'élément qui reçoit le geste.
 // suivant : appelée quand le doigt pousse la zone vers le haut, en bas du journal.
@@ -210,21 +211,25 @@ export function brancherBalayage(zone, { suivant, permis = () => true }) {
   let precedent = null;    // la position et l'heure du mouvement d'avant, pour mesurer la vitesse
   let vitesse = 0;
   let ignorerClic = false; // après un balayage, le « click » du lâcher ne compte pas
-  let glissade = null;     // l'animation qui poursuit le dernier balayage (voir poursuivre)
+  let decalageZone = 0;    // de combien la zone suit le doigt en ce moment (négatif : vers le haut)
+  let poursuite = null;    // pendant que l'écran file vers la réplique suivante : { cible, image }
+  let glissade = null;     // l'animation qui ramène la zone quand l'écran ne peut pas défiler
   const ecran = document.getElementById('ecran'); // la zone principale de l'app, celle qui défile
 
   zone.classList.add('zone-balayable');
 
   // Remonté dans le journal ? La classe zone-remontee rend alors le défilement normal (style.css).
   // Le navigateur lit touch-action au moment où le doigt se pose : elle doit être prête avant.
+  // Pendant la poursuite, l'écran file vers le bas du journal : on le compte déjà comme arrivé.
   function suivreDefilement() {
     const resteEnDessous = ecran.scrollHeight - ecran.clientHeight - ecran.scrollTop;
-    zone.classList.toggle('zone-remontee', resteEnDessous > MARGE_BOUT);
+    zone.classList.toggle('zone-remontee', !poursuite && resteEnDessous > MARGE_BOUT);
   }
   ecran.addEventListener('scroll', suivreDefilement, { passive: true });
 
   function placer(decalage) {
     if (mouvementReduit()) return;
+    decalageZone = decalage;
     zone.style.transform = `translateY(${decalage}px)`;
   }
 
@@ -232,40 +237,76 @@ export function brancherBalayage(zone, { suivant, permis = () => true }) {
   // courbe « feutre » de style.css.
   function revenir() {
     zone.classList.remove('en-glisse');
+    decalageZone = 0;
     if (!zone.style.transform) return;
     zone.style.transition = 'transform .25s cubic-bezier(.22, 1, .36, 1)';
     zone.style.transform = '';
     setTimeout(() => { zone.style.transition = ''; }, 250);
   }
 
-  // Geste validé : la zone ne revient pas en arrière, elle poursuit sa course vers le haut.
+  // L'écran défile jusqu'à « cible », image après image : vite au départ, comme lancé par le doigt,
+  // puis en douceur. (Le défilement doux du navigateur, lui, démarre lentement.)
+  function defilerJusqua(cible) {
+    const depart = ecran.scrollTop;
+    const debut = performance.now();
+    const image = (maintenant) => {
+      const avance = Math.min(Math.max((maintenant - debut) / DUREE_POURSUITE, 0), 1);
+      const courbe = 1 - (1 - avance) ** 3; // part vite, finit en douceur
+      if (avance < 1) poursuite.image = requestAnimationFrame(image);
+      else poursuite = null;
+      ecran.scrollTo({ top: depart + (cible - depart) * courbe, behavior: 'instant' });
+      if (!poursuite) suivreDefilement(); // arrivé : la position est la vraie, on la note
+    };
+    poursuite = { cible, image: requestAnimationFrame(image) };
+  }
+
+  // Un nouveau geste pendant que l'écran file encore : il arrive d'un coup, pour que la zone suive
+  // tout de suite le doigt.
+  function finirPoursuite() {
+    glissade?.finish();
+    if (!poursuite) return;
+    cancelAnimationFrame(poursuite.image);
+    ecran.scrollTo({ top: poursuite.cible, behavior: 'instant' });
+    poursuite = null;
+    suivreDefilement();
+  }
+
+  // Geste validé : rien ne revient en arrière, l'écran poursuit sa course vers le haut.
   //
-  // Sans précaution, deux mouvements se contrariaient : la zone revenait à sa place (vers le bas)
-  // pendant que l'écran défilait doucement jusqu'à la nouvelle réplique (vers le haut). D'où un
-  // petit rebond. On n'en fait donc plus qu'un seul :
-  // 1. on note où se trouve la zone à l'écran, là où le doigt l'a laissée ;
-  // 2. on fait l'action en sautant directement à la nouvelle réplique, sans défilement doux ;
-  // 3. on mesure où la zone est arrivée, on la ramène visuellement à son point de départ, puis on
-  //    la fait glisser jusqu'à sa vraie place. Le mouvement part vite, comme lancé par le doigt.
+  // Deux pièges évités ici :
+  // - le rebond : si la zone revenait à sa place (vers le bas) pendant que l'écran défile jusqu'à
+  //   la nouvelle réplique (vers le haut), les deux mouvements se contrarieraient ;
+  // - le blocage : une zone décalée vers le bas agrandit un instant la hauteur à faire défiler, et
+  //   l'app se croyait alors remontée dans le journal (voir suivreDefilement), le doigt n'y pouvait
+  //   plus rien. On ne décale donc jamais la zone vers le bas : c'est l'écran lui-même qui défile.
+  // 1. on fait l'action en sautant directement à la nouvelle réplique, sans défilement doux ;
+  // 2. on remet l'écran là où le doigt avait laissé la zone : à la vue, rien n'a bougé ;
+  // 3. on fait défiler l'écran de là jusqu'à la nouvelle réplique, en une seule course.
   function poursuivre(action) {
     zone.classList.remove('en-glisse');
-    if (mouvementReduit()) {
-      zone.style.transform = '';
-      action();
-      return;
-    }
-    const depart = zone.getBoundingClientRect().top;
+    const decalage = decalageZone;
     zone.style.transition = '';
     zone.style.transform = '';
+    decalageZone = 0;
+    const avant = ecran.scrollTop;
     ecran.style.scrollBehavior = 'auto'; // le défilement de l'action se fait d'un coup...
     action();
     ecran.style.scrollBehavior = '';     // ... puis le défilement doux de style.css revient
-    const arrivee = zone.getBoundingClientRect().top;
-    // element.animate() : le navigateur anime la zone d'un état à l'autre, puis la laisse à sa place.
-    glissade = zone.animate(
-      [{ transform: `translateY(${depart - arrivee}px)` }, { transform: 'none' }],
-      { duration: 350, easing: 'cubic-bezier(.22, 1, .36, 1)' },
-    );
+    if (mouvementReduit()) return;
+    const cible = ecran.scrollTop;
+    // Ce que le contenu doit encore monter à l'écran, depuis l'endroit où le doigt l'a laissé.
+    const reste = (cible - avant) + decalage;
+    if (reste > 0) {
+      ecran.scrollTo({ top: cible - reste, behavior: 'instant' });
+      defilerJusqua(cible);
+    } else if (reste < 0) {
+      // Le journal est encore trop court pour défiler : la zone, restée un peu haut, redescend
+      // doucement à sa place. element.animate() : le navigateur l'anime d'un état à l'autre.
+      glissade = zone.animate(
+        [{ transform: `translateY(${reste}px)` }, { transform: 'none' }],
+        { duration: 250, easing: 'cubic-bezier(.22, 1, .36, 1)' },
+      );
+    }
   }
 
   function abandonner() {
@@ -280,9 +321,7 @@ export function brancherBalayage(zone, { suivant, permis = () => true }) {
       abandonner();
       return;
     }
-    // Un nouveau geste pendant que le précédent glisse encore : celui-ci se termine d'un coup, pour
-    // que la zone suive tout de suite le doigt.
-    glissade?.finish();
+    finirPoursuite();
     doigt = { numero: evenement.pointerId, x: evenement.clientX, y: evenement.clientY };
     sens = null;
     ecart = 0;
