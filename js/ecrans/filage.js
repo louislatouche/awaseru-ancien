@@ -55,10 +55,16 @@ export function afficherFilage(racine, piece) {
   const commandes = el('div', { className: 'commandes' });
 
   // Mode Gestes : pousser le journal vers le haut fait comme Suivant, tant que la pièce n'est pas finie.
-  // arreterBalayage sert au nettoyage, quand on quitte l'écran.
-  const arreterBalayage = gestes
+  const balayage = gestes
     ? brancherBalayage(journal, { suivant: avancer, permis: () => etat !== 'fin' })
     : null;
+
+  // Amène une carte au centre de l'écran. En mode Gestes, par la course du balayage, qu'un doigt
+  // arrête net : les cartes ne bougent alors jamais sous un toucher. Sinon, le défilement doux du navigateur.
+  function amenerAuCentre(element) {
+    if (balayage) balayage.amener(element);
+    else element.scrollIntoView({ block: 'center' });
+  }
 
   // ---- Garder l'écran allumé : sans cela, le téléphone se verrouille pendant qu'il lit. ----
 
@@ -111,7 +117,7 @@ export function afficherFilage(racine, piece) {
     remplacer(commandes, boutons);
     commandes.hidden = boutons.length === 0; // vide, la barre du bas n'aurait plus rien à montrer
     // Après les boutons, et pas avant : leur hauteur change, et la carte pourrait se retrouver dessous.
-    if (recentrer) carteCourante.scrollIntoView({ block: 'center' });
+    if (recentrer) amenerAuCentre(carteCourante);
   }
 
   // Mode Gestes : sur la réplique des autres qui se lit, une petite icône dit ce que fera un toucher.
@@ -129,7 +135,7 @@ export function afficherFilage(racine, piece) {
   function devoiler() {
     carteCourante.classList.remove('est-cachee');
     if (boutonVoir) boutonVoir.disabled = true;
-    carteCourante.scrollIntoView({ block: 'center' }); // la carte vient de grandir
+    amenerAuCentre(carteCourante); // la carte vient de grandir
     ecouteCourante.ecouter(); // sauf si je l'écoutais déjà, cachée, avec le bouton ▶
   }
 
@@ -277,13 +283,17 @@ export function afficherFilage(racine, piece) {
     ecouteCourante?.arreter();
     relue = carte;
     carte.classList.add('en-lecture');
+    journal.classList.add('en-relecture'); // la réplique en cours, interrompue, cède sa couleur (style.css)
     const finirFilet = suivreLecture(carte);
     // La promesse se termine à la fin de la réplique, ou dès qu'une autre lecture prend la place
     // (une autre réplique touchée, la reprise du filage, le geste vers le haut, un arrêt...).
     await lireReplique(ligne);
     finirFilet();
     carte.classList.remove('en-lecture');
-    if (relue === carte) relue = null;
+    if (relue === carte) {
+      relue = null;
+      journal.classList.remove('en-relecture');
+    }
   }
 
   function reprendre() {
@@ -299,7 +309,7 @@ export function afficherFilage(racine, piece) {
     journal.append(fin);
     remplacer(commandes, el('button', { type: 'button', className: 'btn', onclick: ecranDepart }, t('Recommencer un filage')));
     commandes.hidden = false;
-    fin.scrollIntoView({ block: 'center' });
+    amenerAuCentre(fin);
   }
 
   // Si l'utilisateur quitte l'app ou éteint l'écran, on se met en pause plutôt que de continuer
@@ -336,6 +346,7 @@ export function afficherFilage(racine, piece) {
     derniereScene = null;
     carteCourante = null;
     remplacer(journal);
+    journal.classList.remove('en-relecture');
     // Pas d'interrupteurs Furigana et Traduction ici : ils se règlent avant, sur l'écran de départ.
     remplacer(racine,
       sansVoix && creerAvisVoix(piece),
@@ -410,7 +421,7 @@ export function afficherFilage(racine, piece) {
     jeton += 1;
     etat = 'depart';
     document.removeEventListener('visibilitychange', surVisibilite);
-    arreterBalayage?.();
+    balayage?.arreter();
     libererEcran();
   };
 }

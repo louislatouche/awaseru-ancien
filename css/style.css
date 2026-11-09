@@ -423,6 +423,11 @@ button.replique:disabled { cursor: default; }
 .replique.en-lecture, .replique.courante:not(.mienne) { background: var(--accent-soft); }
 .replique.en-lecture, .replique.courante { box-shadow: var(--shadow-soft); }
 
+/* Filage en mode Gestes : pendant qu'une réplique passée se relit, la réplique en cours, interrompue,
+   redevient une carte ordinaire. Une seule carte porte le sauge à la fois : celle qui se lit. */
+.journal.en-relecture .replique.courante { box-shadow: var(--shadow-card); }
+.journal.en-relecture .replique.courante:not(.mienne) { background: var(--surface); }
+
 /* Le filet de lecture : un trait sauge qui fait le tour de la carte à mesure qu'elle est lue
    (voir dessinerFilet dans affichage.js). Les rectangles se dessinent ici, en CSS, pour suivre
    la taille de la carte ; le JavaScript ne règle que la part du tour déjà parcourue. */

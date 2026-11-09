@@ -89,6 +89,10 @@ export function brancherGestes(carte, { maintenir = null, glisser = null }) {
   }
 
   carte.addEventListener('pointerdown', (evenement) => {
+    // Un doigt qui se pose ouvre un nouveau toucher : ce que le précédent avait demandé d'ignorer ne
+    // compte plus. (Après un glissement, le navigateur n'envoie souvent aucun « click » : sans cette
+    // remise à zéro ici, le toucher suivant pouvait être avalé.)
+    ignorerClic = false;
     // Un second doigt pendant le geste : on abandonne, ce n'était ni un toucher ni un glissement.
     if (doigt) {
       abandonner();
@@ -99,7 +103,6 @@ export function brancherGestes(carte, { maintenir = null, glisser = null }) {
     ecart = 0;
     precedent = { ecart: 0, temps: evenement.timeStamp };
     vitesse = 0;
-    ignorerClic = false;
     if (maintenir) {
       minuterie = setTimeout(() => {
         ignorerClic = true;
@@ -203,7 +206,8 @@ const DUREE_POURSUITE = 350; // millisecondes pour que l'écran, lancé par le d
 // suivant : appelée quand le doigt pousse la zone vers le haut, en bas du journal.
 // permis() : faux si le geste ne mène nulle part (la pièce est finie) : la zone résiste alors,
 //   et revient sans rien faire.
-// Renvoie une fonction à appeler quand l'écran disparaît : elle cesse de suivre le défilement.
+// Renvoie { amener, arreter } : amener(element) fait défiler l'écran jusqu'à l'élément, par une
+// course que le doigt arrête (voir amener) ; arreter() s'appelle quand l'écran disparaît.
 export function brancherBalayage(zone, { suivant, permis = () => true }) {
   let doigt = null;        // le doigt posé : son numéro et l'endroit où il s'est posé
   let sens = null;         // null tant qu'on ne sait pas, puis 'haut' (la zone suit) ou 'ignore'
@@ -212,7 +216,8 @@ export function brancherBalayage(zone, { suivant, permis = () => true }) {
   let vitesse = 0;
   let ignorerClic = false; // après un balayage, le « click » du lâcher ne compte pas
   let decalageZone = 0;    // de combien la zone suit le doigt en ce moment (négatif : vers le haut)
-  let poursuite = null;    // pendant que l'écran file vers la réplique suivante : { cible, image }
+  let poursuite = null;    // pendant que l'écran file vers un élément : { cible, image }
+  let instantane = false;  // pendant l'action d'un balayage : amener() saute sans animer (voir poursuivre)
   let glissade = null;     // l'animation qui ramène la zone quand l'écran ne peut pas défiler
   const ecran = document.getElementById('ecran'); // la zone principale de l'app, celle qui défile
 
@@ -246,7 +251,10 @@ export function brancherBalayage(zone, { suivant, permis = () => true }) {
 
   // L'écran défile jusqu'à « cible », image après image : vite au départ, comme lancé par le doigt,
   // puis en douceur. (Le défilement doux du navigateur, lui, démarre lentement.)
+  // Pourquoi animer soi-même plutôt que laisser le navigateur faire un défilement doux ? Pour
+  // pouvoir l'arrêter net quand un doigt se pose (voir arreterPoursuite).
   function defilerJusqua(cible) {
+    if (poursuite) cancelAnimationFrame(poursuite.image); // une seule course à la fois
     const depart = ecran.scrollTop;
     const debut = performance.now();
     const image = (maintenant) => {
@@ -260,15 +268,32 @@ export function brancherBalayage(zone, { suivant, permis = () => true }) {
     poursuite = { cible, image: requestAnimationFrame(image) };
   }
 
-  // Un nouveau geste pendant que l'écran file encore : il arrive d'un coup, pour que la zone suive
-  // tout de suite le doigt.
-  function finirPoursuite() {
+  // Un doigt se pose pendant que l'écran file encore : l'écran s'arrête là où il est, comme une
+  // liste qu'on touche en plein élan. Surtout, rien ne bouge plus sous le doigt : un toucher
+  // atteint ce que l'on visait. (Le faire sauter au bout, comme avant, déplaçait les cartes sous le
+  // doigt, et le toucher tombait à côté.)
+  function arreterPoursuite() {
     glissade?.finish();
     if (!poursuite) return;
     cancelAnimationFrame(poursuite.image);
-    ecran.scrollTo({ top: poursuite.cible, behavior: 'instant' });
     poursuite = null;
     suivreDefilement();
+  }
+
+  // Amène un élément au centre de l'écran. Le navigateur calcule la bonne position (scrollIntoView,
+  // qui tient compte des barres, voir scroll-padding dans style.css), d'un coup et sans dessiner ;
+  // on revient au point de départ, puis on parcourt la distance avec notre propre course.
+  // Pendant l'action d'un balayage, on saute directement : c'est poursuivre() qui animera.
+  function amener(element) {
+    const avant = ecran.scrollTop;
+    ecran.style.scrollBehavior = 'auto'; // sans le défilement doux de style.css...
+    element.scrollIntoView({ block: 'center' });
+    ecran.style.scrollBehavior = '';     // ... qui revient aussitôt
+    if (instantane || mouvementReduit()) return;
+    const cible = ecran.scrollTop;
+    if (cible === avant) return;
+    ecran.scrollTo({ top: avant, behavior: 'instant' });
+    defilerJusqua(cible);
   }
 
   // Geste validé : rien ne revient en arrière, l'écran poursuit sa course vers le haut.
@@ -289,9 +314,9 @@ export function brancherBalayage(zone, { suivant, permis = () => true }) {
     zone.style.transform = '';
     decalageZone = 0;
     const avant = ecran.scrollTop;
-    ecran.style.scrollBehavior = 'auto'; // le défilement de l'action se fait d'un coup...
+    instantane = true; // l'action amène la nouvelle réplique à l'écran d'un coup (voir amener)...
     action();
-    ecran.style.scrollBehavior = '';     // ... puis le défilement doux de style.css revient
+    instantane = false; // ... et c'est ici que l'on anime
     if (mouvementReduit()) return;
     const cible = ecran.scrollTop;
     // Ce que le contenu doit encore monter à l'écran, depuis l'endroit où le doigt l'a laissé.
@@ -316,18 +341,18 @@ export function brancherBalayage(zone, { suivant, permis = () => true }) {
   }
 
   zone.addEventListener('pointerdown', (evenement) => {
+    ignorerClic = false; // un nouveau toucher : ce que le précédent demandait d'ignorer ne compte plus
+    arreterPoursuite();  // l'écran s'arrête sous le doigt, même si c'est un second doigt
     // Un second doigt pendant le geste : on abandonne.
     if (doigt) {
       abandonner();
       return;
     }
-    finirPoursuite();
     doigt = { numero: evenement.pointerId, x: evenement.clientX, y: evenement.clientY };
     sens = null;
     ecart = 0;
     precedent = { ecart: 0, temps: evenement.timeStamp };
     vitesse = 0;
-    ignorerClic = false;
   });
 
   zone.addEventListener('pointermove', (evenement) => {
@@ -384,5 +409,10 @@ export function brancherBalayage(zone, { suivant, permis = () => true }) {
     evenement.stopImmediatePropagation();
   }, { capture: true });
 
-  return () => ecran.removeEventListener('scroll', suivreDefilement);
+  function arreter() {
+    arreterPoursuite();
+    ecran.removeEventListener('scroll', suivreDefilement);
+  }
+
+  return { amener, arreter };
 }
