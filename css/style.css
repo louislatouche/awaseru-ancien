@@ -551,13 +551,16 @@ button.replique:disabled { cursor: default; }
 
 .en-glisse { transition: none !important; will-change: transform; } /* la carte colle au doigt */
 
-/* Filage en mode Gestes : le journal se pousse vers le haut (réplique suivante) ou vers le bas
-   (précédente). Le navigateur ne le fait donc plus défiler : le doigt revient à gestes.js. */
+/* Filage en mode Gestes : en bas du journal, le doigt qui monte revient à gestes.js (réplique
+   suivante). pan-up : le navigateur garde le défilement vers le haut, c'est-à-dire le doigt qui
+   descend, pour relire les répliques passées. Une fois remonté, le défilement redevient normal. */
 .zone-balayable {
-  touch-action: none;
+  touch-action: pan-up;
   -webkit-touch-callout: none;
   user-select: none;
 }
+
+.zone-balayable.zone-remontee { touch-action: pan-y; }
 
 .indice-glisse {
   position: absolute;

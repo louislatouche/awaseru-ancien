@@ -9,8 +9,8 @@
 //   fin      : la pièce est terminée
 //
 // En mode Gestes (réglage Navigation), pas de boutons Pause et Suivant : on pousse l'écran vers le
-// haut pour passer à la réplique suivante, vers le bas pour revenir à la précédente, et l'on touche
-// la réplique qui se lit pour la mettre en pause.
+// haut pour passer à la réplique suivante, et l'on touche la réplique qui se lit pour la mettre en
+// pause. Le doigt qui descend fait simplement défiler l'écran, pour relire les répliques passées.
 
 import { cascade, definirRetour, el, icone, remplacer } from '../dom.js';
 import {
@@ -50,22 +50,15 @@ export function afficherFilage(racine, piece) {
   let jeton = 0;
   let verrouEcran = null;
   let temoin = null; // mode Gestes : la petite icône pause / lecture sur la réplique lue (voir majTemoin)
-  // Ce que chaque ligne a ajouté au journal (titre de scène, avis, carte), rangé par sa position.
-  // Pour revenir en arrière, on retire ces éléments, puis on remontre la ligne d'avant.
-  const traces = new Map();
 
   const journal = el('div', { className: 'journal' });
   const commandes = el('div', { className: 'commandes' });
 
-  // Mode Gestes : pousser le journal vers le haut fait comme Suivant, vers le bas revient en arrière.
-  if (gestes) {
-    brancherBalayage(journal, {
-      haut: avancer,
-      bas: reculer,
-      // Vers le haut, tant que la pièce n'est pas finie ; vers le bas, tant qu'il reste une ligne avant.
-      permis: (sens) => (sens === 'haut' ? etat !== 'fin' : position > 0),
-    });
-  }
+  // Mode Gestes : pousser le journal vers le haut fait comme Suivant, tant que la pièce n'est pas finie.
+  // arreterBalayage sert au nettoyage, quand on quitte l'écran.
+  const arreterBalayage = gestes
+    ? brancherBalayage(journal, { suivant: avancer, permis: () => etat !== 'fin' })
+    : null;
 
   // ---- Garder l'écran allumé : sans cela, le téléphone se verrouille pendant qu'il lit. ----
 
@@ -141,10 +134,9 @@ export function afficherFilage(racine, piece) {
   // ---- Le déroulement ----
 
   function montrerLigne(ligne) {
-    const ajouts = []; // tout ce que cette ligne ajoute au journal, pour pouvoir l'en retirer
     if (ligne.scene !== derniereScene) {
       derniereScene = ligne.scene;
-      ajouts.push(creerTitreScene(ligne.scene));
+      journal.append(creerTitreScene(ligne.scene));
     }
     const mienne = selection.has(ligne.numero);
     const index = lignes.indexOf(ligne);
@@ -189,9 +181,7 @@ export function afficherFilage(racine, piece) {
     }
     carteCourante = carte;
     carteCourante.classList.add('courante');
-    ajouts.push(...avis, carte);
-    traces.set(index, ajouts);
-    journal.append(...ajouts);
+    journal.append(...avis, carte);
   }
 
   async function jouerEtape(dejaAffichee = false) {
@@ -247,25 +237,6 @@ export function afficherFilage(racine, piece) {
     else jouerEtape();
   }
 
-  // Revenir à la ligne précédente (mode Gestes : pousser l'écran vers le bas). La ligne en cours et
-  // celle d'avant quittent le journal, puis celle d'avant y revient comme neuve : cachée si c'est ma
-  // réplique, relue si c'est celle d'un autre. Depuis la fin de la pièce, on revient à la dernière ligne.
-  function reculer() {
-    if (position === 0) return;
-    jeton += 1;
-    arreterVoix();
-    if (!verrouEcran) garderEcranAllume();
-    for (const rang of [position, position - 1]) {
-      for (const element of traces.get(rang) ?? []) element.remove();
-      traces.delete(rang);
-    }
-    position -= 1;
-    // Le titre de scène revient si la ligne restée juste avant au journal était d'une autre scène
-    // (ou s'il n'en reste aucune : le filage avait commencé ici).
-    derniereScene = traces.has(position - 1) ? lignes[position - 1].scene : null;
-    jouerEtape();
-  }
-
   // Sur Android, speechSynthesis.pause() coupe la voix sans jamais prévenir qu'elle a fini
   // (c'est documenté dans le code d'EasySpeech). On annule donc vraiment la lecture,
   // et « Reprendre » relit la réplique depuis son début.
@@ -287,7 +258,6 @@ export function afficherFilage(racine, piece) {
     oublierPosition();
     libererEcran();
     const fin = el('p', { className: 'avis fin-piece' }, t('Fin de la pièce.'));
-    traces.set(position, [fin]); // en mode Gestes, on peut encore revenir à la dernière ligne
     journal.append(fin);
     remplacer(commandes, el('button', { type: 'button', className: 'btn', onclick: ecranDepart }, t('Recommencer un filage')));
     commandes.hidden = false;
@@ -328,7 +298,6 @@ export function afficherFilage(racine, piece) {
     derniereScene = null;
     carteCourante = null;
     remplacer(journal);
-    traces.clear();
     // Pas d'interrupteurs Furigana et Traduction ici : ils se règlent avant, sur l'écran de départ.
     remplacer(racine,
       sansVoix && creerAvisVoix(piece),
@@ -402,6 +371,7 @@ export function afficherFilage(racine, piece) {
     jeton += 1;
     etat = 'depart';
     document.removeEventListener('visibilitychange', surVisibilite);
+    arreterBalayage?.();
     libererEcran();
   };
 }

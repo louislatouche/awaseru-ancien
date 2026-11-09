@@ -4,7 +4,7 @@
 // Ce fichier ajoute trois gestes :
 // - l'appui long : garder le doigt une demi-seconde sur la carte ;
 // - le glissement : tirer la carte à droite ou à gauche, comme une carte qu'on écarte d'un paquet ;
-// - le balayage vertical du filage, tout en bas du fichier : pousser l'écran vers le haut ou le bas.
+// - le balayage du filage, tout en bas du fichier : pousser l'écran vers le haut pour la suite.
 //
 // Le navigateur garde le défilement vertical (touch-action: pan-y dans style.css) : un doigt qui
 // part vers le haut ou le bas fait défiler l'écran, un doigt qui part sur le côté tire la carte.
@@ -182,35 +182,46 @@ export function brancherGestes(carte, { maintenir = null, glisser = null }) {
   return cadre;
 }
 
-// ---- Le balayage vertical, pour le filage en mode Gestes ----
+// ---- Le balayage vers le haut, pour le filage en mode Gestes ----
 //
-// Toute une zone (le journal du filage) se pousse vers le haut ou vers le bas, comme une liste qu'on
-// fait défiler : vers le haut, on passe à la suite ; vers le bas, on revient en arrière. Le
-// navigateur ne fait donc plus défiler cette zone lui-même (touch-action: none dans style.css) :
-// c'est ce geste qui mène d'une réplique à l'autre, et l'écran se recentre seul sur la nouvelle.
+// En bas du journal du filage, là où se trouve la réplique en cours, pousser le journal vers le
+// haut fait passer à la réplique suivante. Le doigt qui descend, lui, fait défiler l'écran
+// normalement, pour relire les répliques passées. C'est le rôle de touch-action: pan-up (dans
+// style.css) : le navigateur garde le défilement vers le haut (le doigt qui descend, malgré le nom)
+// et nous laisse l'autre sens. Une fois remonté dans le journal, l'écran défile dans les deux sens,
+// comme partout ailleurs : le geste ne reprend qu'une fois revenu en bas.
 //
 // Sur un écran tactile, tous les mouvements d'un doigt sont envoyés à l'élément où il s'est posé
 // (la carte touchée, par exemple), puis remontent jusqu'à la zone : elle les voit donc tous.
 
-const SEUIL_BALAYAGE = 60; // pixels à parcourir vers le haut ou le bas pour valider
+const SEUIL_BALAYAGE = 60; // pixels à parcourir vers le haut pour valider
 const AMORTI = 0.35;       // la zone suit le doigt, mais de loin : un tiers de son trajet
+const MARGE_BOUT = 40;     // pixels : à moins de cette distance du bas, l'écran est « en bas du journal »
 
 // zone : l'élément qui reçoit le geste.
-// haut, bas : appelées quand le doigt pousse la zone vers le haut, ou vers le bas.
-// permis(sens) : sens vaut 'haut' ou 'bas'. Faux si ce geste ne mène nulle part (rien avant la
-//   première ligne, par exemple) : la zone résiste alors, et revient sans rien faire.
-export function brancherBalayage(zone, { haut, bas, permis = () => true }) {
+// suivant : appelée quand le doigt pousse la zone vers le haut, en bas du journal.
+// permis() : faux si le geste ne mène nulle part (la pièce est finie) : la zone résiste alors,
+//   et revient sans rien faire.
+// Renvoie une fonction à appeler quand l'écran disparaît : elle cesse de suivre le défilement.
+export function brancherBalayage(zone, { suivant, permis = () => true }) {
   let doigt = null;        // le doigt posé : son numéro et l'endroit où il s'est posé
-  let sens = null;         // null tant qu'on ne sait pas, puis 'vertical' (la zone suit) ou 'ignore'
-  let ecart = 0;           // de combien le doigt est allé vers le bas (positif) ou le haut (négatif)
+  let sens = null;         // null tant qu'on ne sait pas, puis 'haut' (la zone suit) ou 'ignore'
+  let ecart = 0;           // de combien le doigt est monté (en négatif, comme les coordonnées)
   let precedent = null;    // la position et l'heure du mouvement d'avant, pour mesurer la vitesse
   let vitesse = 0;
   let ignorerClic = false; // après un balayage, le « click » du lâcher ne compte pas
   let glissade = null;     // l'animation qui poursuit le dernier balayage (voir poursuivre)
+  const ecran = document.getElementById('ecran'); // la zone principale de l'app, celle qui défile
 
   zone.classList.add('zone-balayable');
 
-  const sensDe = (decalage) => (decalage < 0 ? 'haut' : 'bas');
+  // Remonté dans le journal ? La classe zone-remontee rend alors le défilement normal (style.css).
+  // Le navigateur lit touch-action au moment où le doigt se pose : elle doit être prête avant.
+  function suivreDefilement() {
+    const resteEnDessous = ecran.scrollHeight - ecran.clientHeight - ecran.scrollTop;
+    zone.classList.toggle('zone-remontee', resteEnDessous > MARGE_BOUT);
+  }
+  ecran.addEventListener('scroll', suivreDefilement, { passive: true });
 
   function placer(decalage) {
     if (mouvementReduit()) return;
@@ -227,11 +238,11 @@ export function brancherBalayage(zone, { haut, bas, permis = () => true }) {
     setTimeout(() => { zone.style.transition = ''; }, 250);
   }
 
-  // Geste validé : la zone ne revient pas en arrière, elle poursuit sa course dans le sens du doigt.
+  // Geste validé : la zone ne revient pas en arrière, elle poursuit sa course vers le haut.
   //
-  // Sans précaution, deux mouvements se contrariaient : la zone revenait à sa place (vers le bas,
-  // après un geste vers le haut) pendant que l'écran défilait doucement jusqu'à la nouvelle
-  // réplique (vers le haut). D'où un petit rebond. On n'en fait donc plus qu'un seul :
+  // Sans précaution, deux mouvements se contrariaient : la zone revenait à sa place (vers le bas)
+  // pendant que l'écran défilait doucement jusqu'à la nouvelle réplique (vers le haut). D'où un
+  // petit rebond. On n'en fait donc plus qu'un seul :
   // 1. on note où se trouve la zone à l'écran, là où le doigt l'a laissée ;
   // 2. on fait l'action en sautant directement à la nouvelle réplique, sans défilement doux ;
   // 3. on mesure où la zone est arrivée, on la ramène visuellement à son point de départ, puis on
@@ -243,7 +254,6 @@ export function brancherBalayage(zone, { haut, bas, permis = () => true }) {
       action();
       return;
     }
-    const ecran = document.getElementById('ecran'); // la zone principale de l'app, celle qui défile
     const depart = zone.getBoundingClientRect().top;
     zone.style.transition = '';
     zone.style.transform = '';
@@ -259,7 +269,7 @@ export function brancherBalayage(zone, { haut, bas, permis = () => true }) {
   }
 
   function abandonner() {
-    if (sens === 'vertical') revenir();
+    if (sens === 'haut') revenir();
     doigt = null;
     sens = null;
   }
@@ -289,39 +299,42 @@ export function brancherBalayage(zone, { haut, bas, permis = () => true }) {
     if (sens === null) {
       if (Math.hypot(ecartX, ecartY) < 10) return; // le doigt tremble à peine : c'est encore un toucher
       ignorerClic = true; // il bouge : ce n'est plus un toucher
-      // Plus vertical qu'horizontal : la zone suit. Sur le côté : on laisse faire, il ne se passera rien.
-      sens = Math.abs(ecartY) > Math.abs(ecartX) ? 'vertical' : 'ignore';
-      if (sens === 'vertical') zone.classList.add('en-glisse');
+      // Le doigt monte (plus qu'il ne va sur le côté) et l'écran est en bas du journal : la zone
+      // suit. Sinon, c'est un défilement normal, ou rien : le navigateur s'en charge.
+      const monte = ecartY < 0 && Math.abs(ecartY) > Math.abs(ecartX);
+      sens = monte && !zone.classList.contains('zone-remontee') ? 'haut' : 'ignore';
+      if (sens === 'haut') zone.classList.add('en-glisse');
     }
-    if (sens !== 'vertical') return;
+    if (sens !== 'haut') return;
 
     if (evenement.timeStamp > precedent.temps) {
       vitesse = (ecartY - precedent.ecart) / (evenement.timeStamp - precedent.temps);
     }
     precedent = { ecart: ecartY, temps: evenement.timeStamp };
-    ecart = ecartY;
+    ecart = Math.min(ecartY, 0); // si le doigt redescend plus bas que son départ, la zone s'arrête à sa place
     // Un geste qui ne mène nulle part : la zone résiste davantage, elle ne bouge qu'à peine.
-    placer(ecart * (permis(sensDe(ecart)) ? AMORTI : AMORTI / 4));
+    placer(ecart * (permis() ? AMORTI : AMORTI / 4));
   });
 
   zone.addEventListener('pointerup', (evenement) => {
     if (!doigt || evenement.pointerId !== doigt.numero) return;
-    const vertical = sens === 'vertical';
+    const versLeHaut = sens === 'haut';
     doigt = null;
     sens = null;
-    if (!vertical) return;
+    if (!versLeHaut) return;
 
-    const assezLoin = Math.abs(ecart) > SEUIL_BALAYAGE;
-    const lance = Math.abs(vitesse) > VITESSE_LANCER && Math.abs(ecart) > DISTANCE_LANCER
-      && Math.sign(vitesse) === Math.sign(ecart);
-    if ((!assezLoin && !lance) || !permis(sensDe(ecart))) {
+    // Les écarts et la vitesse sont négatifs vers le haut : on compare donc leur opposé.
+    const assezLoin = -ecart > SEUIL_BALAYAGE;
+    const lance = -vitesse > VITESSE_LANCER && -ecart > DISTANCE_LANCER;
+    if ((!assezLoin && !lance) || !permis()) {
       revenir();
       return;
     }
     navigator.vibrate?.(15);
-    poursuivre(ecart < 0 ? haut : bas);
+    poursuivre(suivant);
   });
 
+  // Le navigateur prend la main (le doigt est parti faire défiler l'écran) : la zone revient.
   zone.addEventListener('pointercancel', abandonner);
 
   // Comme pour la carte plus haut : le « click » qui suit un balayage ne doit rien déclencher. Cet
@@ -331,4 +344,6 @@ export function brancherBalayage(zone, { haut, bas, permis = () => true }) {
     ignorerClic = false;
     evenement.stopImmediatePropagation();
   }, { capture: true });
+
+  return () => ecran.removeEventListener('scroll', suivreDefilement);
 }
