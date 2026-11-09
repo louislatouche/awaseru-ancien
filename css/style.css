@@ -418,9 +418,9 @@ button.replique:disabled { cursor: default; }
 /* Mes répliques : surlignées en ambre, le second accent du kit. */
 .replique.mienne { background: var(--star-soft); }
 
-/* La réplique lue passe en sauge pâle. En filage, ma réplique garde son ambre : l'ombre plus
-   profonde suffit à la distinguer, puisqu'elle est au centre de l'écran. */
-.replique.en-lecture, .replique.courante:not(.mienne) { background: var(--accent-soft); }
+/* La réplique lue passe en sauge pâle. Sauf la mienne, qui garde son ambre partout (Script, filage,
+   relecture) : l'ombre plus profonde et le filet suffisent à la distinguer. */
+.replique.en-lecture:not(.mienne), .replique.courante:not(.mienne) { background: var(--accent-soft); }
 .replique.en-lecture, .replique.courante { box-shadow: var(--shadow-soft); }
 
 /* Filage en mode Gestes : pendant qu'une réplique passée se relit, la réplique en cours, interrompue,
@@ -457,10 +457,6 @@ button.replique:disabled { cursor: default; }
 .filet-lecture .piste { stroke: color-mix(in srgb, var(--accent) 20%, transparent); }
 .filet-lecture .trait-lecture { stroke: var(--accent); stroke-linecap: round; }
 
-/* La petite icône lecture / pause dans l'en-tête de la carte du signal : la carte entière est le bouton. */
-.temoin-lecture { display: flex; margin-inline-start: auto; color: var(--accent-dark); }
-.statut + .temoin-lecture { margin-inline-start: 0; }
-.temoin-lecture svg { width: 20px; height: 20px; }
 
 .replique-tete { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; font-size: 15px; line-height: 1.6; }
 .numero { font-weight: 700; color: var(--accent-dark); font-variant-numeric: tabular-nums; }

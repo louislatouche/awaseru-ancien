@@ -83,6 +83,7 @@ export function brancherGestes(carte, { maintenir = null, glisser = null }) {
 
   function abandonner() {
     clearTimeout(minuterie);
+    minuterie = null;
     if (sens === 'cote') revenir();
     doigt = null;
     sens = null;
@@ -98,19 +99,23 @@ export function brancherGestes(carte, { maintenir = null, glisser = null }) {
       abandonner();
       return;
     }
-    doigt = { numero: evenement.pointerId, x: evenement.clientX, y: evenement.clientY };
+    doigt = { numero: evenement.pointerId, type: evenement.pointerType, x: evenement.clientX, y: evenement.clientY };
     sens = null;
     ecart = 0;
     precedent = { ecart: 0, temps: evenement.timeStamp };
     vitesse = 0;
-    if (maintenir) {
-      minuterie = setTimeout(() => {
-        ignorerClic = true;
-        navigator.vibrate?.(20); // un petit retour sous le doigt, sur les téléphones qui vibrent
-        maintenir();
-      }, DUREE_APPUI_LONG);
-    }
+    if (maintenir) minuterie = setTimeout(appuiLong, DUREE_APPUI_LONG);
   });
+
+  // L'appui long est reconnu : un petit retour sous le doigt (sur les téléphones qui vibrent), et le
+  // « click » que le navigateur enverra peut-être au lâcher ne comptera pas.
+  function appuiLong() {
+    clearTimeout(minuterie);
+    minuterie = null;
+    ignorerClic = true;
+    navigator.vibrate?.(20);
+    maintenir();
+  }
 
   carte.addEventListener('pointermove', (evenement) => {
     if (!doigt || evenement.pointerId !== doigt.numero) return;
@@ -120,6 +125,7 @@ export function brancherGestes(carte, { maintenir = null, glisser = null }) {
     if (sens === null) {
       if (Math.hypot(ecartX, ecartY) < 10) return; // le doigt tremble à peine : c'est encore un toucher
       clearTimeout(minuterie); // il bouge : ce n'est plus un appui long...
+      minuterie = null;
       ignorerClic = true;      // ... ni un toucher
       // Plus horizontal que vertical : on tire la carte. Sinon, on laisse l'écran défiler.
       sens = glisser && Math.abs(ecartX) > Math.abs(ecartY) ? 'cote' : 'defile';
@@ -148,6 +154,7 @@ export function brancherGestes(carte, { maintenir = null, glisser = null }) {
   carte.addEventListener('pointerup', (evenement) => {
     if (!doigt || evenement.pointerId !== doigt.numero) return;
     clearTimeout(minuterie);
+    minuterie = null;
     const surLeCote = sens === 'cote';
     doigt = null;
     sens = null;
@@ -180,7 +187,17 @@ export function brancherGestes(carte, { maintenir = null, glisser = null }) {
     ignorerClic = false;
     evenement.stopImmediatePropagation();
   }, { capture: true });
-  if (maintenir) carte.addEventListener('contextmenu', (evenement) => evenement.preventDefault()); // pas de menu Android
+  // Sur Android, le navigateur reconnaît lui-même l'appui long : c'est l'événement contextmenu, qui
+  // ouvrirait son menu (copier, partager...). On l'en empêche, et on s'en sert : l'appui long compte
+  // dès cet instant, sans attendre notre minuterie. Car un navigateur peut couper le toucher juste
+  // après (pointercancel), et notre minuterie n'aurait alors jamais sonné. Le doigt doit être encore
+  // posé sans avoir bougé, et la minuterie encore en attente : sinon, c'est un autre geste.
+  if (maintenir) {
+    carte.addEventListener('contextmenu', (evenement) => {
+      evenement.preventDefault();
+      if (doigt?.type === 'touch' && sens === null && minuterie) appuiLong();
+    });
+  }
 
   return cadre;
 }

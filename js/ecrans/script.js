@@ -29,31 +29,22 @@ export function afficherScript(racine, piece) {
   // La carte en train d'être lue, pour la mettre en évidence et pouvoir la piloter.
   let carteActive = null;
   let etat = 'arret'; // 'arret', 'lecture' ou 'pause'
-  let temoin = null;  // la petite icône lecture / pause dans l'en-tête de la carte lue
   // Le jeton change à chaque arrêt ou nouveau départ : une lecture en continu abandonnée
   // le voit en se réveillant, et s'arrête d'elle-même au lieu d'enchaîner.
   let jeton = 0;
   let verrouEcran = null;
 
-  // L'icône montre ce que fera le prochain toucher : ⏸ pendant la lecture, ▶ pendant la pause.
-  function dessinerTemoin() {
-    if (temoin) remplacer(temoin, icone(etat === 'lecture' ? 'pause' : 'lecture'));
-  }
-
+  // La carte lue se distingue par son ombre, sa couleur (sauf la mienne, qui garde son ambre) et le
+  // filet qui en fait le tour. Aucune icône : Louis n'en veut pas sur les cartes.
   function activer(carte) {
     eteindre();
     carteActive = carte;
     etat = 'lecture';
     carte.classList.add('en-lecture');
-    temoin = el('span', { className: 'temoin-lecture', 'aria-hidden': 'true' });
-    carte.querySelector('.replique-tete')?.append(temoin);
-    dessinerTemoin();
   }
 
   function eteindre() {
     carteActive?.classList.remove('en-lecture');
-    temoin?.remove();
-    temoin = null;
     carteActive = null;
     etat = 'arret';
   }
@@ -119,7 +110,6 @@ export function afficherScript(racine, piece) {
   function mettreEnPause() {
     mettreEnPauseVoix();
     etat = 'pause';
-    dessinerTemoin();
     libererEcran();
   }
 
@@ -128,7 +118,6 @@ export function afficherScript(racine, piece) {
     // Un fichier mis en pause repart d'où il était. Entre deux répliques, rien à relancer :
     // la boucle de lireAPartirDe voit la reprise et passe d'elle-même à la suivante.
     reprendreVoix();
-    dessinerTemoin();
     garderEcranAllume();
   }
 
