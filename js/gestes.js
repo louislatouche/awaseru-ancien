@@ -1,9 +1,10 @@
 // Les gestes sur ma réplique, pour le mode Gestes du réglage Navigation.
 //
 // Toucher la carte reste un simple « click », géré par la carte elle-même (voir creerReplique).
-// Ce fichier ajoute deux gestes :
+// Ce fichier ajoute trois gestes :
 // - l'appui long : garder le doigt une demi-seconde sur la carte ;
-// - le glissement : tirer la carte à droite ou à gauche, comme une carte qu'on écarte d'un paquet.
+// - le glissement : tirer la carte à droite ou à gauche, comme une carte qu'on écarte d'un paquet ;
+// - le balayage vertical du filage, tout en bas du fichier : pousser l'écran vers le haut ou le bas.
 //
 // Le navigateur garde le défilement vertical (touch-action: pan-y dans style.css) : un doigt qui
 // part vers le haut ou le bas fait défiler l'écran, un doigt qui part sur le côté tire la carte.
@@ -179,4 +180,119 @@ export function brancherGestes(carte, { maintenir = null, glisser = null }) {
   if (maintenir) carte.addEventListener('contextmenu', (evenement) => evenement.preventDefault()); // pas de menu Android
 
   return cadre;
+}
+
+// ---- Le balayage vertical, pour le filage en mode Gestes ----
+//
+// Toute une zone (le journal du filage) se pousse vers le haut ou vers le bas, comme une liste qu'on
+// fait défiler : vers le haut, on passe à la suite ; vers le bas, on revient en arrière. Le
+// navigateur ne fait donc plus défiler cette zone lui-même (touch-action: none dans style.css) :
+// c'est ce geste qui mène d'une réplique à l'autre, et l'écran se recentre seul sur la nouvelle.
+//
+// Sur un écran tactile, tous les mouvements d'un doigt sont envoyés à l'élément où il s'est posé
+// (la carte touchée, par exemple), puis remontent jusqu'à la zone : elle les voit donc tous.
+
+const SEUIL_BALAYAGE = 60; // pixels à parcourir vers le haut ou le bas pour valider
+const AMORTI = 0.35;       // la zone suit le doigt, mais de loin : un tiers de son trajet
+
+// zone : l'élément qui reçoit le geste.
+// haut, bas : appelées quand le doigt pousse la zone vers le haut, ou vers le bas.
+// permis(sens) : sens vaut 'haut' ou 'bas'. Faux si ce geste ne mène nulle part (rien avant la
+//   première ligne, par exemple) : la zone résiste alors, et revient sans rien faire.
+export function brancherBalayage(zone, { haut, bas, permis = () => true }) {
+  let doigt = null;        // le doigt posé : son numéro et l'endroit où il s'est posé
+  let sens = null;         // null tant qu'on ne sait pas, puis 'vertical' (la zone suit) ou 'ignore'
+  let ecart = 0;           // de combien le doigt est allé vers le bas (positif) ou le haut (négatif)
+  let precedent = null;    // la position et l'heure du mouvement d'avant, pour mesurer la vitesse
+  let vitesse = 0;
+  let ignorerClic = false; // après un balayage, le « click » du lâcher ne compte pas
+
+  zone.classList.add('zone-balayable');
+
+  const sensDe = (decalage) => (decalage < 0 ? 'haut' : 'bas');
+
+  function placer(decalage) {
+    if (mouvementReduit()) return;
+    zone.style.transform = `translateY(${decalage}px)`;
+  }
+
+  // La zone revient en souplesse à sa place, avec la courbe « feutre » de style.css.
+  function revenir() {
+    zone.classList.remove('en-glisse');
+    if (!zone.style.transform) return;
+    zone.style.transition = 'transform .25s cubic-bezier(.22, 1, .36, 1)';
+    zone.style.transform = '';
+    setTimeout(() => { zone.style.transition = ''; }, 250);
+  }
+
+  function abandonner() {
+    if (sens === 'vertical') revenir();
+    doigt = null;
+    sens = null;
+  }
+
+  zone.addEventListener('pointerdown', (evenement) => {
+    // Un second doigt pendant le geste : on abandonne.
+    if (doigt) {
+      abandonner();
+      return;
+    }
+    doigt = { numero: evenement.pointerId, x: evenement.clientX, y: evenement.clientY };
+    sens = null;
+    ecart = 0;
+    precedent = { ecart: 0, temps: evenement.timeStamp };
+    vitesse = 0;
+    ignorerClic = false;
+  });
+
+  zone.addEventListener('pointermove', (evenement) => {
+    if (!doigt || evenement.pointerId !== doigt.numero) return;
+    const ecartX = evenement.clientX - doigt.x;
+    const ecartY = evenement.clientY - doigt.y;
+
+    if (sens === null) {
+      if (Math.hypot(ecartX, ecartY) < 10) return; // le doigt tremble à peine : c'est encore un toucher
+      ignorerClic = true; // il bouge : ce n'est plus un toucher
+      // Plus vertical qu'horizontal : la zone suit. Sur le côté : on laisse faire, il ne se passera rien.
+      sens = Math.abs(ecartY) > Math.abs(ecartX) ? 'vertical' : 'ignore';
+      if (sens === 'vertical') zone.classList.add('en-glisse');
+    }
+    if (sens !== 'vertical') return;
+
+    if (evenement.timeStamp > precedent.temps) {
+      vitesse = (ecartY - precedent.ecart) / (evenement.timeStamp - precedent.temps);
+    }
+    precedent = { ecart: ecartY, temps: evenement.timeStamp };
+    ecart = ecartY;
+    // Un geste qui ne mène nulle part : la zone résiste davantage, elle ne bouge qu'à peine.
+    placer(ecart * (permis(sensDe(ecart)) ? AMORTI : AMORTI / 4));
+  });
+
+  zone.addEventListener('pointerup', (evenement) => {
+    if (!doigt || evenement.pointerId !== doigt.numero) return;
+    const vertical = sens === 'vertical';
+    doigt = null;
+    sens = null;
+    if (!vertical) return;
+
+    revenir();
+    const assezLoin = Math.abs(ecart) > SEUIL_BALAYAGE;
+    const lance = Math.abs(vitesse) > VITESSE_LANCER && Math.abs(ecart) > DISTANCE_LANCER
+      && Math.sign(vitesse) === Math.sign(ecart);
+    if (!assezLoin && !lance) return;
+    if (!permis(sensDe(ecart))) return;
+    navigator.vibrate?.(15);
+    if (ecart < 0) haut();
+    else bas();
+  });
+
+  zone.addEventListener('pointercancel', abandonner);
+
+  // Comme pour la carte plus haut : le « click » qui suit un balayage ne doit rien déclencher. Cet
+  // écouteur en phase de capture passe avant ceux des cartes, qui sont à l'intérieur de la zone.
+  zone.addEventListener('click', (evenement) => {
+    if (!ignorerClic) return;
+    ignorerClic = false;
+    evenement.stopImmediatePropagation();
+  }, { capture: true });
 }

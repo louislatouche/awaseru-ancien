@@ -7,8 +7,12 @@
 //   manuel   : pas de voix japonaise, l'app attend aussi sur les répliques des autres
 //   pause    : arrêté par l'utilisateur (ou parce que l'écran s'est éteint)
 //   fin      : la pièce est terminée
+//
+// En mode Gestes (réglage Navigation), pas de boutons Pause et Suivant : on pousse l'écran vers le
+// haut pour passer à la réplique suivante, vers le bas pour revenir à la précédente, et l'on touche
+// la réplique qui se lit pour la mettre en pause.
 
-import { cascade, definirRetour, el, remplacer } from '../dom.js';
+import { cascade, definirRetour, el, icone, remplacer } from '../dom.js';
 import {
   audioActif, creerAvisEnchainement, creerAvisVoix, creerBoutonIcone, creerChoixUnique, creerEcoute,
   creerInterrupteurs, creerReplique, creerTitreScene, creerTitreVue, lireReplique, suivreLecture,
@@ -19,7 +23,7 @@ import { lireReglages, lireSelection, lireStatuts } from '../stockage.js';
 import { creerJaponais, texteAParler } from '../texte.js';
 import { arreterVoix, voixJaponaises, voixPretes } from '../voix.js';
 import { noterPosition, oublierPosition, positionAReprendre } from '../reprise.js';
-import { brancherGestes } from '../gestes.js';
+import { brancherBalayage, brancherGestes } from '../gestes.js';
 
 const SILENCE_ENTRE_REPLIQUES = 350; // millisecondes, pour que ça respire
 const DUREE_LIGNE_MUETTE = 1500;     // le temps de lire une ligne qui n'est qu'une didascalie
@@ -29,6 +33,9 @@ const attendre = (duree) => new Promise((resolve) => { setTimeout(resolve, duree
 export function afficherFilage(racine, piece) {
   const lignes = lignesDe(piece);
   const selection = lireSelection(piece);
+  // Le réglage Navigation ne peut pas changer pendant le filage : les Réglages sont un autre écran,
+  // et le filage se reconstruit quand on en revient.
+  const gestes = lireReglages().navigation === 'gestes';
 
   let etat = 'depart';
   let position = 0;
@@ -42,9 +49,23 @@ export function afficherFilage(racine, piece) {
   // Pause ou Suivant pendant l'attente, et cette tâche doit simplement s'arrêter sans rien faire.
   let jeton = 0;
   let verrouEcran = null;
+  let temoin = null; // mode Gestes : la petite icône pause / lecture sur la réplique lue (voir majTemoin)
+  // Ce que chaque ligne a ajouté au journal (titre de scène, avis, carte), rangé par sa position.
+  // Pour revenir en arrière, on retire ces éléments, puis on remontre la ligne d'avant.
+  const traces = new Map();
 
   const journal = el('div', { className: 'journal' });
   const commandes = el('div', { className: 'commandes' });
+
+  // Mode Gestes : pousser le journal vers le haut fait comme Suivant, vers le bas revient en arrière.
+  if (gestes) {
+    brancherBalayage(journal, {
+      haut: avancer,
+      bas: reculer,
+      // Vers le haut, tant que la pièce n'est pas finie ; vers le bas, tant qu'il reste une ligne avant.
+      permis: (sens) => (sens === 'haut' ? etat !== 'fin' : position > 0),
+    });
+  }
 
   // ---- Garder l'écran allumé : sans cela, le téléphone se verrouille pendant qu'il lit. ----
 
@@ -69,28 +90,42 @@ export function afficherFilage(racine, piece) {
   function afficherCommandes() {
     const aMoi = etat === 'a-moi';
     const boutons = [];
+    majTemoin();
 
-    // En mode Gestes, voir et écouter ma réplique se font en touchant la carte : pas de boutons pour cela.
-    if (aMoi && lireReglages().navigation !== 'gestes') {
-      boutonVoir = creerBoutonIcone('voir', t('Voir'), 'btn-ghost', devoiler);
-      boutonVoir.disabled = !carteCourante.classList.contains('est-cachee');
-      boutons.push(el('div', { className: 'boutons boutons-apparition' }, boutonVoir, ecouteCourante.bouton));
+    // En mode Gestes, aucun bouton : voir et écouter ma réplique se font en touchant sa carte, la
+    // pause en touchant la réplique qui se lit, et l'on passe d'une ligne à l'autre en poussant l'écran.
+    if (!gestes) {
+      if (aMoi) {
+        boutonVoir = creerBoutonIcone('voir', t('Voir'), 'btn-ghost', devoiler);
+        boutonVoir.disabled = !carteCourante.classList.contains('est-cachee');
+        boutons.push(el('div', { className: 'boutons boutons-apparition' }, boutonVoir, ecouteCourante.bouton));
+      }
+
+      const enPause = etat === 'pause';
+      boutons.push(el('div', { className: 'boutons' },
+        el('button', {
+          type: 'button',
+          className: 'btn-ghost',
+          // Pause n'a de sens que si l'app est en train de lire.
+          disabled: !(etat === 'lecture' || enPause),
+          onclick: enPause ? reprendre : mettreEnPause,
+        }, enPause ? t('Reprendre') : t('Pause')),
+        el('button', { type: 'button', className: 'btn', onclick: avancer }, t('Suivant'))));
     }
 
-    const enPause = etat === 'pause';
-    boutons.push(el('div', { className: 'boutons' },
-      el('button', {
-        type: 'button',
-        className: 'btn-ghost',
-        // Pause n'a de sens que si l'app est en train de lire.
-        disabled: !(etat === 'lecture' || enPause),
-        onclick: enPause ? reprendre : mettreEnPause,
-      }, enPause ? t('Reprendre') : t('Pause')),
-      el('button', { type: 'button', className: 'btn', onclick: avancer }, t('Suivant'))));
-
     remplacer(commandes, boutons);
+    commandes.hidden = boutons.length === 0; // vide, la barre du bas n'aurait plus rien à montrer
     // Après les boutons, et pas avant : leur hauteur change, et la carte pourrait se retrouver dessous.
     carteCourante.scrollIntoView({ block: 'center' });
+  }
+
+  // Mode Gestes : sur la réplique des autres qui se lit, une petite icône dit ce que fera un toucher.
+  // Pause pendant la lecture, lecture quand elle est arrêtée. Sans voix (état manuel), rien à toucher.
+  function majTemoin() {
+    if (!temoin) return;
+    const nom = { lecture: 'pause', pause: 'lecture' }[etat];
+    temoin.hidden = !nom;
+    if (nom) remplacer(temoin, icone(nom));
   }
 
   // Ma réplique se dévoile : par le bouton Voir, ou en touchant la carte.
@@ -103,9 +138,10 @@ export function afficherFilage(racine, piece) {
   // ---- Le déroulement ----
 
   function montrerLigne(ligne) {
+    const ajouts = []; // tout ce que cette ligne ajoute au journal, pour pouvoir l'en retirer
     if (ligne.scene !== derniereScene) {
       derniereScene = ligne.scene;
-      journal.append(creerTitreScene(ligne.scene));
+      ajouts.push(creerTitreScene(ligne.scene));
     }
     const mienne = selection.has(ligne.numero);
     const index = lignes.indexOf(ligne);
@@ -114,19 +150,27 @@ export function afficherFilage(racine, piece) {
     // Pour ma réplique : une écoute partagée entre le bouton ▶ et la carte, que l'on peut toucher
     // pour la voir, puis pour l'écouter. Une fois passée, la carte reste dans le journal sans réagir.
     ecouteCourante = mienne ? creerEcoute(ligne) : null;
-    const gestes = lireReglages().navigation === 'gestes';
     const ecoute = ecouteCourante;
     const enCours = () => carte === carteCourante && etat === 'a-moi';
-    const carte = creerReplique(ligne, piece, {
-      mienne,
-      cachee: mienne,
-      statut,
-      surTouche: mienne ? () => {
+
+    // Ce que fait un toucher sur la carte. Ma réplique : la voir, puis l'écouter. Celle d'un autre,
+    // en mode Gestes seulement : la mettre en pause, puis reprendre (avec les boutons, c'est Pause).
+    let surTouche = null;
+    if (mienne) {
+      surTouche = () => {
         if (!enCours()) return;
         if (carte.classList.contains('est-cachee')) devoiler();
         else ecoute.toucher();
-      } : null,
-    });
+      };
+    } else if (gestes) {
+      surTouche = () => {
+        if (carte !== carteCourante) return;
+        if (etat === 'lecture') mettreEnPause();
+        else if (etat === 'pause') reprendre();
+      };
+    }
+    const carte = creerReplique(ligne, piece, { mienne, cachee: mienne, statut, surTouche });
+
     // Mode Gestes : il n'y a pas de bouton ▶. Quand j'écoute ma réplique, c'est donc le filet de sa
     // carte qui suit la lecture (avec les boutons, le trait du bouton le fait déjà), et un appui long
     // sur la carte arrête l'écoute.
@@ -134,9 +178,17 @@ export function afficherFilage(racine, piece) {
       ecoute.lierCarte(carte);
       brancherGestes(carte, { maintenir: () => { if (enCours()) ecoute.arreter(); } });
     }
+    // Mode Gestes : la réplique d'un autre porte la petite icône pause / lecture, comme le signal des fiches.
+    temoin = null;
+    if (!mienne && gestes) {
+      temoin = el('span', { className: 'temoin-lecture', 'aria-hidden': 'true', hidden: true });
+      carte.querySelector('.replique-tete').append(temoin);
+    }
     carteCourante = carte;
-    journal.append(...avis, carteCourante);
     carteCourante.classList.add('courante');
+    ajouts.push(...avis, carte);
+    traces.set(index, ajouts);
+    journal.append(...ajouts);
   }
 
   async function jouerEtape(dejaAffichee = false) {
@@ -183,11 +235,32 @@ export function afficherFilage(racine, piece) {
     arreterVoix();
     if (!verrouEcran) garderEcranAllume(); // « Suivant » peut être touché pendant une pause
     carteCourante?.classList.remove('est-cachee', 'courante', 'is-syncing');
-    // Une carte touchable (ma réplique) devient inerte : seule la réplique en cours répond au doigt.
+    // Une carte touchable devient inerte : seule la réplique en cours répond au doigt.
     if (carteCourante instanceof HTMLButtonElement) carteCourante.disabled = true;
+    temoin?.remove();
+    temoin = null;
     position += 1;
     if (position >= lignes.length) terminer();
     else jouerEtape();
+  }
+
+  // Revenir à la ligne précédente (mode Gestes : pousser l'écran vers le bas). La ligne en cours et
+  // celle d'avant quittent le journal, puis celle d'avant y revient comme neuve : cachée si c'est ma
+  // réplique, relue si c'est celle d'un autre. Depuis la fin de la pièce, on revient à la dernière ligne.
+  function reculer() {
+    if (position === 0) return;
+    jeton += 1;
+    arreterVoix();
+    if (!verrouEcran) garderEcranAllume();
+    for (const rang of [position, position - 1]) {
+      for (const element of traces.get(rang) ?? []) element.remove();
+      traces.delete(rang);
+    }
+    position -= 1;
+    // Le titre de scène revient si la ligne restée juste avant au journal était d'une autre scène
+    // (ou s'il n'en reste aucune : le filage avait commencé ici).
+    derniereScene = traces.has(position - 1) ? lignes[position - 1].scene : null;
+    jouerEtape();
   }
 
   // Sur Android, speechSynthesis.pause() coupe la voix sans jamais prévenir qu'elle a fini
@@ -210,9 +283,12 @@ export function afficherFilage(racine, piece) {
     etat = 'fin';
     oublierPosition();
     libererEcran();
-    journal.append(el('p', { className: 'avis fin-piece' }, t('Fin de la pièce.')));
+    const fin = el('p', { className: 'avis fin-piece' }, t('Fin de la pièce.'));
+    traces.set(position, [fin]); // en mode Gestes, on peut encore revenir à la dernière ligne
+    journal.append(fin);
     remplacer(commandes, el('button', { type: 'button', className: 'btn', onclick: ecranDepart }, t('Recommencer un filage')));
-    journal.lastChild.scrollIntoView({ block: 'center' });
+    commandes.hidden = false;
+    fin.scrollIntoView({ block: 'center' });
   }
 
   // Si l'utilisateur quitte l'app ou éteint l'écran, on se met en pause plutôt que de continuer
@@ -249,10 +325,15 @@ export function afficherFilage(racine, piece) {
     derniereScene = null;
     carteCourante = null;
     remplacer(journal);
+    traces.clear();
+    // En mode Gestes, le journal ne défile plus au doigt : en haut, les interrupteurs seraient
+    // vite hors d'atteinte. Ils passent donc dessous, juste après la réplique en cours, comme dans les fiches.
+    const interrupteurs = creerInterrupteurs(piece.id);
     remplacer(racine,
       sansVoix && creerAvisVoix(piece),
-      creerInterrupteurs(piece.id),
+      !gestes && interrupteurs,
       journal,
+      gestes && interrupteurs,
       commandes,
     );
     if (!repris) {
