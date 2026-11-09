@@ -2239,9 +2239,9 @@
         {
           "numero": 29,
           "role": "narrateur",
-          "texte": "そこへ、えらい[殿様|とのさま]が[通|とお]りかかりました。",
-          "fr": "C'est alors que passa par là un grand Seigneur.",
-          "en": "Just then, a great Lord came passing by.",
+          "texte": "そこへ、[馬|うま]に[乗|の]ったえらい[殿様|とのさま]が[通|とお]りかかりました。",
+          "fr": "C'est alors que passa par là un grand Seigneur à cheval.",
+          "en": "Just then, a great Lord on horseback came passing by.",
           "mots": [
             {
               "t": "そこ",
@@ -2255,6 +2255,22 @@
             },
             {
               "t": "、"
+            },
+            {
+              "t": "[馬|うま]",
+              "v": "uma"
+            },
+            {
+              "t": "に",
+              "v": "ni",
+              "fr": "sur",
+              "en": "on"
+            },
+            {
+              "t": "[乗|の]った",
+              "v": "noru",
+              "fr": "monté (sur)",
+              "en": "riding"
             },
             {
               "t": "えらい",
@@ -3762,6 +3778,18 @@
       "mot": "へ",
       "fr": "vers (direction)",
       "en": "to, towards (direction)"
+    },
+    {
+      "id": "uma",
+      "mot": "[馬|うま]",
+      "fr": "cheval",
+      "en": "horse"
+    },
+    {
+      "id": "noru",
+      "mot": "[乗|の]る",
+      "fr": "monter (sur), être monté sur",
+      "en": "to ride, to get on"
     },
     {
       "id": "erai",
