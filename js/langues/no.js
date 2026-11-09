@@ -117,6 +117,7 @@ export default {
   'Commencer à partir de': 'Start fra',
   'Le début': 'Begynnelsen',
   'Lancer le filage': 'Start gjennomkjøringen',
+  'Lancer le filage complet': 'Start hele gjennomkjøringen',
 
   // Choix des répliques
   '{n} choisies': '{n} valgt',

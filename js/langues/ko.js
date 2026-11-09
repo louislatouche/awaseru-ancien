@@ -117,6 +117,7 @@ export default {
   'Commencer à partir de': '시작 위치',
   'Le début': '처음부터',
   'Lancer le filage': '리허설 시작',
+  'Lancer le filage complet': '전체 리허설 시작',
 
   // Choix des répliques
   '{n} choisies': '{n}개 선택',

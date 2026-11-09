@@ -117,6 +117,7 @@ export default {
   'Commencer à partir de': 'Beginnen vanaf',
   'Le début': 'Het begin',
   'Lancer le filage': 'Doorloop starten',
+  'Lancer le filage complet': 'Volledige doorloop starten',
 
   // Choix des répliques
   '{n} choisies': '{n} gekozen',

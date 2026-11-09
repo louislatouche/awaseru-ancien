@@ -118,6 +118,7 @@ export default {
   'Commencer à partir de': 'Zacznij od',
   'Le début': 'Początek',
   'Lancer le filage': 'Rozpocznij przebieg',
+  'Lancer le filage complet': 'Rozpocznij pełny przebieg',
 
   // Choix des répliques
   '{n} choisies': 'Wybrane: {n}',

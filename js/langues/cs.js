@@ -118,6 +118,7 @@ export default {
   'Commencer à partir de': 'Začít od',
   'Le début': 'Od začátku',
   'Lancer le filage': 'Spustit průchod',
+  'Lancer le filage complet': 'Spustit úplný průchod',
 
   // Choix des répliques
   '{n} choisies': 'Vybráno: {n}',

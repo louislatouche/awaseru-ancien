@@ -117,6 +117,7 @@ export default {
   'Commencer à partir de': 'Почати з',
   'Le début': 'Початок',
   'Lancer le filage': 'Почати прогін',
+  'Lancer le filage complet': 'Почати повний прогін',
 
   // Choix des répliques
   '{n} choisies': 'Обрано: {n}',

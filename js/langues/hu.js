@@ -118,6 +118,7 @@ export default {
   'Commencer à partir de': 'Kezdés innen',
   'Le début': 'Az elejétől',
   'Lancer le filage': 'Átfutás indítása',
+  'Lancer le filage complet': 'Teljes átfutás indítása',
 
   // Choix des répliques
   '{n} choisies': '{n} kiválasztva',

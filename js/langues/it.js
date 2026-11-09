@@ -117,6 +117,7 @@ export default {
   'Commencer à partir de': 'Parti da',
   'Le début': "L'inizio",
   'Lancer le filage': 'Avvia la prova completa',
+  'Lancer le filage complet': 'Avvia la prova con tutto il testo',
 
   // Choix des répliques
   '{n} choisies': '{n} scelte',

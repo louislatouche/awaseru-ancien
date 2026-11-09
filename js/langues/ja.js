@@ -118,6 +118,7 @@ export default {
   'Commencer à partir de': '開始位置',
   'Le début': '最初から',
   'Lancer le filage': '通し稽古を始める',
+  'Lancer le filage complet': '全文の通し稽古を始める',
 
   // Choix des répliques
   '{n} choisies': '{n} 個選択',

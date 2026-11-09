@@ -117,6 +117,7 @@ export default {
   'Commencer à partir de': 'Începe de la',
   'Le début': 'Începutul',
   'Lancer le filage': 'Pornește repetiția continuă',
+  'Lancer le filage complet': 'Pornește repetiția continuă completă',
 
   // Choix des répliques
   '{n} choisies': '{n} alese',

@@ -117,6 +117,7 @@ export default {
   'Commencer à partir de': 'Empezar desde',
   'Le début': 'El principio',
   'Lancer le filage': 'Iniciar el ensayo corrido',
+  'Lancer le filage complet': 'Iniciar el ensayo corrido completo',
 
   // Choix des répliques
   '{n} choisies': '{n} elegidas',

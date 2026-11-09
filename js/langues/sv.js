@@ -117,6 +117,7 @@ export default {
   'Commencer à partir de': 'Börja från',
   'Le début': 'Början',
   'Lancer le filage': 'Starta genomspelningen',
+  'Lancer le filage complet': 'Starta hela genomspelningen',
 
   // Choix des répliques
   '{n} choisies': '{n} valda',

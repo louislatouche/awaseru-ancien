@@ -118,6 +118,7 @@ export default {
   'Commencer à partir de': 'Έναρξη από',
   'Le début': 'Η αρχή',
   'Lancer le filage': 'Έναρξη συνεχούς πρόβας',
+  'Lancer le filage complet': 'Έναρξη πλήρους συνεχούς πρόβας',
 
   // Choix des répliques
   '{n} choisies': '{n} επιλεγμένες',

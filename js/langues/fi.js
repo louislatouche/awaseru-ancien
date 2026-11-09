@@ -118,6 +118,7 @@ export default {
   'Commencer à partir de': 'Aloituskohta',
   'Le début': 'Alusta',
   'Lancer le filage': 'Aloita läpiajo',
+  'Lancer le filage complet': 'Aloita koko läpiajo',
 
   // Choix des répliques
   '{n} choisies': '{n} valittua',

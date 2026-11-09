@@ -117,6 +117,7 @@ export default {
   'Commencer à partir de': 'Start from',
   'Le début': 'The beginning',
   'Lancer le filage': 'Start the run-through',
+  'Lancer le filage complet': 'Start the full run-through',
 
   // Choix des répliques
   '{n} choisies': '{n} chosen',

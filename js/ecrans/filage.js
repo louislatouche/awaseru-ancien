@@ -7,12 +7,16 @@
 //   manuel   : pas de voix japonaise, l'app attend aussi sur les répliques des autres
 //   pause    : arrêté par l'utilisateur (ou parce que l'écran s'est éteint)
 //   fin      : la pièce est terminée
+//   complet  : le filage complet (voir plus bas), qui a sa propre lecture en continu
 //
 // En mode Gestes (réglage Navigation), pas de boutons Pause et Suivant : on pousse l'écran vers le
 // haut pour passer à la réplique suivante, et l'on touche la réplique qui se lit pour la mettre en
 // pause. Le doigt qui descend fait simplement défiler l'écran, pour relire les répliques passées.
+//
+// Le filage complet, lui, affiche toutes les répliques d'un coup et les lit toutes à la suite, les
+// miennes comprises, sans s'arrêter : pour suivre le texte pendant que les voix jouent.
 
-import { cascade, definirRetour, el, remplacer } from '../dom.js';
+import { cascade, definirRetour, el, hautDePage, remplacer } from '../dom.js';
 import {
   audioActif, creerAvisEnchainement, creerAvisVoix, creerBoutonIcone, creerChoixUnique, creerEcoute,
   creerInterrupteurs, creerReplique, creerTitreScene, creerTitreVue, lireReplique, suivreLecture,
@@ -72,7 +76,9 @@ export function afficherFilage(racine, piece) {
     try {
       const verrou = await navigator.wakeLock?.request('screen');
       // Si le filage s'est arrêté pendant cette attente, on rend le verrou tout de suite.
-      if (etat === 'depart' || etat === 'fin' || etat === 'pause') verrou?.release();
+      const arrete = etat === 'depart' || etat === 'fin' || etat === 'pause'
+        || (etat === 'complet' && lectureComplete !== 'lecture');
+      if (arrete) verrou?.release();
       else verrouEcran = verrou;
     } catch {
       verrouEcran = null; // refusé (batterie faible...) : le filage marche quand même
@@ -338,6 +344,11 @@ export function afficherFilage(racine, piece) {
   // dans le vide. Le verrou d'écran, lui, est relâché tout seul quand la page est masquée :
   // il faut le redemander au retour.
   function surVisibilite() {
+    // Filage complet : comme dans le Script, une simple pause, que l'on reprend en touchant la carte.
+    if (etat === 'complet') {
+      if (document.hidden && lectureComplete === 'lecture') pauseComplete();
+      return;
+    }
     if (document.hidden) {
       if (etat === 'lecture') mettreEnPause();
       else if (!pauseFichier) arreterVoix(); // un fichier en pause garde sa place pour la reprise
@@ -389,6 +400,128 @@ export function afficherFilage(racine, piece) {
     afficherCommandes();
   }
 
+  // ---- Le filage complet ----
+  //
+  // Toutes les répliques sont affichées d'un coup, à partir de la scène choisie, et l'app les lit
+  // toutes à la suite, les miennes comprises, sans s'arrêter dessus. Mes répliques restent visibles,
+  // dans leur ambre. On le pilote comme la lecture en continu du Script : toucher la réplique lue la
+  // met en pause, puis la reprend ; toucher une autre réplique fait repartir la lecture de celle-là ;
+  // garder le doigt sur une carte arrête tout.
+  let lectureComplete = 'arret'; // 'arret', 'lecture' ou 'pause'
+  let carteLue = null;           // la carte que le filage complet est en train de lire
+  let suiteComplete = [];        // les répliques affichées, de la scène choisie jusqu'à la fin
+  const cartesCompletes = new Map(); // chaque réplique -> sa carte
+
+  // repris : l'app vient d'être relancée par Android. Le texte revient, mais à l'arrêt : le
+  // navigateur ne laisse parler l'app qu'après un toucher (toucher une carte relance la lecture).
+  function filageComplet(depart, { repris = false } = {}) {
+    etat = 'complet';
+    jeton += 1;
+    lectureComplete = 'arret';
+    carteLue = null;
+    definirRetour(ecranDepart); // la flèche de retour ramène à l'écran de départ, en coupant la voix
+    noterPosition('filage', { position: depart, complet: true });
+
+    const statuts = lireStatuts(piece.id);
+    suiteComplete = lignes.slice(depart);
+    cartesCompletes.clear();
+    // Seulement les scènes qui ont des répliques dans la suite : celles d'avant le départ n'y sont pas.
+    const scenes = piece.scenes.filter((scene) => suiteComplete.some((ligne) => ligne.scene === scene));
+    remplacer(racine, scenes.map((scene) => el('section', { className: 'scene' },
+      creerTitreScene(scene),
+      suiteComplete.filter((ligne) => ligne.scene === scene).map((ligne) => {
+        const carte = creerReplique(ligne, piece, {
+          mienne: selection.has(ligne.numero),
+          statut: statuts[ligne.numero],
+          surTouche: (evenement) => toucherComplet(evenement, ligne),
+        });
+        brancherGestes(carte, { maintenir: () => { if (carteLue) arreterComplet(); } });
+        cartesCompletes.set(ligne, carte);
+        return carte;
+      }))));
+    if (repris) return; // le routeur remet lui-même l'écran là où il en était
+    hautDePage(); // le bouton touché était plus bas : le texte, lui, commence en haut
+    cascade(racine);
+    lireEnContinu(0);
+  }
+
+  // La carte lue se distingue par sa couleur (sauf la mienne, qui garde son ambre) et par le filet
+  // qui en fait le tour à mesure de la lecture.
+  function allumer(carte) {
+    eteindre();
+    carteLue = carte;
+    lectureComplete = 'lecture';
+    carte.classList.add('en-lecture');
+  }
+
+  function eteindre() {
+    carteLue?.classList.remove('en-lecture');
+    carteLue = null;
+    lectureComplete = 'arret';
+  }
+
+  // Lit la réplique de rang « debut » dans la suite, puis les suivantes, jusqu'à la fin ou un arrêt.
+  async function lireEnContinu(debut) {
+    jeton += 1;
+    const moi = jeton;
+    for (let rang = debut; rang < suiteComplete.length; rang += 1) {
+      const ligne = suiteComplete[rang];
+      const carte = cartesCompletes.get(ligne);
+      allumer(carte);
+      // L'écran suit la lecture. Sauf pour la première carte : on vient de la toucher, ou c'est la
+      // première du texte, elle est déjà visible.
+      if (rang === debut) garderEcranAllume();
+      else carte.scrollIntoView({ block: 'center' });
+
+      let resultat = 'fini';
+      if (texteAParler(ligne.texte, lireReglages().lireDidascalies)) {
+        const finirFilet = suivreLecture(carte);
+        resultat = await lireReplique(ligne);
+        finirFilet();
+      } else {
+        await attendre(DUREE_LIGNE_MUETTE); // une ligne qui n'est qu'une didascalie : le temps de la lire
+      }
+      if (moi !== jeton) return; // arrêtée, ou une autre réplique a été touchée entre-temps
+      if (resultat !== 'fini') break; // lecture impossible (lireReplique l'a déjà signalé)
+      await attendre(SILENCE_ENTRE_REPLIQUES);
+      // Mise en pause entre deux répliques : on attend la reprise avant de passer à la suivante.
+      while (lectureComplete === 'pause' && moi === jeton) await attendre(150);
+      if (moi !== jeton) return;
+    }
+    eteindre();
+    libererEcran();
+  }
+
+  // Pause : avec les voix enregistrées, la réplique garde sa place. La voix du téléphone, elle,
+  // ne sait pas faire de pause sur Android : la lecture s'arrête, et un nouveau toucher repart
+  // du début de la réplique.
+  function pauseComplete() {
+    mettreEnPauseVoix();
+    lectureComplete = 'pause';
+    libererEcran();
+  }
+
+  function repriseComplete() {
+    lectureComplete = 'lecture';
+    // Un fichier mis en pause repart d'où il était. Entre deux répliques, rien à relancer :
+    // la boucle de lireEnContinu voit la reprise et passe d'elle-même à la suivante.
+    reprendreVoix();
+    garderEcranAllume();
+  }
+
+  function arreterComplet() {
+    jeton += 1;
+    arreterVoix();
+    eteindre();
+    libererEcran();
+  }
+
+  function toucherComplet(evenement, ligne) {
+    if (evenement.currentTarget !== carteLue) lireEnContinu(suiteComplete.indexOf(ligne));
+    else if (lectureComplete === 'lecture') pauseComplete();
+    else repriseComplete();
+  }
+
   // ---- L'écran de départ ----
 
   function ecranDepart() {
@@ -430,14 +563,20 @@ export function afficherFilage(racine, piece) {
       creerInterrupteurs(piece.id),
       // Ce toucher autorise aussi le navigateur à parler pour toute la suite du filage.
       el('button', { type: 'button', className: 'btn', onclick: () => demarrer(depart) }, t('Lancer le filage')),
+      el('button', { type: 'button', className: 'btn-ghost', onclick: () => filageComplet(depart) }, t('Lancer le filage complet')),
     );
     cascade(racine);
   }
 
-  // L'app vient-elle d'être relancée au milieu d'un filage ? On y revient. Sinon, l'écran de départ.
+  // L'app vient-elle d'être relancée au milieu d'un filage, normal ou complet ? On y revient.
+  // Sinon, l'écran de départ.
   const reprise = positionAReprendre('filage');
-  if (reprise && reprise.position < lignes.length) demarrer(reprise.position, { repris: true });
-  else ecranDepart();
+  if (reprise && reprise.position < lignes.length) {
+    if (reprise.complet) filageComplet(reprise.position, { repris: true });
+    else demarrer(reprise.position, { repris: true });
+  } else {
+    ecranDepart();
+  }
 
   // Appelé par le routeur quand on quitte l'écran : on coupe tout ce qui tourne encore.
   return () => {
