@@ -12,7 +12,7 @@
 // haut pour passer à la réplique suivante, et l'on touche la réplique qui se lit pour la mettre en
 // pause. Le doigt qui descend fait simplement défiler l'écran, pour relire les répliques passées.
 
-import { cascade, definirRetour, el, icone, remplacer } from '../dom.js';
+import { cascade, definirRetour, el, remplacer } from '../dom.js';
 import {
   audioActif, creerAvisEnchainement, creerAvisVoix, creerBoutonIcone, creerChoixUnique, creerEcoute,
   creerInterrupteurs, creerReplique, creerTitreScene, creerTitreVue, lireReplique, suivreLecture,
@@ -49,7 +49,6 @@ export function afficherFilage(racine, piece) {
   // Pause ou Suivant pendant l'attente, et cette tâche doit simplement s'arrêter sans rien faire.
   let jeton = 0;
   let verrouEcran = null;
-  let temoin = null; // mode Gestes : la petite icône pause / lecture sur la réplique lue (voir majTemoin)
 
   const journal = el('div', { className: 'journal' });
   const commandes = el('div', { className: 'commandes' });
@@ -91,7 +90,6 @@ export function afficherFilage(racine, piece) {
   function afficherCommandes({ recentrer = true } = {}) {
     const aMoi = etat === 'a-moi';
     const boutons = [];
-    majTemoin();
 
     // En mode Gestes, aucun bouton : voir et écouter ma réplique se font en touchant sa carte, la
     // pause en touchant la réplique qui se lit, et l'on passe d'une ligne à l'autre en poussant l'écran.
@@ -118,15 +116,6 @@ export function afficherFilage(racine, piece) {
     commandes.hidden = boutons.length === 0; // vide, la barre du bas n'aurait plus rien à montrer
     // Après les boutons, et pas avant : leur hauteur change, et la carte pourrait se retrouver dessous.
     if (recentrer) amenerAuCentre(carteCourante);
-  }
-
-  // Mode Gestes : sur la réplique des autres qui se lit, une petite icône dit ce que fera un toucher.
-  // Pause pendant la lecture, lecture quand elle est arrêtée. Sans voix (état manuel), rien à toucher.
-  function majTemoin() {
-    if (!temoin) return;
-    const nom = { lecture: 'pause', pause: 'lecture' }[etat];
-    temoin.hidden = !nom;
-    if (nom) remplacer(temoin, icone(nom));
   }
 
   // Ma réplique se dévoile : par le bouton Voir, ou en touchant la carte. Elle se lit aussitôt, pour
@@ -187,12 +176,6 @@ export function afficherFilage(racine, piece) {
       ecoute.lierCarte(carte);
       brancherGestes(carte, { maintenir: () => { if (enCours()) ecoute.arreter(); } });
     }
-    // Mode Gestes : la réplique d'un autre porte la petite icône pause / lecture, comme le signal des fiches.
-    temoin = null;
-    if (!mienne && gestes) {
-      temoin = el('span', { className: 'temoin-lecture', 'aria-hidden': 'true', hidden: true });
-      carte.querySelector('.replique-tete').append(temoin);
-    }
     carteCourante = carte;
     carteCourante.classList.add('courante');
     journal.append(...avis, carte);
@@ -245,8 +228,6 @@ export function afficherFilage(racine, piece) {
     // Avec les boutons, une carte touchable devient inerte : seule la réplique en cours répond au
     // doigt. En mode Gestes, elle reste touchable : la toucher la relit (voir relire).
     if (!gestes && carteCourante instanceof HTMLButtonElement) carteCourante.disabled = true;
-    temoin?.remove();
-    temoin = null;
     position += 1;
     if (position >= lignes.length) terminer();
     else jouerEtape();
