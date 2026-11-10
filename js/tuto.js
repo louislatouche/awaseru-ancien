@@ -36,14 +36,16 @@ function glyphe(geste) {
 
 // Pose la pastille du tuto « nom » dans « ancre » (un élément en position: relative, qui contient
 // la carte), sauf si les tutos sont éteints ou si celui-ci a déjà été vu. montrer() joue la démo.
-export function proposerTuto(nom, ancre, montrer) {
+// cote : 'droite' (le coin haut droit, d'habitude) ou 'gauche', quand un bouton occupe déjà la droite.
+export function proposerTuto(nom, ancre, montrer, { cote = 'droite' } = {}) {
   const { tutos, tutosVus } = lireReglages();
   if (!tutos || tutosVus.includes(nom)) return;
   const pastille = el('button', {
     type: 'button',
-    className: 'pastille-tuto',
+    className: `pastille-tuto${cote === 'gauche' ? ' a-gauche' : ''}`,
     'aria-label': t('Voir les gestes de cette carte'),
-    onclick: () => {
+    onclick: (evenement) => {
+      evenement.stopPropagation(); // la carte qui la porte ne doit pas croire qu'on l'a touchée
       changerReglage('tutosVus', [...lireReglages().tutosVus, nom]);
       pastille.remove();
       montrer();
@@ -53,13 +55,17 @@ export function proposerTuto(nom, ancre, montrer) {
 }
 
 // Le doigt fantôme fait les gestes sur la carte, un par un, chacun avec sa légende.
-// carte : la vraie carte ; cadre : l'élément qui la contient avec ses indices de glissement
-// (le doigt s'y pose, et défile donc avec elle) ; ecran : où poser la légende.
-// etapes : [{ geste: 'toucher' | 'maintenir' | 'glisser', sens: 1 (droite) ou -1, titre, texte }].
+// carte : la vraie carte ; cadre : l'élément où se pose le doigt (il défile donc avec la carte) :
+// la carte elle-même, ou le cadre qui la contient avec ses indices de glissement ; ecran : où
+// poser la légende ; fin() : appelée quand la démo est allée jusqu'au bout.
+// etapes : [{ geste: 'toucher' | 'maintenir' | 'glisser', sens: 1 (droite) ou -1, titre, texte,
+//   cible, agir }]. cible : ce que le doigt touche, si ce n'est pas la carte entière (un mot, un
+//   numéro), ou une fonction qui le trouve au moment voulu. agir() : ce que le toucher fait pour de
+//   vrai, quand c'est sans risque (déplier une carte de la liste, par exemple).
 //
-// La démo ne fait rien pour de vrai : la réplique reste cachée (la montrer gâcherait l'exercice),
-// rien ne se lit, rien n'est noté. Si le vrai doigt se pose sur la carte, elle s'arrête aussitôt.
-export async function montrerGestes({ carte, cadre, ecran, etapes }) {
+// Sinon, la démo ne fait rien pour de vrai : une réplique cachée le reste (la montrer gâcherait
+// l'exercice), rien ne se lit, rien n'est noté. Si le vrai doigt se pose sur la carte, elle s'arrête.
+export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin = null }) {
   const doigt = el('div', { className: 'doigt-tuto', 'aria-hidden': 'true' }, el('span', { className: 'doigt-point' }));
   doigt.insertAdjacentHTML('beforeend', '<svg class="doigt-anneau" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" pathLength="100"/></svg>');
   const anneau = doigt.querySelector('circle');
@@ -69,6 +75,10 @@ export async function montrerGestes({ carte, cadre, ecran, etapes }) {
   const indiceGauche = cadre.querySelector('.indice-gauche');
   cadre.append(doigt);
   ecran.append(legende);
+  // Une barre est collée en bas de l'écran (Réviser, l'explication d'un mot) : la légende se pose
+  // juste au-dessus, pour ne pas la cacher.
+  const barre = ecran.querySelector('.commandes:not([hidden])');
+  if (barre) legende.style.bottom = `calc(var(--place-bas) + ${barre.offsetHeight + 12}px)`;
 
   // Toutes les animations de la démo, pour les défaire d'un coup à la fin.
   const animations = new Set();
@@ -101,8 +111,18 @@ export async function montrerGestes({ carte, cadre, ecran, etapes }) {
     y = ny;
     await animer(doigt, [de, { left: `${x}px`, top: `${y}px` }], { duration: duree, easing: DOUCE });
   }
-  // Le milieu de la carte, un peu à droite pour que le doigt ne cache pas tout.
-  const viser = (decalage = 36) => aller(carte.offsetLeft + carte.offsetWidth / 2 + decalage, carte.offsetTop + carte.offsetHeight / 2);
+  // Le milieu d'un élément, dans le repère du cadre (là où le doigt est posé).
+  function milieu(element) {
+    const r = element.getBoundingClientRect();
+    const repere = cadre.getBoundingClientRect();
+    return { x: r.left - repere.left + r.width / 2, y: r.top - repere.top + r.height / 2 };
+  }
+  // Le doigt va sur sa cible : en plein dessus pour un mot ou un numéro ; pour la carte entière, un
+  // peu à droite du milieu, pour ne pas en cacher le texte.
+  function viser(cible = carte, decalage = cible === carte ? 36 : 0) {
+    const { x: cx, y: cy } = milieu(cible);
+    return aller(cx + decalage, cy);
+  }
 
   // Une onde qui s'élargit sous le doigt.
   function onde() {
@@ -112,9 +132,10 @@ export async function montrerGestes({ carte, cadre, ecran, etapes }) {
       .finished.then(() => cercle.remove(), () => cercle.remove());
   }
 
-  async function toucher() {
+  // La cible s'enfonce un peu, comme sous un vrai doigt (un mot dans une phrase, lui, ne bouge pas).
+  async function toucher(cible) {
     onde();
-    carte.animate([{ scale: 1 }, { scale: 0.975 }, { scale: 1 }], { duration: 260, easing: 'ease-out' });
+    cible.animate([{ scale: 1 }, { scale: cible === carte ? 0.975 : 0.94 }, { scale: 1 }], { duration: 260, easing: 'ease-out' });
     await animer(point, [{ scale: 1 }, { scale: 0.78 }, { scale: 1 }], { duration: 280, easing: 'ease-out', fill: 'none' });
   }
 
@@ -150,25 +171,27 @@ export async function montrerGestes({ carte, cadre, ecran, etapes }) {
   }
 
   try {
-    // Le doigt arrive un peu en dessous de la carte, puis se place.
-    x = carte.offsetLeft + carte.offsetWidth / 2 + 50;
-    y = carte.offsetTop + carte.offsetHeight / 2 + 50;
+    // Le doigt arrive un peu en dessous du milieu de la carte, puis se place.
+    const depart = milieu(carte);
+    x = depart.x + 50;
+    y = depart.y + 50;
     Object.assign(doigt.style, { left: `${x}px`, top: `${y}px` });
     await animer(doigt, [{ opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1 }], { duration: 320, easing: FEUTRE });
-    await viser();
 
     for (const etape of etapes) {
+      const cible = (typeof etape.cible === 'function' ? etape.cible() : etape.cible) ?? carte;
       if (etape.geste === 'glisser') {
-        await viser(0);
+        await viser(carte, 0);
         await dire(etape);
         await glisser(etape.sens * ECART, 520);
         await pause(650);
         await glisser(0, 360);
         await pause(200);
       } else {
-        await viser();
+        await viser(cible);
         dire(etape).catch(() => {}); // la légende arrive pendant le geste (arrêtée, la démo s'en charge)
-        await (etape.geste === 'maintenir' ? maintenir() : toucher());
+        await (etape.geste === 'maintenir' ? maintenir() : toucher(cible));
+        etape.agir?.();
         await pause(etape.geste === 'maintenir' ? 1100 : 1500);
       }
     }
@@ -176,6 +199,7 @@ export async function montrerGestes({ carte, cadre, ecran, etapes }) {
     await animer(doigt, [{ opacity: 1, scale: 1 }, { opacity: 0, scale: 0.8 }], { duration: 260, easing: 'ease' });
     await pause(700);
     await animer(legende, [{ opacity: 1 }, { opacity: 0 }], { duration: 220 });
+    fin?.();
   } catch (erreur) {
     if (erreur !== ARRET) throw erreur;
   } finally {

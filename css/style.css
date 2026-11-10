@@ -597,6 +597,8 @@ button.replique:disabled { cursor: default; }
   cursor: pointer;
   animation: respire 1.8s ease-out infinite;
 }
+/* Au coin gauche, quand un bouton occupe déjà le coin droit (la lecture, dans le texte du Vocabulaire). */
+.pastille-tuto.a-gauche { right: auto; left: -4px; }
 /* Une zone de toucher plus grande que le rond, pour ne pas le rater du doigt. */
 .pastille-tuto::before { content: ""; position: absolute; inset: -8px; border-radius: 50%; }
 @keyframes respire {

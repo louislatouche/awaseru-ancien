@@ -25,6 +25,7 @@ import { lignesDe, piecesChargees } from '../pieces.js';
 import { noterPosition, positionAReprendre } from '../reprise.js';
 import { changerStatutMot, lireSelection, lireStatutsMots, motAReviser } from '../stockage.js';
 import { ajouterAvecFurigana, creerJaponais, enRomaji, lectureEnKana, texteBrut } from '../texte.js';
+import { montrerGestes, proposerTuto } from '../tuto.js';
 import { arreterVoix, messagePourResultat, parler } from '../voix.js';
 
 // Mélange de Fisher-Yates, comme dans les fiches : chaque ordre a la même chance.
@@ -767,6 +768,7 @@ export function afficherVocabulaire(racine, piece) {
       carteDepliee = null; // les cartes sont refaites, toutes repliées
       // Une liste vide ne peut venir que d'une recherche : on le dit, plutôt qu'un écran blanc.
       remplacer(zone, vues.length > 0 ? vues.map(creerCarteMot) : el('p', { className: 'vide' }, t('Aucun mot trouvé.')));
+      proposerTutoListe();
     } else {
       panneau.hidden = false;
       barreReviser.hidden = true;
@@ -778,8 +780,45 @@ export function afficherVocabulaire(racine, piece) {
         return [titre, creerCarteTexte(ligne)];
       }));
       afficherAide();
+      proposerTutoTexte();
     }
     if (animer) cascade(zone);
+  }
+
+  // ---- Les tutos : une pastille « ? » sur la première carte, tant qu'elle n'a pas été touchée (tuto.js) ----
+
+  // Le texte : la pastille à gauche de la première réplique qui a des mots à toucher (à droite,
+  // il y a déjà son bouton lecture). Le doigt touche un mot, sans ouvrir son explication pour de vrai.
+  function proposerTutoTexte() {
+    const premiere = [...zone.querySelectorAll('.carte-texte')].find((carte) => carte.querySelector('.mot-touchable'));
+    if (!premiere) return;
+    proposerTuto('vocabulaire-texte', premiere, () => montrerGestes({
+      carte: premiere,
+      ecran: racine,
+      etapes: [{ geste: 'toucher', titre: t('Toucher un mot'), texte: t('son sens, et il est dit'), cible: premiere.querySelector('.mot-touchable') }],
+    }), { cote: 'gauche' });
+  }
+
+  // La liste : sur la première carte. Le numéro la déplie pour de vrai (rien n'est gâché ici), le
+  // doigt montre le mot souligné, puis la carte se replie comme avant la démo.
+  function proposerTutoListe() {
+    const premiere = zone.querySelector('.carte-mot');
+    if (!premiere) return;
+    const numero = premiere.querySelector('.chip-numero');
+    const depliee = () => numero.getAttribute('aria-pressed') === 'true';
+    proposerTuto('vocabulaire-liste', premiere, () => montrerGestes({
+      carte: premiere,
+      ecran: racine,
+      etapes: [
+        { geste: 'toucher', titre: t('Toucher'), texte: t('entendre le mot') },
+        {
+          geste: 'toucher', titre: t('Toucher un numéro'), texte: t('voir la réplique'), cible: numero,
+          agir: () => { if (!depliee()) numero.click(); },
+        },
+        { geste: 'toucher', titre: t('Toucher le mot souligné'), texte: t("l'entendre conjugué"), cible: () => premiere.querySelector('.contexte .surligne') },
+      ],
+      fin: () => { if (depliee()) numero.click(); },
+    }));
   }
 
   function afficherPrincipal() {
@@ -868,6 +907,18 @@ export function afficherVocabulaire(racine, piece) {
           refus: () => devoiler(),
         },
       });
+
+      // Le tuto de la révision, comme celui des fiches : la fiche reste cachée pendant la démo.
+      proposerTuto('vocabulaire-revision', zoneCarte, () => montrerGestes({
+        carte,
+        cadre: zoneCarte,
+        ecran: racine,
+        etapes: [
+          { geste: 'toucher', titre: t('Toucher'), texte: t('retourner la fiche, et entendre le mot') },
+          { geste: 'glisser', sens: 1, titre: t('Glisser à droite'), texte: t('Je savais') },
+          { geste: 'glisser', sens: -1, titre: t('Glisser à gauche'), texte: t('À revoir') },
+        ],
+      }));
 
       remplacer(racine,
         el('p', { className: 'eyebrow fiche-compteur' }, t('Mot {position} sur {total}', { position: position + 1, total: paquet.length })),
