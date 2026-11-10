@@ -91,6 +91,7 @@ export default {
   'Chercher un mot': 'Procurar uma palavra',
   'Aucun mot trouvé.': 'Nenhuma palavra encontrada.',
   'Particules': 'Partículas',
+  'Du français': 'A partir do sentido',
   'Mot {position} sur {total}': 'Palavra {position} de {total}',
   'Et dans une autre réplique': 'E noutra fala',
   'Et dans {n} autres répliques': 'E em mais {n} falas',

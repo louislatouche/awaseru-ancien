@@ -91,6 +91,7 @@ export default {
   'Chercher un mot': 'Sök ett ord',
   'Aucun mot trouvé.': 'Inget ord hittades.',
   'Particules': 'Partiklar',
+  'Du français': 'Från betydelsen',
   'Mot {position} sur {total}': 'Ord {position} av {total}',
   'Et dans une autre réplique': 'Och i en annan replik',
   'Et dans {n} autres répliques': 'Och i {n} andra repliker',

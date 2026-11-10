@@ -92,6 +92,7 @@ export default {
   'Chercher un mot': 'Szó keresése',
   'Aucun mot trouvé.': 'Nincs ilyen szó.',
   'Particules': 'Partikulák',
+  'Du français': 'Jelentésből',
   'Mot {position} sur {total}': '{position}. szó / {total}',
   'Et dans une autre réplique': 'És egy másik replikában',
   'Et dans {n} autres répliques': 'És további {n} replikában',

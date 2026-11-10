@@ -91,6 +91,7 @@ export default {
   'Chercher un mot': '단어 검색',
   'Aucun mot trouvé.': '찾은 단어가 없어요.',
   'Particules': '조사',
+  'Du français': '뜻에서',
   'Mot {position} sur {total}': '단어 {position}/{total}',
   'Et dans une autre réplique': '다른 대사 1개에도',
   'Et dans {n} autres répliques': '다른 대사 {n}개에도',

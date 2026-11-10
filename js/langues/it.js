@@ -91,6 +91,7 @@ export default {
   'Chercher un mot': 'Cerca una parola',
   'Aucun mot trouvé.': 'Nessuna parola trovata.',
   'Particules': 'Particelle',
+  'Du français': 'Dal significato',
   'Mot {position} sur {total}': 'Parola {position} di {total}',
   'Et dans une autre réplique': "E in un'altra battuta",
   'Et dans {n} autres répliques': 'E in altre {n} battute',

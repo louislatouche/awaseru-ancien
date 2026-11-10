@@ -59,7 +59,9 @@ export function afficherVocabulaire(racine, piece) {
   // Les particules (に, を, は... marquées « particule » dans la pièce) : mises de côté dans la liste,
   // et donc dans la révision, sauf si l'interrupteur « Particules » les demande.
   let particules = reprise?.particules ?? false;
-  const noterChoix = () => noterPosition('vocabulaire', { vue, portee, gloses, filtre, recherche, particules });
+  // Réviser « Du français » : la fiche montre le sens, et l'on cherche le mot japonais.
+  let duFrancais = reprise?.duFrancais ?? false;
+  const noterChoix = () => noterPosition('vocabulaire', { vue, portee, gloses, filtre, recherche, particules, duFrancais });
 
   const lignesChoisies = () => (portee === 'miennes' ? lignes.filter((ligne) => selection.has(ligne.numero)) : lignes);
 
@@ -638,8 +640,13 @@ export function afficherVocabulaire(racine, piece) {
   });
   const blocRecherche = el('div', { className: 'ligne-recherche' },
     el('div', { className: 'form-group recherche-mot' }, champRecherche), basculeParticules);
-  // En bas de la liste, collé comme les commandes des fiches : Réviser, avec le nombre de mots.
+  // En bas de la liste, collé comme les commandes des fiches : Réviser, avec le nombre de mots, et à
+  // sa gauche l'interrupteur « Du français » (fait une fois, il garde son état de lui-même).
   const barreReviser = el('div', { className: 'commandes' });
+  const basculeDuFrancais = creerBascule(t('Du français'), duFrancais, (actif) => {
+    duFrancais = actif;
+    noterChoix();
+  });
 
   // Les mots de chaque filtre. Ce que la liste montre, c'est ce que l'on révise.
   // À réviser : les mots à revoir, et les mots sus arrivés à leur jour de retour (répétition espacée).
@@ -706,12 +713,14 @@ export function afficherVocabulaire(racine, piece) {
       // Pas de panneau d'explication : chaque carte montre déjà tout. À sa place, Réviser.
       panneau.hidden = true;
       barreReviser.hidden = false;
-      remplacer(barreReviser, el('button', {
-        type: 'button',
-        className: 'btn',
-        disabled: vues.length === 0,
-        onclick: () => lancerRevision(vues),
-      }, t('Réviser ({n})', { n: vues.length })));
+      remplacer(barreReviser, el('div', { className: 'ligne-reviser' },
+        basculeDuFrancais,
+        el('button', {
+          type: 'button',
+          className: 'btn',
+          disabled: vues.length === 0,
+          onclick: () => lancerRevision(vues),
+        }, t('Réviser ({n})', { n: vues.length }))));
       carteDepliee = null; // les cartes sont refaites, toutes repliées
       // Une liste vide ne peut venir que d'une recherche : on le dit, plutôt qu'un écran blanc.
       remplacer(zone, vues.length > 0 ? vues.map(creerCarteMot) : el('p', { className: 'vide' }, t('Aucun mot trouvé.')));
@@ -747,6 +756,7 @@ export function afficherVocabulaire(racine, piece) {
 
   function lancerRevision(entrees) {
     const paquet = melanger(entrees);
+    const depuisLeSens = duFrancais; // le sens de la série, fixé au départ
     const resultats = { su: 0, a_revoir: 0 };
     let position = 0;
     // Pendant la série, la flèche de retour ramène à la liste des mots.
@@ -775,10 +785,16 @@ export function afficherVocabulaire(racine, piece) {
       boutonSu.disabled = true;
       boutonRevoir.disabled = true;
 
-      // La réponse : la lecture, le sens et la réplique d'origine, cachés jusqu'au premier toucher.
+      // La question et la réponse, cachée jusqu'au premier toucher avec la réplique d'origine.
+      // D'habitude : le mot japonais, puis sa lecture et son sens. « Du français » : le sens, puis le
+      // mot japonais et sa lecture.
+      const question = depuisLeSens
+        ? el('span', { className: 'sens-question' }, traduire(mot, 'fr'))
+        : creerJaponais(mot.mot, 'mot-japonais');
       const reponse = el('div', { className: 'reponse-mot', hidden: true },
+        depuisLeSens && creerJaponais(mot.mot, 'mot-japonais'),
         creerLecture(mot),
-        el('div', { className: 'mot-sens' }, traduire(mot, 'fr')));
+        !depuisLeSens && el('div', { className: 'mot-sens' }, traduire(mot, 'fr')));
       const contexte = creerContexte(mot, ou[0]);
       contexte.hidden = true;
 
@@ -789,20 +805,24 @@ export function afficherVocabulaire(racine, piece) {
         reponse.hidden = false;
         contexte.hidden = false;
         boutonVoir.disabled = true;
+        boutonEcouter.disabled = false;
         boutonSu.disabled = false;
         boutonRevoir.disabled = false;
         direMot(mot);
       }
 
-      // La carte : le mot seul, sans ses furigana. Un toucher la retourne et dit le mot, les suivants le redisent.
+      // La carte : la question seule (le mot sans ses furigana, ou son sens). Un toucher la retourne
+      // et dit le mot, les suivants le redisent.
       const carte = el('button', {
         type: 'button',
         className: 'grand-mot',
         onclick: () => (vu ? direMot(mot) : devoiler()),
-      }, creerJaponais(mot.mot, 'mot-japonais'), el('span', { className: 'grand-mot-masque' }, t('Touche pour voir')), reponse);
+      }, question, el('span', { className: 'grand-mot-masque' }, t('Touche pour voir')), reponse);
 
       const boutonVoir = creerBoutonIcone('voir', t('Voir'), 'btn-ghost', devoiler);
       const boutonEcouter = creerBoutonIcone('lecture', t('Écouter'), 'btn-ghost', () => direMot(mot));
+      // En partant du sens, entendre le mot avant de retourner la carte donnerait la réponse.
+      boutonEcouter.disabled = depuisLeSens;
 
       // Mode Gestes : la carte se glisse à droite (je savais) ou à gauche (à revoir), comme les fiches.
       const zoneCarte = gestes

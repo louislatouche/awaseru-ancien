@@ -91,6 +91,7 @@ export default {
   'Chercher un mot': 'Шукати слово',
   'Aucun mot trouvé.': 'Слово не знайдено.',
   'Particules': 'Частки',
+  'Du français': 'Від значення',
   'Mot {position} sur {total}': 'Слово {position} з {total}',
   'Et dans une autre réplique': 'І ще в одній репліці',
   'Et dans {n} autres répliques': 'І ще в {n} репліках',

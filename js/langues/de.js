@@ -91,6 +91,7 @@ export default {
   'Chercher un mot': 'Ein Wort suchen',
   'Aucun mot trouvé.': 'Kein Wort gefunden.',
   'Particules': 'Partikeln',
+  'Du français': 'Von der Bedeutung',
   'Mot {position} sur {total}': 'Wort {position} von {total}',
   'Et dans une autre réplique': 'Und in einer weiteren Zeile',
   'Et dans {n} autres répliques': 'Und in {n} weiteren Zeilen',
