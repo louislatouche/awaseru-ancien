@@ -236,6 +236,9 @@ body:has(.tabbar:not([hidden])) { --place-bas: calc(var(--tabbar-h) + var(--safe
 
 /* ---- Titres ---- */
 .vue-tete { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+/* Un choix écrit en texte à droite du titre (Texte · Liste, dans le Vocabulaire) : un peu en retrait
+   du bord droit, où il paraissait collé (demandé par Louis le 2026-11-10). */
+.vue-tete .choix-texte { margin-inline-end: 8px; }
 
 .vue-titre {
   font-family: var(--font-display);
