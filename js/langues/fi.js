@@ -168,6 +168,7 @@ export default {
   "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Suunnitellut {auteur} vuonna {annee}, kehitetty tekoäly {assistant}n avulla.',
   'Awaseru, version {n}': 'Awaseru, versio {n}',
   'Navigation': 'Navigointi',
+  'Labels': 'Nimet',
   'Affichage': 'Näyttö',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'Kaikille näytelmille. Jokainen näytelmä voi pitää oman valintansa omista näkymistään.',
   "Regarde ou écoute d'abord ta réplique.": 'Katso tai kuuntele ensin repliikkisi.',

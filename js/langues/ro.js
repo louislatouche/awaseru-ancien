@@ -167,6 +167,7 @@ export default {
   "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Conceput în {annee} de {auteur}, dezvoltat cu ajutorul IA {assistant}.',
   'Awaseru, version {n}': 'Awaseru, versiunea {n}',
   'Navigation': 'Navigare',
+  'Labels': 'Etichete',
   'Affichage': 'Afișare',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'Pentru toate piesele. Fiecare piesă își poate păstra propria alegere, din ecranele ei.',
   "Regarde ou écoute d'abord ta réplique.": 'Mai întâi uită-te la replica ta sau ascult-o.',

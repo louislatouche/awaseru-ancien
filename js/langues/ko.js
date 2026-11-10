@@ -167,6 +167,7 @@ export default {
   "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": '{annee}년 {auteur} 기획. AI {assistant}와 함께 개발.',
   'Awaseru, version {n}': 'Awaseru 버전 {n}',
   'Navigation': '탐색',
+  'Labels': '라벨',
   'Affichage': '표시',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': '모든 작품에 적용돼요. 작품마다 그 작품 화면에서 따로 정할 수 있어요.',
   "Regarde ou écoute d'abord ta réplique.": '먼저 대사를 보거나 들어 보세요.',

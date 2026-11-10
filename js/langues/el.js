@@ -168,6 +168,7 @@ export default {
   "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Σχεδιάστηκε το {annee} από τον {auteur}, αναπτύχθηκε με τη βοήθεια της τεχνητής νοημοσύνης {assistant}.',
   'Awaseru, version {n}': 'Awaseru, έκδοση {n}',
   'Navigation': 'Πλοήγηση',
+  'Labels': 'Ετικέτες',
   'Affichage': 'Εμφάνιση',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'Για όλα τα έργα. Κάθε έργο μπορεί να κρατά τη δική του επιλογή, από τις οθόνες του.',
   "Regarde ou écoute d'abord ta réplique.": 'Πρώτα δες ή άκου την ατάκα σου.',

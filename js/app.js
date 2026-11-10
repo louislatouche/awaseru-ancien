@@ -107,6 +107,7 @@ function afficherOnglets(piece, actif) {
     remplacer(zoneOnglets, ONGLETS.map((onglet) => el('a', {
       className: 'tab',
       href: `${base}/${onglet.chemin}`,
+      'aria-label': onglet.libelle(), // le nom, pour les lecteurs d'écran, même quand il est caché (Réglages)
     }, icone(onglet.icone), el('span', {}, onglet.libelle()))));
   }
   ONGLETS.forEach((onglet, rang) => {

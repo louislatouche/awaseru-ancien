@@ -168,6 +168,7 @@ export default {
   "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Tervezte: {auteur} ({annee}). Fejlesztve a {assistant} MI segítségével.',
   'Awaseru, version {n}': 'Awaseru, verzió: {n}',
   'Navigation': 'Navigáció',
+  'Labels': 'Feliratok',
   'Affichage': 'Megjelenítés',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'Minden darabra. Minden darab megtarthatja a saját beállítását a saját képernyőin.',
   "Regarde ou écoute d'abord ta réplique.": 'Előbb nézd meg vagy hallgasd meg a replikádat.',

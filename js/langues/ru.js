@@ -167,6 +167,7 @@ export default {
   "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Автор идеи: {auteur}, {annee}. Разработано с помощью ИИ {assistant}.',
   'Awaseru, version {n}': 'Awaseru, версия {n}',
   'Navigation': 'Навигация',
+  'Labels': 'Подписи',
   'Affichage': 'Отображение',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'Для всех пьес. Каждая пьеса может сохранить свой выбор на своих экранах.',
   "Regarde ou écoute d'abord ta réplique.": 'Сначала посмотри или послушай свою реплику.',

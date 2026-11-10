@@ -168,6 +168,7 @@ export default {
   "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": '{annee}年、{auteur}が企画。AI「{assistant}」と共に開発。',
   'Awaseru, version {n}': 'Awaseru バージョン {n}',
   'Navigation': 'ナビゲーション',
+  'Labels': 'ラベル',
   'Affichage': '表示',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'すべての作品に適用されます。作品ごとの設定は、その作品の画面で変更できます。',
   "Regarde ou écoute d'abord ta réplique.": '先にセリフを見るか聞いてください。',

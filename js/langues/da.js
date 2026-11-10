@@ -167,6 +167,7 @@ export default {
   "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Designet i {annee} af {auteur}, udviklet med AI-modellen {assistant}.',
   'Awaseru, version {n}': 'Awaseru, version {n}',
   'Navigation': 'Navigation',
+  'Labels': 'Etiketter',
   'Affichage': 'Visning',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'For alle stykker. Hvert stykke kan have sit eget valg fra sine skærme.',
   "Regarde ou écoute d'abord ta réplique.": 'Se eller hør din replik først.',

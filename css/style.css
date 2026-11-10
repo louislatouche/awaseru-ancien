@@ -175,6 +175,9 @@ body:has(.tabbar:not([hidden])) { --place-bas: calc(var(--tabbar-h) + var(--safe
 .tab span { word-break: keep-all; }
 
 .tab svg { display: block; width: 23px; height: 23px; }
+/* Réglages, Navigation, « Labels » éteint : les icônes seules, au milieu de la barre. */
+.sans-labels .tab { justify-content: center; padding-top: 0; }
+.sans-labels .tab span { display: none; }
 .tab.is-active { color: var(--accent-dark); }
 .tab.is-active svg { color: var(--accent); }
 

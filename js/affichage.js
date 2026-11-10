@@ -23,6 +23,8 @@ export function appliquerAffichage(pieceId = pieceAffichee) {
   document.documentElement.lang = langueActive();
   document.documentElement.classList.toggle('sans-furigana', !furigana);
   document.documentElement.classList.toggle('sans-traduction', !traduction);
+  // Les onglets du bas, avec ou sans leur nom sous l'icône (Réglages, Navigation).
+  document.documentElement.classList.toggle('sans-labels', !lireReglages().labelsOnglets);
 }
 
 // Une chip qui s'allume et s'éteint : un interrupteur oui/non.

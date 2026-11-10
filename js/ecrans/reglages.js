@@ -94,6 +94,18 @@ function creerVoixEnregistrees() {
       })));
 }
 
+// Les onglets du bas : avec ou sans leur nom sous l'icône. (Les fiches, le filage et la révision se
+// commandent au doigt, par gestes : il n'y a plus de choix à faire là-dessus.)
+function creerNavigation() {
+  return el('section', { className: 'card pile' },
+    el('h2', { className: 'titre-section' }, t('Navigation')),
+    el('div', { className: 'chips' },
+      creerBascule(t('Labels'), lireReglages().labelsOnglets, (actif) => {
+        changerReglage('labelsOnglets', actif);
+        appliquerAffichage();
+      })));
+}
+
 // Furigana et traduction pour toutes les pièces. Sur les écrans d'une pièce, les mêmes
 // interrupteurs changent le choix pour cette pièce seulement (voir lireAffichage dans stockage.js).
 function creerAffichageGeneral() {
@@ -297,6 +309,7 @@ export async function afficherReglages(racine) {
       el('button', { type: 'button', className: 'btn-ghost', onclick: () => lireReplique(PHRASE_ESSAI) }, t('Essayer la voix du téléphone')),
       creerDidascalies()),
     creerAffichageGeneral(),
+    creerNavigation(),
     el('section', { className: 'card pile' },
       el('h2', { className: 'titre-section' }, t('Progression')),
       trierParUtilisation([...fournies, ...importees]).map(creerRemiseAZero)),

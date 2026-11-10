@@ -168,6 +168,7 @@ export default {
   "Conçu en {annee} par {auteur}, développé avec l'IA {assistant}.": 'Navrhl {auteur} v roce {annee}, vyvíjeno s pomocí AI {assistant}.',
   'Awaseru, version {n}': 'Awaseru, verze {n}',
   'Navigation': 'Navigace',
+  'Labels': 'Popisky',
   'Affichage': 'Zobrazení',
   'Pour toutes les pièces. Chaque pièce peut garder son propre choix, depuis ses écrans.': 'Pro všechny hry. Každá hra si může na svých obrazovkách nechat vlastní volbu.',
   "Regarde ou écoute d'abord ta réplique.": 'Nejdřív si repliku prohlédni nebo poslechni.',
