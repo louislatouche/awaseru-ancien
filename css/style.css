@@ -634,9 +634,9 @@ button.replique:disabled { cursor: default; }
 .mot-romaji { color: var(--ink-soft); font-size: 15px; }
 .carte-mot .mot-sens { font-size: 16px; }
 .numeros-mot { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-/* Pendant que la carte se déplie ou se replie (deplier dans vocabulaire.js), ce qui dépasse de sa
-   hauteur du moment reste caché : la réplique se dévoile de haut en bas, comme un store qu'on déroule. */
-.carte-mot.se-deroule { overflow: hidden; }
+/* Pendant que le bloc gris d'une carte s'étire ou se resserre (deplier dans vocabulaire.js), ce qui
+   dépasse de sa hauteur du moment reste caché : la réplique se découvre de haut en bas. */
+.carte-mot .contexte.en-mouvement { overflow: hidden; }
 .chip-numero { min-width: 36px; min-height: 32px; padding: 2px 10px; font-size: 13px; text-align: center; justify-content: center; }
 
 /* Le texte : chaque mot se touche, sans en avoir l'air. Touché, il se surligne. */

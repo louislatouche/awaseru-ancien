@@ -371,14 +371,33 @@ export function afficherVocabulaire(racine, piece) {
 
   // ---- La liste : une carte par mot ----
 
+  // Le dépliage d'une carte, choisi par Louis parmi quatre démos (variante B, le 2026-11-10) : le
+  // bloc gris de la réplique s'étire avec la carte en 0,38 s, et son texte arrive en fondu à mi-course.
+  // La courbe démarre et freine en douceur : la courbe « feutre », qui part très vite, rendait
+  // l'apparition trop brusque.
+  const DOUCE = 'cubic-bezier(.4, 0, .2, 1)';
+  // Le bloc replié à plat : sans hauteur ni marges. Il s'étire de là jusqu'à sa taille naturelle.
+  const PLAT = { height: '0px', paddingTop: '0px', paddingBottom: '0px', marginTop: '0px' };
+
+  // La forme d'un bloc à cet instant (sa hauteur et ses marges), même au milieu d'un mouvement.
+  function formeDu(bloc) {
+    const style = getComputedStyle(bloc);
+    return {
+      height: `${bloc.getBoundingClientRect().height}px`,
+      paddingTop: style.paddingTop,
+      paddingBottom: style.paddingBottom,
+      marginTop: style.marginTop,
+    };
+  }
+
   // Un mot de la liste. Un toucher sur la carte le fait entendre. Dessous, les numéros des répliques
   // où il revient : un numéro touché déplie la carte sur cette réplique (le mot surligné, puis la
   // traduction de la phrase), sans quitter la liste. Le même numéro la replie ; un autre la remplace.
   function creerCarteMot({ mot, ou }) {
     let ouverte = null; // la réplique dépliée, s'il y en a une
-    let contexte = null; // et son bloc, sous les numéros
-    let mouvement = []; // les animations en cours sur cette carte
-    let sortant = null; // le bloc qui s'efface pendant que la carte se replie, retiré à la fin
+    let contexte = null; // son bloc gris, sous les numéros (il reste là le temps de se replier)
+    let ligneDuBloc = null; // la réplique écrite dans ce bloc
+    let tour = 0; // chaque toucher prend la main : un mouvement plus ancien s'arrête là où il en est
 
     const numeros = ou.map((ligne) => el('button', {
       type: 'button',
@@ -388,70 +407,112 @@ export function afficherVocabulaire(racine, piece) {
       onclick: () => deplier(ligne),
     }, String(ligne.numero)));
 
-    // Arrête net le mouvement en cours (un numéro touché pendant qu'elle bouge encore).
-    function arreterMouvement() {
-      mouvement.forEach((animation) => animation.cancel());
-      mouvement = [];
-      sortant?.remove();
-      sortant = null;
-      carte.classList.remove('se-deroule');
+    const texteDuBloc = () => [...contexte.children];
+    const opaciteDuTexte = () => Number(getComputedStyle(contexte.firstElementChild).opacity);
+
+    // Arrête net ce qui bouge dans le bloc, et le garde dans la forme où il était.
+    function figer(forme) {
+      contexte.getAnimations({ subtree: true }).forEach((animation) => animation.cancel());
+      Object.assign(contexte.style, forme);
     }
 
-    // La carte passe en douceur d'une hauteur à l'autre, pendant que la réplique apparaît ou s'efface.
-    // Les valeurs de l'app : 0,28 s comme « À propos de cette pièce » dans Script, avec la courbe
-    // « feutre » du panneau du mot ; le fondu d'arrivée est celui d'une fiche (wizfade dans style.css).
-    // Pendant le mouvement, la carte cache ce qui dépasse : la réplique se dévoile de haut en bas.
-    function derouler(avant, apres, fondus) {
-      carte.classList.add('se-deroule');
-      // fill 'forwards' : la carte garde sa hauteur d'arrivée jusqu'au nettoyage, qui retire le bloc
-      // sortant dans le même instant. Sans cela, elle reprendrait une image sa hauteur d'avant.
-      const hauteur = carte.animate([{ height: `${avant}px` }, { height: `${apres}px` }], { duration: 280, easing: FEUTRE, fill: 'forwards' });
-      mouvement = [hauteur, ...fondus];
-      hauteur.finished.then(arreterMouvement, () => {}); // annulée : un autre toucher a pris la suite
+    // Le bloc s'étire de la forme « depart » jusqu'à sa taille naturelle, et la carte grandit avec
+    // lui. Pendant ce temps, il cache ce qui dépasse : la réplique se découvre de haut en bas. Son
+    // texte arrive en fondu à mi-course, ou repart d'où il en était (opacite) s'il était en train de partir.
+    function etirer(depart, opacite, { duree = 380, delaiTexte = 150 } = {}) {
+      contexte.removeAttribute('style');
+      const arrivee = formeDu(contexte);
+      // Une carte en bas de l'écran se déplierait sous Réviser : l'écran remonte juste assez pour la
+      // montrer, en même temps qu'elle s'ouvre. Si elle est trop haute pour tenir, c'est le mot
+      // surligné qui se voit. montrer mesure la carte avant le mouvement, à sa taille d'arrivée.
+      montrer(carte, contexte.querySelector('.surligne') ?? contexte);
+      const bloc = contexte;
+      bloc.classList.add('en-mouvement');
+      bloc.animate([depart, arrivee], { duration: duree, easing: DOUCE })
+        .finished.then(() => bloc.classList.remove('en-mouvement'), () => {}); // annulé : un autre toucher a pris la suite
+      for (const partie of texteDuBloc()) {
+        partie.animate([{ opacity: opacite }, { opacity: 1 }],
+          { duration: 280, delay: opacite > 0 ? 0 : delaiTexte, easing: 'ease', fill: 'backwards' });
+      }
     }
 
-    function deplier(ligne) {
-      // La hauteur de départ : celle qu'on voit, même au milieu d'un mouvement interrompu.
-      const avant = carte.getBoundingClientRect().height;
-      arreterMouvement();
-      const ancien = contexte;
+    async function deplier(ligne) {
+      const ceTour = ++tour;
       ouverte = ouverte === ligne ? null : ligne;
       // Le numéro de la réplique dépliée reste coloré : c'est lui qu'on touche pour la replier.
       numeros.forEach((bouton, rang) => {
         bouton.classList.toggle('is-selected', ou[rang] === ouverte);
         bouton.setAttribute('aria-pressed', String(ou[rang] === ouverte));
       });
-      contexte = ouverte ? creerContexte(mot, ouverte) : null;
-      const reduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      // Replier : la réplique reste en place le temps de s'effacer, pendant que la carte se referme.
-      if (!contexte) {
-        if (reduit) {
-          ancien.remove();
-          return;
+      // Le téléphone demande de réduire les animations : la carte change d'un coup.
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        contexte?.remove();
+        contexte = ouverte && creerContexte(mot, ouverte);
+        ligneDuBloc = ouverte;
+        if (contexte) {
+          carte.append(contexte);
+          montrer(carte, contexte.querySelector('.surligne') ?? contexte);
         }
-        ancien.hidden = true; // pour mesurer la hauteur de la carte refermée
-        const apres = carte.getBoundingClientRect().height;
-        ancien.hidden = false;
-        sortant = ancien;
-        derouler(avant, apres, [ancien.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: 'ease-in', fill: 'forwards' })]);
         return;
       }
 
-      // Déplier, ou passer d'une réplique à une autre.
-      ancien?.remove();
-      carte.append(contexte);
-      const apres = carte.getBoundingClientRect().height;
-      // Une carte en bas de l'écran se déplierait sous Réviser : l'écran remonte juste assez pour la
-      // montrer, en même temps qu'elle s'ouvre. Si elle est trop haute pour tenir, c'est le mot
-      // surligné qui se voit. montrer mesure la carte avant le mouvement, à sa taille d'arrivée.
-      montrer(carte, contexte.querySelector('.surligne') ?? contexte);
-      if (reduit) return;
-      // D'une réplique à l'autre, le fond gris reste en place : seul son texte change, en fondu.
-      const apparaissent = ancien ? [...contexte.children] : [contexte];
-      derouler(avant, apres, apparaissent.map((bloc) => bloc.animate(
-        [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }],
-        { duration: 250, delay: 60, easing: 'ease', fill: 'backwards' })));
+      // 1. La carte était fermée : le bloc naît à plat et s'étire.
+      if (!contexte) {
+        contexte = creerContexte(mot, ouverte);
+        ligneDuBloc = ouverte;
+        carte.append(contexte);
+        etirer(PLAT, 0);
+        return;
+      }
+
+      // Le bloc est là, ouvert ou en plein mouvement : tout repart de la forme qu'il a maintenant.
+      const depart = formeDu(contexte);
+      const opacite = opaciteDuTexte();
+      figer(depart);
+
+      // 2. Replier : le texte s'efface, pendant que le bloc se resserre jusqu'à disparaître.
+      if (!ouverte) {
+        const bloc = contexte;
+        bloc.classList.add('en-mouvement');
+        for (const partie of texteDuBloc()) {
+          partie.animate([{ opacity: opacite }, { opacity: 0 }], { duration: 140, easing: 'ease-in', fill: 'forwards' });
+        }
+        try {
+          await bloc.animate([depart, PLAT], { duration: 300, easing: DOUCE, fill: 'forwards' }).finished;
+        } catch {
+          return; // annulé : un numéro touché entre-temps rouvre la carte
+        }
+        if (ceTour !== tour) return;
+        bloc.remove();
+        contexte = null;
+        ligneDuBloc = null;
+        return;
+      }
+
+      // 3. Une autre réplique : l'ancien texte s'efface vite, puis le bloc prend la hauteur de la
+      // nouvelle, qui arrive en fondu. Le fond gris, lui, reste en place.
+      if (ligneDuBloc !== ouverte) {
+        if (opacite > 0) {
+          const effacement = texteDuBloc().map((partie) => partie.animate([{ opacity: opacite }, { opacity: 0 }], { duration: 120, easing: 'ease-in', fill: 'forwards' }));
+          try {
+            await Promise.all(effacement.map((animation) => animation.finished));
+          } catch {
+            return; // annulé : un autre toucher a pris la suite
+          }
+          if (ceTour !== tour) return;
+        }
+        const nouveau = creerContexte(mot, ouverte);
+        Object.assign(nouveau.style, depart); // il prend la place de l'ancien, à la même taille
+        contexte.replaceWith(nouveau);
+        contexte = nouveau;
+        ligneDuBloc = ouverte;
+        etirer(depart, 0, { duree: 340, delaiTexte: 40 });
+        return;
+      }
+
+      // 4. La même réplique, rouverte pendant qu'elle se repliait : elle repart d'où elle en est.
+      etirer(depart, opacite);
     }
 
     const carte = el('div', {
