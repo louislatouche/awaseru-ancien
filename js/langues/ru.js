@@ -90,7 +90,6 @@ export default {
   'À réviser': 'К повторению',
   'Chercher un mot': 'Искать слово',
   'Aucun mot trouvé.': 'Слово не найдено.',
-  'Particules': 'Частицы',
   'Mot {position} sur {total}': 'Слово {position} из {total}',
   'Et dans une autre réplique': 'И ещё в одной реплике',
   'Et dans {n} autres répliques': 'И ещё в {n} репликах',

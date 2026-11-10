@@ -90,7 +90,6 @@ export default {
   'À réviser': 'Til gennemgang',
   'Chercher un mot': 'Søg efter et ord',
   'Aucun mot trouvé.': 'Intet ord fundet.',
-  'Particules': 'Partikler',
   'Mot {position} sur {total}': 'Ord {position} af {total}',
   'Et dans une autre réplique': 'Og i en anden replik',
   'Et dans {n} autres répliques': 'Og i {n} andre replikker',

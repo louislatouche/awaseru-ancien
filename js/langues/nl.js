@@ -90,7 +90,6 @@ export default {
   'À réviser': 'Te herhalen',
   'Chercher un mot': 'Een woord zoeken',
   'Aucun mot trouvé.': 'Geen woord gevonden.',
-  'Particules': 'Partikels',
   'Mot {position} sur {total}': 'Woord {position} van {total}',
   'Et dans une autre réplique': 'En in nog één regel',
   'Et dans {n} autres répliques': 'En in nog {n} regels',

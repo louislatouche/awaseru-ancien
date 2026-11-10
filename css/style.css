@@ -607,10 +607,6 @@ button.replique:disabled { cursor: default; }
    la colonne des commandes a déjà son écart. */
 .recherche-mot { margin: 0; }
 .recherche-mot input { background: var(--surface); box-shadow: var(--shadow-card); }
-/* Le champ prend la place, l'interrupteur « Particules » se cale à sa droite. */
-.ligne-recherche { display: flex; align-items: center; gap: 8px; }
-.ligne-recherche .recherche-mot { flex: 1; min-width: 0; }
-.ligne-recherche .chip { flex: none; }
 
 /* Un choix « un parmi plusieurs » écrit en texte (creerChoixTexte dans affichage.js) : l'option
    choisie en gras et soulignée. Le bouton n'est pas dessiné, mais sa zone à toucher garde 44 px de haut. */
@@ -718,7 +714,7 @@ button.replique:disabled { cursor: default; }
 .grand-mot-masque { color: var(--ink-soft); font-weight: 700; }
 /* Réviser « Du français » : la question est le sens, en grand, dans la couleur des sens. */
 .sens-question { color: var(--accent-dark); font-size: 1.6rem; font-weight: 700; line-height: 1.3; text-wrap: balance; }
-/* En bas de la liste, Réviser a la hauteur des chips (celle de « Particules »), et non celle des
+/* En bas de la liste, Réviser a la hauteur des chips (44 px, demandé par Louis), et non celle des
    grands boutons : une rangée de commande parmi les autres, pas une action qui domine l'écran. */
 .barre-reviser .btn { min-height: 44px; padding-block: 0; }
 .reponse-mot { display: flex; flex-direction: column; align-items: center; gap: 4px; }

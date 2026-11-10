@@ -90,7 +90,6 @@ export default {
   'À réviser': 'Pendientes',
   'Chercher un mot': 'Buscar una palabra',
   'Aucun mot trouvé.': 'No se encontró ninguna palabra.',
-  'Particules': 'Partículas',
   'Mot {position} sur {total}': 'Palabra {position} de {total}',
   'Et dans une autre réplique': 'Y en otra réplica',
   'Et dans {n} autres répliques': 'Y en {n} réplicas más',

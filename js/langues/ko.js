@@ -90,7 +90,6 @@ export default {
   'À réviser': '복습할 단어',
   'Chercher un mot': '단어 검색',
   'Aucun mot trouvé.': '찾은 단어가 없어요.',
-  'Particules': '조사',
   'Mot {position} sur {total}': '단어 {position}/{total}',
   'Et dans une autre réplique': '다른 대사 1개에도',
   'Et dans {n} autres répliques': '다른 대사 {n}개에도',

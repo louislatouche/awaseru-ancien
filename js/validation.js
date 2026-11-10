@@ -67,7 +67,7 @@ export function validerPiece(piece) {
   // Le vocabulaire (facultatif) : les mots de la pièce, chacun avec un id court, le mot en japonais
   // (furigana compris) et sa traduction. Les répliques y renvoient par cet id (voir « mots » plus bas).
   // « particule »: true (facultatif) range le mot avec les particules (に, を, は...), que la liste
-  // du Vocabulaire met de côté sauf si on les demande.
+  // du Vocabulaire ne montre pas et ne fait pas réviser.
   const idsMots = new Set();
   if (piece.vocabulaire !== undefined) {
     if (!Array.isArray(piece.vocabulaire)) {

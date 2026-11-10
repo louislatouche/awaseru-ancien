@@ -90,7 +90,6 @@ export default {
   'À réviser': 'Att öva',
   'Chercher un mot': 'Sök ett ord',
   'Aucun mot trouvé.': 'Inget ord hittades.',
-  'Particules': 'Partiklar',
   'Mot {position} sur {total}': 'Ord {position} av {total}',
   'Et dans une autre réplique': 'Och i en annan replik',
   'Et dans {n} autres répliques': 'Och i {n} andra repliker',

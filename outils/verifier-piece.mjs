@@ -50,4 +50,4 @@ if (sansMots.length) console.log(`  Répliques sans mot à mot : ${sansMots.join
 if (orphelins.length) console.log(`  Morceaux japonais sans mot du vocabulaire : ${orphelins.join(' ; ')}`);
 if (inutilises.length) console.log(`  Mots du vocabulaire jamais employés : ${inutilises.join(', ')}`);
 const particules = piece.vocabulaire.filter((mot) => mot.particule).map((mot) => `${mot.id} (${mot.mot})`);
-console.log(`  Particules (mises de côté dans la liste) : ${particules.length ? particules.join(', ') : 'aucune'}`);
+console.log(`  Particules (ni listées ni révisées dans le Vocabulaire) : ${particules.length ? particules.join(', ') : 'aucune'}`);

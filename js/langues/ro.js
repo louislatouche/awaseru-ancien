@@ -90,7 +90,6 @@ export default {
   'À réviser': 'De recapitulat',
   'Chercher un mot': 'Caută un cuvânt',
   'Aucun mot trouvé.': 'Niciun cuvânt găsit.',
-  'Particules': 'Particule',
   'Mot {position} sur {total}': 'Cuvântul {position} din {total}',
   'Et dans une autre réplique': 'Și într-o altă replică',
   'Et dans {n} autres répliques': 'Și în alte {n} replici',
