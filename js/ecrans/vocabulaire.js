@@ -416,7 +416,11 @@ export function afficherVocabulaire(racine, piece) {
     }, String(ligne.numero)));
 
     const texteDuBloc = () => [...contexte.children];
-    const opaciteDuTexte = () => Number(getComputedStyle(contexte.firstElementChild).opacity);
+    // Où en est le texte du bloc : 1 visible, 0 effacé (ou caché pour de bon, voir le repli).
+    function opaciteDuTexte() {
+      const style = getComputedStyle(contexte.firstElementChild);
+      return style.visibility === 'hidden' ? 0 : Number(style.opacity);
+    }
 
     // Arrête net ce qui bouge dans le bloc, et le garde dans la forme où il était.
     function figer(forme) {
@@ -430,6 +434,7 @@ export function afficherVocabulaire(racine, piece) {
     function etirer(depart, opacite, { duree = 380, delaiTexte = 150 } = {}) {
       carte.style.overflowAnchor = ''; // rouverte pendant qu'elle se repliait seule (voir allerA)
       contexte.removeAttribute('style');
+      for (const partie of texteDuBloc()) partie.style.visibility = ''; // rouverte en fin de repli
       const arrivee = formeDu(contexte);
       // Une carte en bas de l'écran se déplierait sous Réviser : l'écran remonte juste assez pour la
       // montrer, en même temps qu'elle s'ouvre. Si elle est trop haute pour tenir, c'est le mot
@@ -511,11 +516,21 @@ export function afficherVocabulaire(racine, piece) {
         if (seule) carte.style.overflowAnchor = 'none';
         const bloc = contexte;
         bloc.classList.add('en-mouvement');
-        for (const partie of texteDuBloc()) {
-          partie.animate([{ opacity: opacite }, { opacity: 0 }], { duration: 140, easing: 'ease-in', fill: 'forwards' });
-        }
+        const effacement = texteDuBloc().map((partie) => partie.animate(
+          [{ opacity: opacite }, { opacity: 0 }], { duration: 140, easing: 'ease-in', fill: 'forwards' }));
+        const repli = bloc.animate([depart, PLAT], { duration: 300, easing: DOUCE, fill: 'forwards' });
+        // Une fois le texte effacé, on le cache pour de bon (visibility: hidden) et le bloc cesse de
+        // rogner ce qui dépasse : il n'y a plus rien à rogner. Sur le Fold, un bloc arrondi et rogné qui
+        // arrivait à une hauteur nulle avec, dedans, du texte encore « animé » à opacité 0 laissait
+        // clignoter une ligne noire à la fin du repli (signalé par Louis le 2026-11-10). Le bloc finit
+        // donc de se refermer sans rognage ni texte animé.
+        Promise.all(effacement.map((animation) => animation.finished)).then(() => {
+          for (const partie of bloc.children) partie.style.visibility = 'hidden';
+          effacement.forEach((animation) => animation.cancel());
+          bloc.classList.remove('en-mouvement');
+        }, () => {}); // annulé : un numéro touché entre-temps rouvre la carte
         try {
-          await bloc.animate([depart, PLAT], { duration: 300, easing: DOUCE, fill: 'forwards' }).finished;
+          await repli.finished;
         } catch {
           return; // annulé : un numéro touché entre-temps rouvre la carte
         }
