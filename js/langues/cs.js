@@ -6,7 +6,6 @@ export default {
   'Mes répliques': 'Moje repliky',
   Fiches: 'Kartičky',
   Filage: 'Průchod',
-  'Retour aux pièces': 'Zpět na hry',
   'Retour': 'Zpět',
   Réglages: 'Nastavení',
   'Couper le son': 'Ztlumit zvuk',

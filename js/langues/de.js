@@ -6,7 +6,6 @@ export default {
   'Mes répliques': 'Meine Zeilen',
   Fiches: 'Karteikarten',
   Filage: 'Durchlauf',
-  'Retour aux pièces': 'Zurück zu den Stücken',
   'Retour': 'Zurück',
   Réglages: 'Einstellungen',
   'Couper le son': 'Ton aus',

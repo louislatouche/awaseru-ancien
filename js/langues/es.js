@@ -6,7 +6,6 @@ export default {
   'Mes répliques': 'Mis réplicas',
   Fiches: 'Tarjetas',
   Filage: 'Ensayo corrido',
-  'Retour aux pièces': 'Volver a las obras',
   'Retour': 'Atrás',
   Réglages: 'Ajustes',
   'Couper le son': 'Silenciar',

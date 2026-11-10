@@ -6,7 +6,6 @@ export default {
   'Mes répliques': '내 대사',
   Fiches: '카드',
   Filage: '리허설',
-  'Retour aux pièces': '연극 목록으로',
   'Retour': '뒤로',
   Réglages: '설정',
   'Couper le son': '음소거',

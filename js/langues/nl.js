@@ -6,7 +6,6 @@ export default {
   'Mes répliques': 'Mijn regels',
   Fiches: 'Flitskaarten',
   Filage: 'Doorloop',
-  'Retour aux pièces': 'Terug naar de stukken',
   'Retour': 'Terug',
   Réglages: 'Instellingen',
   'Couper le son': 'Geluid uit',

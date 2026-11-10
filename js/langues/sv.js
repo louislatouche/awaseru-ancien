@@ -6,7 +6,6 @@ export default {
   'Mes répliques': 'Mina repliker',
   Fiches: 'Övningskort',
   Filage: 'Genomspelning',
-  'Retour aux pièces': 'Tillbaka till pjäserna',
   'Retour': 'Tillbaka',
   Réglages: 'Inställningar',
   'Couper le son': 'Stäng av ljudet',

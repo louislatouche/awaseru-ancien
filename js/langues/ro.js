@@ -6,7 +6,6 @@ export default {
   'Mes répliques': 'Replicile mele',
   Fiches: 'Fișe',
   Filage: 'Repetiție continuă',
-  'Retour aux pièces': 'Înapoi la piese',
   'Retour': 'Înapoi',
   Réglages: 'Setări',
   'Couper le son': 'Oprește sunetul',

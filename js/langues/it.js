@@ -6,7 +6,6 @@ export default {
   'Mes répliques': 'Le mie battute',
   Fiches: 'Schede',
   Filage: 'Prova completa',
-  'Retour aux pièces': 'Torna agli spettacoli',
   'Retour': 'Indietro',
   Réglages: 'Impostazioni',
   'Couper le son': "Disattiva l'audio",

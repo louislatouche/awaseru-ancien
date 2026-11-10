@@ -6,7 +6,6 @@ export default {
   'Mes répliques': 'Mine replikker',
   Fiches: 'Huskekort',
   Filage: 'Gjennomkjøring',
-  'Retour aux pièces': 'Tilbake til stykkene',
   'Retour': 'Tilbake',
   Réglages: 'Innstillinger',
   'Couper le son': 'Slå av lyden',

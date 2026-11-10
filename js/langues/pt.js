@@ -6,7 +6,6 @@ export default {
   'Mes répliques': 'As minhas falas',
   Fiches: 'Cartões',
   Filage: 'Ensaio corrido',
-  'Retour aux pièces': 'Voltar às peças',
   'Retour': 'Voltar',
   Réglages: 'Definições',
   'Couper le son': 'Silenciar',

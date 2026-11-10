@@ -6,7 +6,6 @@ export default {
   'Mes répliques': 'Мои реплики',
   Fiches: 'Карточки',
   Filage: 'Прогон',
-  'Retour aux pièces': 'Назад к пьесам',
   'Retour': 'Назад',
   Réglages: 'Настройки',
   'Couper le son': 'Выключить звук',

@@ -6,7 +6,6 @@ export default {
   'Mes répliques': 'Οι ατάκες μου',
   Fiches: 'Κάρτες',
   Filage: 'Συνεχής πρόβα',
-  'Retour aux pièces': 'Πίσω στα έργα',
   'Retour': 'Πίσω',
   Réglages: 'Ρυθμίσεις',
   'Couper le son': 'Σίγαση',

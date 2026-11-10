@@ -6,7 +6,6 @@ export default {
   'Mes répliques': 'Moje kwestie',
   Fiches: 'Fiszki',
   Filage: 'Przebieg',
-  'Retour aux pièces': 'Wróć do sztuk',
   'Retour': 'Wstecz',
   Réglages: 'Ustawienia',
   'Couper le son': 'Wycisz dźwięk',

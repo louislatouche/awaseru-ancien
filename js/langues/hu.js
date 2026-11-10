@@ -6,7 +6,6 @@ export default {
   'Mes répliques': 'Replikáim',
   Fiches: 'Kártyák',
   Filage: 'Átfutás',
-  'Retour aux pièces': 'Vissza a darabokhoz',
   'Retour': 'Vissza',
   Réglages: 'Beállítások',
   'Couper le son': 'Hang némítása',

@@ -6,7 +6,6 @@ export default {
   'Mes répliques': 'My lines',
   Fiches: 'Flashcards',
   Filage: 'Run-through',
-  'Retour aux pièces': 'Back to plays',
   'Retour': 'Back',
   Réglages: 'Settings',
   'Couper le son': 'Mute',

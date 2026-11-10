@@ -6,7 +6,6 @@ export default {
   'Mes répliques': '自分のセリフ',
   Fiches: 'カード',
   Filage: '通し稽古',
-  'Retour aux pièces': '演目一覧に戻る',
   'Retour': '戻る',
   Réglages: '設定',
   'Couper le son': '音を消す',

@@ -6,7 +6,6 @@ export default {
   'Mes répliques': 'Omat repliikit',
   Fiches: 'Kortit',
   Filage: 'Läpiajo',
-  'Retour aux pièces': 'Takaisin näytelmiin',
   'Retour': 'Takaisin',
   Réglages: 'Asetukset',
   'Couper le son': 'Mykistä ääni',
