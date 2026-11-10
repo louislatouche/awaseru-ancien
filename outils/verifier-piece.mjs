@@ -5,9 +5,11 @@
 // - les répliques qui n'ont pas encore leur mot à mot ;
 // - les morceaux qui contiennent du japonais mais ne renvoient à aucun mot du vocabulaire ;
 // - les mots du vocabulaire qu'aucune réplique n'emploie.
-// Il liste aussi les mots marqués « particule », pour vérifier d'un coup d'œil qu'il n'en manque pas.
+// Il liste aussi les mots marqués « particule », pour vérifier d'un coup d'œil qu'il n'en manque pas,
+// et les mots écrits pareil qu'un mot d'une autre pièce mais sous un autre id : le même mot doit
+// garder le même id dans toutes les pièces (sa coche « Je savais » est commune), sauf homographe.
 
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { validerPiece } from '../js/validation.js';
 
 const id = process.argv[2];
@@ -51,3 +53,19 @@ if (orphelins.length) console.log(`  Morceaux japonais sans mot du vocabulaire :
 if (inutilises.length) console.log(`  Mots du vocabulaire jamais employés : ${inutilises.join(', ')}`);
 const particules = piece.vocabulaire.filter((mot) => mot.particule).map((mot) => `${mot.id} (${mot.mot})`);
 console.log(`  Particules (ni listées ni révisées dans le Vocabulaire) : ${particules.length ? particules.join(', ') : 'aucune'}`);
+
+// Les autres pièces du dossier : un mot écrit pareil chez elles, mais sous un autre id.
+const dossier = new URL('../pieces/', import.meta.url);
+const ailleurs = new Map(); // le mot écrit -> les « id (pièce) » qui l'emploient ailleurs
+for (const fichier of readdirSync(dossier).filter((nom) => nom.endsWith('.json') && nom !== 'index.json' && nom !== `${id}.json`)) {
+  const autre = JSON.parse(readFileSync(new URL(fichier, dossier), 'utf8'));
+  for (const mot of autre.vocabulaire ?? []) {
+    if (!ailleurs.has(mot.mot)) ailleurs.set(mot.mot, []);
+    ailleurs.get(mot.mot).push({ id: mot.id, piece: fichier.replace(/\.json$/, '') });
+  }
+}
+const differents = piece.vocabulaire.flatMap((mot) => {
+  const autres = (ailleurs.get(mot.mot) ?? []).filter((autre) => autre.id !== mot.id);
+  return autres.length ? [`${mot.id} (${mot.mot}) ≠ ${autres.map((autre) => `${autre.id} dans ${autre.piece}`).join(', ')}`] : [];
+});
+if (differents.length) console.log(`  Écrits pareil ailleurs sous un autre id (même sens ? alors reprendre l'id) : ${differents.join(' ; ')}`);

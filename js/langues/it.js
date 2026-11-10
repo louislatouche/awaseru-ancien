@@ -79,6 +79,7 @@ export default {
   'Fiche {position} sur {total}': 'Scheda {position} di {total}',
   'Vocabulaire': 'Vocabolario',
   'La pièce': "L'opera",
+  'Toutes': 'Tutte',
   'Texte': 'Testo',
   'Liste': 'Elenco',
   'Mot à mot': 'Parola per parola',

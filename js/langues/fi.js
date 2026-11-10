@@ -80,6 +80,7 @@ export default {
   'Fiche {position} sur {total}': 'Kortti {position}/{total}',
   'Vocabulaire': 'Sanasto',
   'La pièce': 'Näytelmä',
+  'Toutes': 'Kaikki näytelmät',
   'Texte': 'Teksti',
   'Liste': 'Luettelo',
   'Mot à mot': 'Sana sanalta',

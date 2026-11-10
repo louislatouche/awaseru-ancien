@@ -79,6 +79,7 @@ export default {
   'Fiche {position} sur {total}': 'Karte {position} von {total}',
   'Vocabulaire': 'Vokabeln',
   'La pièce': 'Das Stück',
+  'Toutes': 'Alle Stücke',
   'Texte': 'Text',
   'Liste': 'Liste',
   'Mot à mot': 'Wort für Wort',

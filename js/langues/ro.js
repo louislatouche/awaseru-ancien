@@ -79,6 +79,7 @@ export default {
   'Fiche {position} sur {total}': 'Fișa {position} din {total}',
   'Vocabulaire': 'Vocabular',
   'La pièce': 'Piesa',
+  'Toutes': 'Toate',
   'Texte': 'Text',
   'Liste': 'Listă',
   'Mot à mot': 'Cuvânt cu cuvânt',

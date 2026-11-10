@@ -79,6 +79,7 @@ export default {
   'Fiche {position} sur {total}': 'Kort {position} af {total}',
   'Vocabulaire': 'Ordforråd',
   'La pièce': 'Stykket',
+  'Toutes': 'Alle stykker',
   'Texte': 'Tekst',
   'Liste': 'Liste',
   'Mot à mot': 'Ord for ord',

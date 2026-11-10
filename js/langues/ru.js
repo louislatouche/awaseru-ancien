@@ -79,6 +79,7 @@ export default {
   'Fiche {position} sur {total}': 'Карточка {position} из {total}',
   'Vocabulaire': 'Словарь',
   'La pièce': 'Пьеса',
+  'Toutes': 'Все пьесы',
   'Texte': 'Текст',
   'Liste': 'Список',
   'Mot à mot': 'Слово за словом',

@@ -80,6 +80,7 @@ export default {
   'Fiche {position} sur {total}': 'Κάρτα {position} από {total}',
   'Vocabulaire': 'Λεξιλόγιο',
   'La pièce': 'Το έργο',
+  'Toutes': 'Όλα τα έργα',
   'Texte': 'Κείμενο',
   'Liste': 'Λίστα',
   'Mot à mot': 'Λέξη προς λέξη',

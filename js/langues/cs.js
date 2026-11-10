@@ -80,6 +80,7 @@ export default {
   'Fiche {position} sur {total}': 'Kartička {position} z {total}',
   'Vocabulaire': 'Slovíčka',
   'La pièce': 'Hra',
+  'Toutes': 'Všechny hry',
   'Texte': 'Text',
   'Liste': 'Seznam',
   'Mot à mot': 'Slovo po slovu',

@@ -21,7 +21,7 @@ import {
 } from '../affichage.js';
 import { brancherGestes } from '../gestes.js';
 import { langueActive, t, traduire } from '../langues.js';
-import { lignesDe } from '../pieces.js';
+import { lignesDe, piecesChargees } from '../pieces.js';
 import { noterPosition, positionAReprendre } from '../reprise.js';
 import { changerStatutMot, lireReglages, lireSelection, lireStatutsMots, motAReviser } from '../stockage.js';
 import { ajouterAvecFurigana, creerJaponais, enRomaji, lectureEnKana, texteBrut } from '../texte.js';
@@ -47,21 +47,29 @@ export function afficherVocabulaire(racine, piece) {
     return;
   }
 
+  // Les pièces qui ont un vocabulaire, celle-ci d'abord. « Toutes » ne se propose qu'à partir de
+  // deux (choix de Louis, le 2026-11-10) : avec une seule, la liste serait celle de « La pièce ».
+  const piecesAvecMots = [piece, ...piecesChargees().filter((autre) => autre.id !== piece.id && autre.vocabulaire?.length)];
+  const toutesPossible = piecesAvecMots.length >= 2;
+
   // Ce que l'on regarde : mes répliques ou toute la pièce, en texte ou en liste, avec ou sans le mot
   // à mot, et dans la liste, quels mots (le filtre et la recherche). Si Android vient de relancer
   // l'app (en dépliant le Fold, voir reprise.js), on reprend les mêmes choix : sans eux, l'écran
   // rouvrirait en texte, et sa position de défilement ne voudrait plus rien dire.
   const reprise = positionAReprendre('vocabulaire');
   let gloses = reprise?.gloses ?? false;
+  // portee : 'miennes' (mes répliques), 'tout' (la pièce) ou 'toutes' (toutes les pièces).
   let portee = reprise?.portee ?? (selection.size > 0 ? 'miennes' : 'tout');
-  let vue = reprise?.vue ?? 'texte';
+  if (portee === 'toutes' && !toutesPossible) portee = 'tout';
+  let vue = portee === 'toutes' ? 'liste' : reprise?.vue ?? 'texte'; // toutes les pièces : en liste seulement
   let filtre = reprise?.filtre ?? 'tous'; // 'tous', 'a-reviser' ou 'nouveaux'
   let recherche = reprise?.recherche ?? ''; // ce qui est tapé dans « Chercher un mot »
   const noterChoix = () => noterPosition('vocabulaire', { vue, portee, gloses, filtre, recherche });
 
   const lignesChoisies = () => (portee === 'miennes' ? lignes.filter((ligne) => selection.has(ligne.numero)) : lignes);
 
-  // Les mots employés dans ces répliques, dans leur ordre d'apparition, avec les répliques où ils sont.
+  // Les mots employés dans ces répliques, dans leur ordre d'apparition, avec les répliques où ils
+  // sont, pièce par pièce : { mot, parPiece: [[pièce, ses répliques], ...] }. Ici, une seule pièce.
   function entreesDe(lignesVues) {
     const occurrences = new Map(); // id du mot -> les répliques qui l'emploient
     for (const ligne of lignesVues) {
@@ -72,7 +80,28 @@ export function afficherVocabulaire(racine, piece) {
         if (ou.at(-1) !== ligne) ou.push(ligne);
       }
     }
-    return [...occurrences].map(([id, ou]) => ({ mot: parId.get(id), ou }));
+    return [...occurrences].map(([id, ou]) => ({ mot: parId.get(id), parPiece: [[piece, ou]] }));
+  }
+
+  // Les mots de toutes les pièces. Un même mot (le même id : un mot su l'est partout, voir
+  // stockage.js) n'a qu'une carte, avec ses répliques pièce par pièce, celle-ci d'abord.
+  function entreesDeToutes() {
+    const parMot = new Map(); // id du mot -> { mot, parPiece : pièce -> ses répliques }
+    for (const autre of piecesAvecMots) {
+      const sesMots = new Map(autre.vocabulaire.map((mot) => [mot.id, mot]));
+      for (const ligne of autre === piece ? lignes : lignesDe(autre)) {
+        for (const morceau of ligne.mots ?? []) {
+          const mot = sesMots.get(morceau.v);
+          if (!mot) continue;
+          if (!parMot.has(mot.id)) parMot.set(mot.id, { mot, parPiece: new Map() });
+          const { parPiece } = parMot.get(mot.id);
+          if (!parPiece.has(autre)) parPiece.set(autre, []);
+          const ou = parPiece.get(autre);
+          if (ou.at(-1) !== ligne) ou.push(ligne);
+        }
+      }
+    }
+    return [...parMot.values()].map(({ mot, parPiece }) => ({ mot, parPiece: [...parPiece] }));
   }
 
   // ---- Les briques ----
@@ -150,15 +179,16 @@ export function afficherVocabulaire(racine, piece) {
     return phrase;
   }
 
-  // L'en-tête d'une réplique : son numéro, son rôle, sa scène.
-  const enTete = (ligne) => el('span', { className: 'replique-tete' },
+  // L'en-tête d'une réplique : son numéro, son rôle, sa scène. saPiece : la pièce de cette réplique
+  // (une autre que celle-ci, pour « Toutes »), où chercher le nom du rôle.
+  const enTete = (ligne, saPiece = piece) => el('span', { className: 'replique-tete' },
     el('span', { className: 'numero' }, String(ligne.numero)),
-    creerNomRole(piece, ligne.role),
+    creerNomRole(saPiece, ligne.role),
     el('span', { className: 'role-fr' }, t('Scène {n}', { n: ligne.scene.numero })));
 
   // Le contexte d'un mot : la réplique où il apparaît, le mot surligné, et la traduction de la phrase.
-  const creerContexte = (mot, ligne) => el('div', { className: 'contexte' },
-    enTete(ligne),
+  const creerContexte = (mot, ligne, saPiece = piece) => el('div', { className: 'contexte' },
+    enTete(ligne, saPiece),
     creerPhrase(ligne, { surligner: mot.id }),
     el('span', { className: 'replique-fr traduction' }, traduire(ligne, 'fr')));
 
@@ -400,7 +430,7 @@ export function afficherVocabulaire(racine, piece) {
   // Un mot de la liste. Un toucher sur la carte le fait entendre. Dessous, les numéros des répliques
   // où il revient : un numéro touché déplie la carte sur cette réplique (le mot surligné, puis la
   // traduction de la phrase), sans quitter la liste. Le même numéro la replie ; un autre la remplace.
-  function creerCarteMot({ mot, ou }) {
+  function creerCarteMot({ mot, parPiece }) {
     let ouverte = null; // la réplique dépliée, s'il y en a une
     let contexte = null; // son bloc gris, sous les numéros (il reste là le temps de se replier)
     let ligneDuBloc = null; // la réplique écrite dans ce bloc
@@ -408,13 +438,27 @@ export function afficherVocabulaire(racine, piece) {
     // Ce que les autres cartes savent de celle-ci : comment la replier quand l'une d'elles se déplie.
     const cetteCarte = { replier: () => allerA(null, { seule: true }) };
 
-    const numeros = ou.map((ligne) => el('button', {
-      type: 'button',
-      className: 'chip chip-numero',
-      'aria-label': t('Réplique {n}', { n: ligne.numero }),
-      'aria-pressed': 'false', // pour un lecteur d'écran : enfoncé quand sa réplique est dépliée
-      onclick: () => deplier(ligne),
-    }, String(ligne.numero)));
+    // Un bouton par réplique. pieceDe retrouve la pièce de chacune, pour le nom de son rôle.
+    const pieceDe = new Map();
+    const numeros = [];
+    const rangees = parPiece.map(([saPiece, sesLignes]) => {
+      const boutons = sesLignes.map((ligne) => {
+        pieceDe.set(ligne, saPiece);
+        const bouton = el('button', {
+          type: 'button',
+          className: 'chip chip-numero',
+          'aria-label': t('Réplique {n}', { n: ligne.numero }),
+          'aria-pressed': 'false', // pour un lecteur d'écran : enfoncé quand sa réplique est dépliée
+          onclick: () => deplier(ligne),
+        }, String(ligne.numero));
+        numeros.push({ bouton, ligne });
+        return bouton;
+      });
+      // Avec « Toutes », chaque rangée de numéros commence par le titre de sa pièce.
+      return el('span', { className: 'numeros-mot' },
+        portee === 'toutes' && el('span', { className: 'legende numeros-piece' }, traduire(saPiece, 'titre_fr')),
+        boutons);
+    });
 
     const texteDuBloc = () => [...contexte.children];
     // Où en est le texte du bloc : 1 visible, 0 effacé (ou caché pour de bon, voir le repli).
@@ -475,15 +519,15 @@ export function afficherVocabulaire(racine, piece) {
       const ceTour = ++tour;
       ouverte = cible;
       // Le numéro de la réplique dépliée reste coloré : c'est lui qu'on touche pour la replier.
-      numeros.forEach((bouton, rang) => {
-        bouton.classList.toggle('is-selected', ou[rang] === ouverte);
-        bouton.setAttribute('aria-pressed', String(ou[rang] === ouverte));
+      numeros.forEach(({ bouton, ligne }) => {
+        bouton.classList.toggle('is-selected', ligne === ouverte);
+        bouton.setAttribute('aria-pressed', String(ligne === ouverte));
       });
 
       // Le téléphone demande de réduire les animations : la carte change d'un coup.
       if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
         contexte?.remove();
-        contexte = ouverte && creerContexte(mot, ouverte);
+        contexte = ouverte && creerContexte(mot, ouverte, pieceDe.get(ouverte));
         ligneDuBloc = ouverte;
         if (contexte) {
           carte.append(contexte);
@@ -494,7 +538,7 @@ export function afficherVocabulaire(racine, piece) {
 
       // 1. La carte était fermée : le bloc naît à plat et s'étire.
       if (!contexte) {
-        contexte = creerContexte(mot, ouverte);
+        contexte = creerContexte(mot, ouverte, pieceDe.get(ouverte));
         ligneDuBloc = ouverte;
         carte.append(contexte);
         etirer(PLAT, 0);
@@ -555,7 +599,7 @@ export function afficherVocabulaire(racine, piece) {
           }
           if (ceTour !== tour) return;
         }
-        const nouveau = creerContexte(mot, ouverte);
+        const nouveau = creerContexte(mot, ouverte, pieceDe.get(ouverte));
         Object.assign(nouveau.style, depart); // il prend la place de l'ancien, à la même taille
         contexte.replaceWith(nouveau);
         contexte = nouveau;
@@ -583,7 +627,7 @@ export function afficherVocabulaire(racine, piece) {
           el('span', { className: 'mot-romaji' }, enRomaji(lectureEnKana(mot.mot)))),
         creerPastilleMot(statuts[mot.id]?.statut)),
       el('span', { className: 'mot-sens' }, traduire(mot, 'fr')),
-      el('span', { className: 'numeros-mot' }, numeros));
+      rangees);
     return carte;
   }
 
@@ -641,14 +685,20 @@ export function afficherVocabulaire(racine, piece) {
   });
 
   function dessinerCommandes(series) {
+    // Le texte de toutes les pièces serait trop long : avec « Toutes », Texte est grisé.
     remplacer(coinTitre, creerChoixTexte([
-      { valeur: 'texte', libelle: t('Texte') },
+      { valeur: 'texte', libelle: t('Texte'), desactive: portee === 'toutes' },
       { valeur: 'liste', libelle: t('Liste') },
     ], vue, (valeur) => { vue = valeur; dessinerContenu(); }));
     remplacer(choixPortee, creerChoixTexte([
       { valeur: 'miennes', libelle: t('Mes répliques') },
       { valeur: 'tout', libelle: t('La pièce') },
-    ], portee, (valeur) => { portee = valeur; dessinerContenu(); }));
+      toutesPossible && { valeur: 'toutes', libelle: t('Toutes') },
+    ].filter(Boolean), portee, (valeur) => {
+      portee = valeur;
+      if (portee === 'toutes') vue = 'liste';
+      dessinerContenu();
+    }));
     // Le mot à mot : la traduction écrite sous chaque mot, pour suivre la construction de la phrase.
     rangeeMotAMot.hidden = vue !== 'texte';
     remplacer(rangeeMotAMot, creerBascule(t('Mot à mot'), gloses, (actif) => { gloses = actif; dessinerContenu(); }));
@@ -680,7 +730,8 @@ export function afficherVocabulaire(racine, piece) {
     // que dans la liste : le texte montre toujours toutes les répliques, et chacun de leurs mots,
     // particules comprises, se touche.
     const dansLaListe = ({ mot }) => !mot.particule && correspond(mot);
-    const series = parFiltre(entreesDe(lignesVues).filter((entree) => vue !== 'liste' || dansLaListe(entree)));
+    const entrees = portee === 'toutes' ? entreesDeToutes() : entreesDe(lignesVues);
+    const series = parFiltre(entrees.filter((entree) => vue !== 'liste' || dansLaListe(entree)));
     // Le filtre choisi n'a plus de mots (tous les « À réviser » ont été révisés) : retour à Tous.
     // Pas pendant une recherche : on garderait Tous après avoir effacé ce qu'on a tapé.
     // Et un filtre qui n'existe plus (noté pour la reprise par une version précédente) : Tous aussi.
@@ -763,7 +814,8 @@ export function afficherVocabulaire(racine, piece) {
     }
 
     function montrerFiche() {
-      const { mot, ou } = paquet[position];
+      const { mot, parPiece } = paquet[position];
+      const [saPiece, sesLignes] = parPiece[0]; // la première pièce où il revient, et sa première réplique
       const depuisLeSens = duSens[position];
       const gestes = lireReglages().navigation === 'gestes';
       let vu = false;
@@ -783,7 +835,7 @@ export function afficherVocabulaire(racine, piece) {
         depuisLeSens && creerJaponais(mot.mot, 'mot-japonais'),
         creerLecture(mot),
         !depuisLeSens && el('div', { className: 'mot-sens' }, traduire(mot, 'fr')));
-      const contexte = creerContexte(mot, ou[0]);
+      const contexte = creerContexte(mot, sesLignes[0], saPiece);
       contexte.hidden = true;
 
       // Voir la réponse, c'est aussi l'entendre : le mot est dit dès qu'il se retourne, sans second toucher.

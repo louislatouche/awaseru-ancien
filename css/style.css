@@ -638,7 +638,9 @@ button.replique:disabled { cursor: default; }
 .carte-mot .mot-japonais { margin-inline-end: 0; font-size: 1.35rem; line-height: 1.75; white-space: nowrap; }
 .mot-romaji { color: var(--ink-soft); font-size: 15px; }
 .carte-mot .mot-sens { font-size: 16px; }
-.numeros-mot { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.numeros-mot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px; }
+/* Avec « Toutes » les pièces, chaque rangée de numéros commence par le titre de sa pièce. */
+.numeros-piece { flex-basis: 100%; font-size: 13px; }
 /* Pendant que le bloc gris d'une carte s'étire ou se resserre (deplier dans vocabulaire.js), ce qui
    dépasse de sa hauteur du moment reste caché : la réplique se découvre de haut en bas. */
 .carte-mot .contexte.en-mouvement { overflow: hidden; }

@@ -49,6 +49,12 @@ export async function toutesLesPieces() {
   };
 }
 
+// Toutes les pièces, sans attendre : pour un écran de pièce, qui ne s'ouvre qu'une fois les pièces
+// chargées (par trouverPiece). Elles sont donc déjà en mémoire quand il en a besoin.
+export function piecesChargees() {
+  return [...(memoFournies?.pieces ?? []), ...lirePiecesImportees()];
+}
+
 export async function trouverPiece(id) {
   const { fournies, importees } = await toutesLesPieces();
   return [...fournies, ...importees].find((piece) => piece.id === id) ?? null;

@@ -79,6 +79,7 @@ export default {
   'Fiche {position} sur {total}': '카드 {position} / {total}',
   'Vocabulaire': '어휘',
   'La pièce': '작품',
+  'Toutes': '모든 작품',
   'Texte': '본문',
   'Liste': '목록',
   'Mot à mot': '단어별',

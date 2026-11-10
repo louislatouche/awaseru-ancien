@@ -79,6 +79,7 @@ export default {
   'Fiche {position} sur {total}': 'Cartão {position} de {total}',
   'Vocabulaire': 'Vocabulário',
   'La pièce': 'A peça',
+  'Toutes': 'Todas',
   'Texte': 'Texto',
   'Liste': 'Lista',
   'Mot à mot': 'Palavra a palavra',

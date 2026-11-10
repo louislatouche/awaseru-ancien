@@ -79,6 +79,7 @@ export default {
   'Fiche {position} sur {total}': 'Kaart {position} van {total}',
   'Vocabulaire': 'Woordenschat',
   'La pièce': 'Het stuk',
+  'Toutes': 'Alle stukken',
   'Texte': 'Tekst',
   'Liste': 'Lijst',
   'Mot à mot': 'Woord voor woord',

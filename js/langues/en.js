@@ -79,6 +79,7 @@ export default {
   'Fiche {position} sur {total}': 'Card {position} of {total}',
   'Vocabulaire': 'Vocabulary',
   'La pièce': 'The play',
+  'Toutes': 'All plays',
   'Texte': 'Text',
   'Liste': 'List',
   'Mot à mot': 'Word by word',

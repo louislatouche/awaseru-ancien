@@ -80,6 +80,7 @@ export default {
   'Fiche {position} sur {total}': 'Fiszka {position} z {total}',
   'Vocabulaire': 'Słówka',
   'La pièce': 'Sztuka',
+  'Toutes': 'Wszystkie',
   'Texte': 'Tekst',
   'Liste': 'Lista',
   'Mot à mot': 'Słowo po słowie',

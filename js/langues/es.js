@@ -79,6 +79,7 @@ export default {
   'Fiche {position} sur {total}': 'Tarjeta {position} de {total}',
   'Vocabulaire': 'Vocabulario',
   'La pièce': 'La obra',
+  'Toutes': 'Todas',
   'Texte': 'Texto',
   'Liste': 'Lista',
   'Mot à mot': 'Palabra por palabra',

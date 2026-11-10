@@ -80,6 +80,7 @@ export default {
   'Fiche {position} sur {total}': 'カード {position} / {total}',
   'Vocabulaire': '語彙',
   'La pièce': '作品',
+  'Toutes': 'すべての作品',
   'Texte': '本文',
   'Liste': '一覧',
   'Mot à mot': '逐語訳',

@@ -80,6 +80,7 @@ export default {
   'Fiche {position} sur {total}': 'Kártya: {position} / {total}',
   'Vocabulaire': 'Szókincs',
   'La pièce': 'A darab',
+  'Toutes': 'Mindegyik',
   'Texte': 'Szöveg',
   'Liste': 'Lista',
   'Mot à mot': 'Szóról szóra',
