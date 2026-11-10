@@ -87,6 +87,7 @@ export default {
   'Réviser ({n})': 'Rever ({n})',
   'Tous': 'Todas',
   'Nouveaux': 'Novas',
+  'À réviser': 'Pendentes',
   'Mot {position} sur {total}': 'Palavra {position} de {total}',
   'Et dans une autre réplique': 'E noutra fala',
   'Et dans {n} autres répliques': 'E em mais {n} falas',

@@ -8,13 +8,20 @@ import { validerPiece } from './validation.js';
 const TYPE = 'awaseru-sauvegarde';
 // Les sauvegardes faites quand l'app s'appelait encore Replik restent lisibles : leur contenu est le même.
 const TYPES_LISIBLES = [TYPE, 'replik-sauvegarde'];
-// 2 depuis la version 101 de l'app : les coches des mots sont communes à toutes les pièces (clé
-// « vocabulaire »), au lieu d'être rangées pièce par pièce (« vocabulaire:<id> »). Une sauvegarde
-// en version 1 se lit toujours : stockage.js range ses mots en commun après la restauration. Une
-// app pas encore à jour, elle, refuse une sauvegarde en version 2 et demande de se mettre à jour.
-const VERSION_DU_FORMAT = 2;
+// Les versions du format, et ce qui a changé dans les coches des mots :
+//   2 (version 101 de l'app) : communes à toutes les pièces (clé « vocabulaire »), au lieu d'être
+//     rangées pièce par pièce (« vocabulaire:<id> ») ;
+//   3 (version 102) : chaque mot garde aussi son palier et son jour de retour (répétition espacée).
+// Une sauvegarde plus ancienne se lit toujours : stockage.js remet ses mots au format d'aujourd'hui
+// après la restauration. Une app pas encore à jour, elle, refuse une sauvegarde plus récente
+// qu'elle et demande de se mettre à jour.
+const VERSION_DU_FORMAT = 3;
 
 const estObjet = (valeur) => typeof valeur === 'object' && valeur !== null && !Array.isArray(valeur);
+const statutValide = (statut) => statut === 'su' || statut === 'a_revoir';
+// Un mot à revoir : { statut: 'a_revoir' }. Un mot su : son palier (0 à 4) et son jour de retour.
+const motValide = (etat) => estObjet(etat) && (etat.statut === 'a_revoir'
+  || (etat.statut === 'su' && [0, 1, 2, 3, 4].includes(etat.palier) && /^\d{4}-\d{2}-\d{2}$/.test(etat.revient)));
 
 export function telechargerSauvegarde() {
   const maintenant = new Date();
@@ -42,10 +49,15 @@ function erreurDansDonnee(cle, valeur) {
   if (cle.startsWith('selection:')) {
     return Array.isArray(valeur) && valeur.every(Number.isInteger) ? null : t('une sélection de répliques est illisible.');
   }
-  // « vocabulaire » : les mots, communs à toutes les pièces ; « vocabulaire:<id> » : ceux d'une
-  // sauvegarde en version 1, rangés pièce par pièce.
-  if (cle.startsWith('progression:') || cle === 'vocabulaire' || cle.startsWith('vocabulaire:')) {
-    const valide = estObjet(valeur) && Object.values(valeur).every((statut) => statut === 'su' || statut === 'a_revoir');
+  // « vocabulaire » : les mots, communs à toutes les pièces. Chacun est { statut, palier, revient }
+  // (voir stockage.js), ou simplement 'su' ou 'a_revoir' dans une sauvegarde en version 2.
+  if (cle === 'vocabulaire') {
+    const valide = estObjet(valeur) && Object.values(valeur).every((etat) => statutValide(etat) || motValide(etat));
+    return valide ? null : t('une progression est illisible.');
+  }
+  // « vocabulaire:<id> » : les mots d'une sauvegarde en version 1, rangés pièce par pièce.
+  if (cle.startsWith('progression:') || cle.startsWith('vocabulaire:')) {
+    const valide = estObjet(valeur) && Object.values(valeur).every(statutValide);
     return valide ? null : t('une progression est illisible.');
   }
   if (cle.startsWith('utilisation:')) {

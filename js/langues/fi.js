@@ -88,6 +88,7 @@ export default {
   'Réviser ({n})': 'Kertaa ({n})',
   'Tous': 'Kaikki',
   'Nouveaux': 'Uudet',
+  'À réviser': 'Kertausvuorossa',
   'Mot {position} sur {total}': 'Sana {position}/{total}',
   'Et dans une autre réplique': 'Ja yhdessä toisessa repliikissä',
   'Et dans {n} autres répliques': 'Ja {n} muussa repliikissä',

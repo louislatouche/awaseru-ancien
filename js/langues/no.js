@@ -87,6 +87,7 @@ export default {
   'Réviser ({n})': 'Repeter ({n})',
   'Tous': 'Alle',
   'Nouveaux': 'Nye',
+  'À réviser': 'Til gjennomgang',
   'Mot {position} sur {total}': 'Ord {position} av {total}',
   'Et dans une autre réplique': 'Og i en annen replikk',
   'Et dans {n} autres répliques': 'Og i {n} andre replikker',

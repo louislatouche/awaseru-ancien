@@ -88,6 +88,7 @@ export default {
   'Réviser ({n})': '復習する ({n})',
   'Tous': 'すべて',
   'Nouveaux': '未学習',
+  'À réviser': '復習予定',
   'Mot {position} sur {total}': '{total}語中{position}語目',
   'Et dans une autre réplique': 'ほかに1つのセリフにも',
   'Et dans {n} autres répliques': 'ほかに{n}つのセリフにも',

@@ -5,7 +5,8 @@
 //   sous chaque mot.
 // - La liste : une carte par mot, qu'un toucher fait entendre. Sous chaque mot, les numéros des
 //   répliques où il revient ; un numéro touché déplie la carte sur cette réplique, le mot surligné.
-//   Un filtre (Tous, À revoir, Nouveaux) choisit les mots montrés.
+//   Un filtre (Tous, À réviser, Nouveaux) choisit les mots montrés. « À réviser » suit la répétition
+//   espacée : les mots à revoir, et les mots sus revenus à leur jour (voir stockage.js).
 // Et une révision en fiches, comme pour les répliques : le mot seul, puis sa lecture et son sens.
 // Elle se lance depuis la liste, en bas, et reprend exactement les mots que la liste montre.
 //
@@ -21,7 +22,7 @@ import { brancherGestes } from '../gestes.js';
 import { langueActive, t, traduire } from '../langues.js';
 import { lignesDe } from '../pieces.js';
 import { noterPosition, positionAReprendre } from '../reprise.js';
-import { changerStatutMot, lireReglages, lireSelection, lireStatutsMots } from '../stockage.js';
+import { changerStatutMot, lireReglages, lireSelection, lireStatutsMots, motAReviser } from '../stockage.js';
 import { ajouterAvecFurigana, creerJaponais, enRomaji, lectureEnKana } from '../texte.js';
 import { arreterVoix, messagePourResultat, parler } from '../voix.js';
 
@@ -53,7 +54,7 @@ export function afficherVocabulaire(racine, piece) {
   let gloses = reprise?.gloses ?? false;
   let portee = reprise?.portee ?? (selection.size > 0 ? 'miennes' : 'tout');
   let vue = reprise?.vue ?? 'texte';
-  let filtre = reprise?.filtre ?? 'tous'; // 'tous', 'a-revoir' ou 'nouveaux'
+  let filtre = reprise?.filtre ?? 'tous'; // 'tous', 'a-reviser' ou 'nouveaux'
   const noterChoix = () => noterPosition('vocabulaire', { vue, portee, gloses, filtre });
 
   const lignesChoisies = () => (portee === 'miennes' ? lignes.filter((ligne) => selection.has(ligne.numero)) : lignes);
@@ -315,7 +316,7 @@ export function afficherVocabulaire(racine, piece) {
     remplacer(panneau,
       el('div', { className: 'mot-tete' },
         creerJaponais(mot.mot, 'mot-japonais'),
-        creerPastilleMot(statuts[mot.id]),
+        creerPastilleMot(statuts[mot.id]?.statut),
         creerBoutonIcone('lecture', t('Écouter'), 'btn-ghost bouton-mot', () => direMot(mot)),
         creerBoutonIcone('fermer', t('Fermer'), 'btn-ghost bouton-mot', fermer)),
       creerLecture(mot),
@@ -563,7 +564,7 @@ export function afficherVocabulaire(racine, piece) {
         el('span', { className: 'mot-nom' },
           creerJaponais(mot.mot, 'mot-japonais'),
           el('span', { className: 'mot-romaji' }, enRomaji(lectureEnKana(mot.mot)))),
-        creerPastilleMot(statuts[mot.id])),
+        creerPastilleMot(statuts[mot.id]?.statut)),
       el('span', { className: 'mot-sens' }, traduire(mot, 'fr')),
       el('span', { className: 'numeros-mot' }, numeros));
     return carte;
@@ -581,9 +582,10 @@ export function afficherVocabulaire(racine, piece) {
   const barreReviser = el('div', { className: 'commandes' });
 
   // Les mots de chaque filtre. Ce que la liste montre, c'est ce que l'on révise.
+  // À réviser : les mots à revoir, et les mots sus arrivés à leur jour de retour (répétition espacée).
   const parFiltre = (entrees) => ({
     tous: entrees,
-    'a-revoir': entrees.filter(({ mot }) => statuts[mot.id] === 'a_revoir'),
+    'a-reviser': entrees.filter(({ mot }) => motAReviser(statuts[mot.id])),
     nouveaux: entrees.filter(({ mot }) => !statuts[mot.id]), // jamais révisés
   });
 
@@ -603,7 +605,7 @@ export function afficherVocabulaire(racine, piece) {
     rangeeFiltre.hidden = vue !== 'liste';
     remplacer(rangeeFiltre, creerChoixTexte([
       { valeur: 'tous', libelle: t('Tous'), nombre: series.tous.length },
-      { valeur: 'a-revoir', libelle: t('À revoir'), nombre: series['a-revoir'].length, desactive: series['a-revoir'].length === 0 },
+      { valeur: 'a-reviser', libelle: t('À réviser'), nombre: series['a-reviser'].length, desactive: series['a-reviser'].length === 0 },
       { valeur: 'nouveaux', libelle: t('Nouveaux'), nombre: series.nouveaux.length, desactive: series.nouveaux.length === 0 },
     ], filtre, (valeur) => { filtre = valeur; dessinerContenu(); }));
   }
@@ -616,8 +618,9 @@ export function afficherVocabulaire(racine, piece) {
     statuts = lireStatutsMots(); // communs à toutes les pièces : un mot su l'est partout
     const lignesVues = lignesChoisies();
     const series = parFiltre(entreesDe(lignesVues));
-    // Le filtre choisi n'a plus de mots (tous les « À revoir » sont devenus sus) : retour à Tous.
-    if (series[filtre].length === 0) filtre = 'tous';
+    // Le filtre choisi n'a plus de mots (tous les « À réviser » ont été révisés) : retour à Tous.
+    // De même pour un filtre qui n'existe plus, noté pour la reprise par une version précédente.
+    if (!series[filtre]?.length) filtre = 'tous';
     const vues = series[filtre];
     noterChoix();
     dessinerCommandes(series);

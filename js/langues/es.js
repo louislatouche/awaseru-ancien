@@ -87,6 +87,7 @@ export default {
   'Réviser ({n})': 'Repasar ({n})',
   'Tous': 'Todas',
   'Nouveaux': 'Nuevas',
+  'À réviser': 'Pendientes',
   'Mot {position} sur {total}': 'Palabra {position} de {total}',
   'Et dans une autre réplique': 'Y en otra réplica',
   'Et dans {n} autres répliques': 'Y en {n} réplicas más',

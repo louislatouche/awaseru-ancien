@@ -87,6 +87,7 @@ export default {
   'Réviser ({n})': '복습하기 ({n})',
   'Tous': '전체',
   'Nouveaux': '새 단어',
+  'À réviser': '복습할 단어',
   'Mot {position} sur {total}': '단어 {position}/{total}',
   'Et dans une autre réplique': '다른 대사 1개에도',
   'Et dans {n} autres répliques': '다른 대사 {n}개에도',

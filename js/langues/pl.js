@@ -88,6 +88,7 @@ export default {
   'Réviser ({n})': 'Powtórz ({n})',
   'Tous': 'Wszystkie',
   'Nouveaux': 'Nowe',
+  'À réviser': 'Do przejrzenia',
   'Mot {position} sur {total}': 'Słowo {position} z {total}',
   'Et dans une autre réplique': 'I w jeszcze jednej kwestii',
   'Et dans {n} autres répliques': 'I w {n} innych kwestiach',

@@ -88,6 +88,7 @@ export default {
   'Réviser ({n})': 'Opakovat ({n})',
   'Tous': 'Všechna',
   'Nouveaux': 'Nová',
+  'À réviser': 'K procvičení',
   'Mot {position} sur {total}': 'Slovo {position} z {total}',
   'Et dans une autre réplique': 'A v jedné další replice',
   'Et dans {n} autres répliques': 'A v {n} dalších replikách',

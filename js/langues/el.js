@@ -88,6 +88,7 @@ export default {
   'Réviser ({n})': 'Επανάληψη ({n})',
   'Tous': 'Όλες',
   'Nouveaux': 'Νέες',
+  'À réviser': 'Προς μελέτη',
   'Mot {position} sur {total}': 'Λέξη {position} από {total}',
   'Et dans une autre réplique': 'Και σε μία ακόμη ατάκα',
   'Et dans {n} autres répliques': 'Και σε {n} ακόμη ατάκες',

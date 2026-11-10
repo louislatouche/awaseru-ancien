@@ -87,6 +87,7 @@ export default {
   'Réviser ({n})': 'Повторить ({n})',
   'Tous': 'Все',
   'Nouveaux': 'Новые',
+  'À réviser': 'К повторению',
   'Mot {position} sur {total}': 'Слово {position} из {total}',
   'Et dans une autre réplique': 'И ещё в одной реплике',
   'Et dans {n} autres répliques': 'И ещё в {n} репликах',

@@ -87,6 +87,7 @@ export default {
   'Réviser ({n})': 'Ripassare ({n})',
   'Tous': 'Tutte',
   'Nouveaux': 'Nuove',
+  'À réviser': 'Da ripassare',
   'Mot {position} sur {total}': 'Parola {position} di {total}',
   'Et dans une autre réplique': "E in un'altra battuta",
   'Et dans {n} autres répliques': 'E in altre {n} battute',

@@ -88,6 +88,7 @@ export default {
   'Réviser ({n})': 'Ismétlés ({n})',
   'Tous': 'Összes',
   'Nouveaux': 'Új',
+  'À réviser': 'Ismétlendő',
   'Mot {position} sur {total}': '{position}. szó / {total}',
   'Et dans une autre réplique': 'És egy másik replikában',
   'Et dans {n} autres répliques': 'És további {n} replikában',

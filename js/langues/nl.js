@@ -87,6 +87,7 @@ export default {
   'Réviser ({n})': 'Herhalen ({n})',
   'Tous': 'Alle',
   'Nouveaux': 'Nieuw',
+  'À réviser': 'Te herhalen',
   'Mot {position} sur {total}': 'Woord {position} van {total}',
   'Et dans une autre réplique': 'En in nog één regel',
   'Et dans {n} autres répliques': 'En in nog {n} regels',

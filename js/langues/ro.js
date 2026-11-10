@@ -87,6 +87,7 @@ export default {
   'Réviser ({n})': 'Repetă ({n})',
   'Tous': 'Toate',
   'Nouveaux': 'Noi',
+  'À réviser': 'De recapitulat',
   'Mot {position} sur {total}': 'Cuvântul {position} din {total}',
   'Et dans une autre réplique': 'Și într-o altă replică',
   'Et dans {n} autres répliques': 'Și în alte {n} replici',

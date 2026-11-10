@@ -87,6 +87,7 @@ export default {
   'Réviser ({n})': 'Review ({n})',
   'Tous': 'All',
   'Nouveaux': 'New',
+  'À réviser': 'Due',
   'Mot {position} sur {total}': 'Word {position} of {total}',
   'Et dans une autre réplique': 'And in one other line',
   'Et dans {n} autres répliques': 'And in {n} other lines',

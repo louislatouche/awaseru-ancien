@@ -87,6 +87,7 @@ export default {
   'Réviser ({n})': 'Repetera ({n})',
   'Tous': 'Alla',
   'Nouveaux': 'Nya',
+  'À réviser': 'Att öva',
   'Mot {position} sur {total}': 'Ord {position} av {total}',
   'Et dans une autre réplique': 'Och i en annan replik',
   'Et dans {n} autres répliques': 'Och i {n} andra repliker',
