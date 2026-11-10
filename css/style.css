@@ -602,6 +602,12 @@ button.replique:disabled { cursor: default; }
 .chips-vocabulaire { gap: 6px; }
 .pile-vocabulaire { gap: 14px; }
 
+/* « Chercher un mot », dans la liste : le champ du kit, posé en blanc avec l'ombre des cartes pour
+   se détacher du fond de page (comme dans la démo). La marge du kit sous les champs est retirée :
+   la colonne des commandes a déjà son écart. */
+.recherche-mot { margin: 0; }
+.recherche-mot input { background: var(--surface); box-shadow: var(--shadow-card); }
+
 /* Un choix « un parmi plusieurs » écrit en texte (creerChoixTexte dans affichage.js) : l'option
    choisie en gras et soulignée. Le bouton n'est pas dessiné, mais sa zone à toucher garde 44 px de haut. */
 .choix-texte { display: flex; flex-wrap: wrap; align-items: center; gap: 0 20px; }

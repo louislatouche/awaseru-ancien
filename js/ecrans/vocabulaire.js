@@ -23,7 +23,7 @@ import { langueActive, t, traduire } from '../langues.js';
 import { lignesDe } from '../pieces.js';
 import { noterPosition, positionAReprendre } from '../reprise.js';
 import { changerStatutMot, lireReglages, lireSelection, lireStatutsMots, motAReviser } from '../stockage.js';
-import { ajouterAvecFurigana, creerJaponais, enRomaji, lectureEnKana } from '../texte.js';
+import { ajouterAvecFurigana, creerJaponais, enRomaji, lectureEnKana, texteBrut } from '../texte.js';
 import { arreterVoix, messagePourResultat, parler } from '../voix.js';
 
 // Mélange de Fisher-Yates, comme dans les fiches : chaque ordre a la même chance.
@@ -47,15 +47,16 @@ export function afficherVocabulaire(racine, piece) {
   }
 
   // Ce que l'on regarde : mes répliques ou toute la pièce, en texte ou en liste, avec ou sans le mot
-  // à mot, et dans la liste, quels mots (le filtre). Si Android vient de relancer l'app (en dépliant
-  // le Fold, voir reprise.js), on reprend les mêmes choix : sans eux, l'écran rouvrirait en texte, et
-  // sa position de défilement ne voudrait plus rien dire.
+  // à mot, et dans la liste, quels mots (le filtre et la recherche). Si Android vient de relancer
+  // l'app (en dépliant le Fold, voir reprise.js), on reprend les mêmes choix : sans eux, l'écran
+  // rouvrirait en texte, et sa position de défilement ne voudrait plus rien dire.
   const reprise = positionAReprendre('vocabulaire');
   let gloses = reprise?.gloses ?? false;
   let portee = reprise?.portee ?? (selection.size > 0 ? 'miennes' : 'tout');
   let vue = reprise?.vue ?? 'texte';
   let filtre = reprise?.filtre ?? 'tous'; // 'tous', 'a-reviser' ou 'nouveaux'
-  const noterChoix = () => noterPosition('vocabulaire', { vue, portee, gloses, filtre });
+  let recherche = reprise?.recherche ?? ''; // ce qui est tapé dans « Chercher un mot »
+  const noterChoix = () => noterPosition('vocabulaire', { vue, portee, gloses, filtre, recherche });
 
   const lignesChoisies = () => (portee === 'miennes' ? lignes.filter((ligne) => selection.has(ligne.numero)) : lignes);
 
@@ -573,11 +574,45 @@ export function afficherVocabulaire(racine, piece) {
   // ---- L'écran principal : le texte ou la liste ----
 
   // Les commandes, redessinées à chaque affichage : Texte ou Liste à droite du titre, puis mes
-  // répliques ou toute la pièce, puis le mot à mot (pour le texte) ou le filtre (pour la liste).
+  // répliques ou toute la pièce, puis le mot à mot (pour le texte) ou la recherche et le filtre
+  // (pour la liste).
   const coinTitre = el('div');
   const choixPortee = el('div');
   const rangeeMotAMot = el('div', { className: 'chips' });
   const rangeeFiltre = el('div');
+
+  // La recherche : elle trouve un mot par son écriture (kanji ou kana), sa lecture en kana, sa
+  // prononciation en lettres latines ou son sens. Les accents et les majuscules ne comptent pas :
+  // « gateau » trouve « gâteau », « oji » trouve « ojī ». normalize('NFD') sépare chaque lettre
+  // accentuée en lettre + accent, et le motif retire ces accents (les signes U+0300 à U+036F).
+  const simplifier = (texte) => texte.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  function correspond(mot) {
+    const cherche = simplifier(recherche.trim());
+    if (!cherche) return true;
+    const lecture = lectureEnKana(mot.mot);
+    return [texteBrut(mot.mot), lecture, enRomaji(lecture), traduire(mot, 'fr')]
+      .some((texte) => simplifier(texte).includes(cherche));
+  }
+
+  // Le champ n'est fait qu'une fois, lui : refait à chaque lettre tapée, il perdrait le clavier.
+  // Chaque lettre redessine la liste. La touche « Rechercher » du clavier le referme : tant qu'il
+  // est ouvert, il cache le bas de l'écran, donc Réviser (Chrome sur Android pose le clavier
+  // par-dessus la page, sans la rétrécir).
+  const champRecherche = el('input', {
+    type: 'search',
+    value: recherche,
+    placeholder: t('Chercher un mot'),
+    'aria-label': t('Chercher un mot'),
+    enterKeyHint: 'search', // la touche Entrée du clavier dit « Rechercher »
+    oninput: () => {
+      recherche = champRecherche.value;
+      dessinerContenu({ animer: false }); // sans la vague d'entrée des cartes, qui repartirait à chaque lettre
+    },
+    onkeydown: (evenement) => {
+      if (evenement.key === 'Enter') champRecherche.blur();
+    },
+  });
+  const blocRecherche = el('div', { className: 'form-group recherche-mot' }, champRecherche);
   // En bas de la liste, collé comme les commandes des fiches : Réviser, avec le nombre de mots.
   const barreReviser = el('div', { className: 'commandes' });
 
@@ -601,26 +636,35 @@ export function afficherVocabulaire(racine, piece) {
     // Le mot à mot : la traduction écrite sous chaque mot, pour suivre la construction de la phrase.
     rangeeMotAMot.hidden = vue !== 'texte';
     remplacer(rangeeMotAMot, creerBascule(t('Mot à mot'), gloses, (actif) => { gloses = actif; dessinerContenu(); }));
-    // Le filtre, avec le nombre de mots de chacun. Un filtre sans aucun mot ne se choisit pas.
+    blocRecherche.hidden = vue !== 'liste';
+    // Le filtre, avec le nombre de mots de chacun (parmi ceux que la recherche trouve). Un filtre
+    // sans aucun mot ne se choisit pas, sauf pendant une recherche : la prochaine lettre peut lui
+    // en redonner.
     rangeeFiltre.hidden = vue !== 'liste';
+    const vide = (serie) => !enRecherche() && serie.length === 0;
     remplacer(rangeeFiltre, creerChoixTexte([
       { valeur: 'tous', libelle: t('Tous'), nombre: series.tous.length },
-      { valeur: 'a-reviser', libelle: t('À réviser'), nombre: series['a-reviser'].length, desactive: series['a-reviser'].length === 0 },
-      { valeur: 'nouveaux', libelle: t('Nouveaux'), nombre: series.nouveaux.length, desactive: series.nouveaux.length === 0 },
+      { valeur: 'a-reviser', libelle: t('À réviser'), nombre: series['a-reviser'].length, desactive: vide(series['a-reviser']) },
+      { valeur: 'nouveaux', libelle: t('Nouveaux'), nombre: series.nouveaux.length, desactive: vide(series.nouveaux) },
     ], filtre, (valeur) => { filtre = valeur; dessinerContenu(); }));
   }
 
-  function dessinerContenu() {
+  const enRecherche = () => vue === 'liste' && recherche.trim() !== '';
+
+  // animer : la vague d'entrée des cartes (non, pendant qu'on tape une recherche).
+  function dessinerContenu({ animer = true } = {}) {
     arreterFermeture();
     definirRetour(null);
     arreterVoix();
     apparitions = new Map();
     statuts = lireStatutsMots(); // communs à toutes les pièces : un mot su l'est partout
     const lignesVues = lignesChoisies();
-    const series = parFiltre(entreesDe(lignesVues));
+    // La recherche ne sert que dans la liste : le texte, lui, montre toujours toutes les répliques.
+    const series = parFiltre(entreesDe(lignesVues).filter(({ mot }) => vue !== 'liste' || correspond(mot)));
     // Le filtre choisi n'a plus de mots (tous les « À réviser » ont été révisés) : retour à Tous.
-    // De même pour un filtre qui n'existe plus, noté pour la reprise par une version précédente.
-    if (!series[filtre]?.length) filtre = 'tous';
+    // Pas pendant une recherche : on garderait Tous après avoir effacé ce qu'on a tapé.
+    // Et un filtre qui n'existe plus (noté pour la reprise par une version précédente) : Tous aussi.
+    if (!series[filtre] || (!enRecherche() && series[filtre].length === 0)) filtre = 'tous';
     const vues = series[filtre];
     noterChoix();
     dessinerCommandes(series);
@@ -642,7 +686,8 @@ export function afficherVocabulaire(racine, piece) {
         onclick: () => lancerRevision(vues),
       }, t('Réviser ({n})', { n: vues.length })));
       carteDepliee = null; // les cartes sont refaites, toutes repliées
-      remplacer(zone, vues.map(creerCarteMot));
+      // Une liste vide ne peut venir que d'une recherche : on le dit, plutôt qu'un écran blanc.
+      remplacer(zone, vues.length > 0 ? vues.map(creerCarteMot) : el('p', { className: 'vide' }, t('Aucun mot trouvé.')));
     } else {
       panneau.hidden = false;
       barreReviser.hidden = true;
@@ -655,13 +700,13 @@ export function afficherVocabulaire(racine, piece) {
       }));
       afficherAide();
     }
-    cascade(zone);
+    if (animer) cascade(zone);
   }
 
   function afficherPrincipal() {
     remplacer(racine,
       creerTitreVue(t('Vocabulaire'), coinTitre),
-      el('div', { className: 'chips-vocabulaire' }, choixPortee, rangeeMotAMot, rangeeFiltre),
+      el('div', { className: 'chips-vocabulaire' }, choixPortee, rangeeMotAMot, blocRecherche, rangeeFiltre),
       zone,
       // Collés en bas de l'écran, comme les commandes des fiches : l'explication du mot touché
       // (dans le texte) ou Réviser (dans la liste). Un seul des deux se montre à la fois.

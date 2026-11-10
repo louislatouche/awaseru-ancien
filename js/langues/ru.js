@@ -88,6 +88,8 @@ export default {
   'Tous': 'Все',
   'Nouveaux': 'Новые',
   'À réviser': 'К повторению',
+  'Chercher un mot': 'Искать слово',
+  'Aucun mot trouvé.': 'Слово не найдено.',
   'Mot {position} sur {total}': 'Слово {position} из {total}',
   'Et dans une autre réplique': 'И ещё в одной реплике',
   'Et dans {n} autres répliques': 'И ещё в {n} репликах',

@@ -88,6 +88,8 @@ export default {
   'Tous': 'Alle',
   'Nouveaux': 'Nye',
   'À réviser': 'Til gjennomgang',
+  'Chercher un mot': 'Søk etter et ord',
+  'Aucun mot trouvé.': 'Fant ingen ord.',
   'Mot {position} sur {total}': 'Ord {position} av {total}',
   'Et dans une autre réplique': 'Og i en annen replikk',
   'Et dans {n} autres répliques': 'Og i {n} andre replikker',

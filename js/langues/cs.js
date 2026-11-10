@@ -89,6 +89,8 @@ export default {
   'Tous': 'Všechna',
   'Nouveaux': 'Nová',
   'À réviser': 'K procvičení',
+  'Chercher un mot': 'Hledat slovíčko',
+  'Aucun mot trouvé.': 'Žádné slovíčko nenalezeno.',
   'Mot {position} sur {total}': 'Slovo {position} z {total}',
   'Et dans une autre réplique': 'A v jedné další replice',
   'Et dans {n} autres répliques': 'A v {n} dalších replikách',

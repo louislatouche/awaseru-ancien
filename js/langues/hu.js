@@ -89,6 +89,8 @@ export default {
   'Tous': 'Összes',
   'Nouveaux': 'Új',
   'À réviser': 'Ismétlendő',
+  'Chercher un mot': 'Szó keresése',
+  'Aucun mot trouvé.': 'Nincs ilyen szó.',
   'Mot {position} sur {total}': '{position}. szó / {total}',
   'Et dans une autre réplique': 'És egy másik replikában',
   'Et dans {n} autres répliques': 'És további {n} replikában',

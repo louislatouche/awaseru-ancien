@@ -88,6 +88,8 @@ export default {
   'Tous': 'All',
   'Nouveaux': 'New',
   'À réviser': 'Due',
+  'Chercher un mot': 'Search for a word',
+  'Aucun mot trouvé.': 'No word found.',
   'Mot {position} sur {total}': 'Word {position} of {total}',
   'Et dans une autre réplique': 'And in one other line',
   'Et dans {n} autres répliques': 'And in {n} other lines',

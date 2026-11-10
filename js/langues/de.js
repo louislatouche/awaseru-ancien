@@ -88,6 +88,8 @@ export default {
   'Tous': 'Alle',
   'Nouveaux': 'Neu',
   'À réviser': 'Fällig',
+  'Chercher un mot': 'Ein Wort suchen',
+  'Aucun mot trouvé.': 'Kein Wort gefunden.',
   'Mot {position} sur {total}': 'Wort {position} von {total}',
   'Et dans une autre réplique': 'Und in einer weiteren Zeile',
   'Et dans {n} autres répliques': 'Und in {n} weiteren Zeilen',

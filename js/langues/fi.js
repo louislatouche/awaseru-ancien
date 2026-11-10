@@ -89,6 +89,8 @@ export default {
   'Tous': 'Kaikki',
   'Nouveaux': 'Uudet',
   'À réviser': 'Kertausvuorossa',
+  'Chercher un mot': 'Hae sanaa',
+  'Aucun mot trouvé.': 'Sanaa ei löytynyt.',
   'Mot {position} sur {total}': 'Sana {position}/{total}',
   'Et dans une autre réplique': 'Ja yhdessä toisessa repliikissä',
   'Et dans {n} autres répliques': 'Ja {n} muussa repliikissä',

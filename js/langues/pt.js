@@ -88,6 +88,8 @@ export default {
   'Tous': 'Todas',
   'Nouveaux': 'Novas',
   'À réviser': 'Pendentes',
+  'Chercher un mot': 'Procurar uma palavra',
+  'Aucun mot trouvé.': 'Nenhuma palavra encontrada.',
   'Mot {position} sur {total}': 'Palavra {position} de {total}',
   'Et dans une autre réplique': 'E noutra fala',
   'Et dans {n} autres répliques': 'E em mais {n} falas',
