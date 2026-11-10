@@ -50,9 +50,9 @@ const REGLAGES_PAR_DEFAUT = {
   muet: false, // le bouton de l'en-tête coupe le son de toute l'app (voir changerSon dans voix.js)
   furigana: true,
   traduction: true,
-  // Les commandes des fiches et du filage : 'icones', 'icones-labels' (le nom sous chaque icône)
-  // ou 'gestes' (plus de barre dans les fiches : on touche et on glisse la carte).
-  navigation: 'icones',
+  // (Il y avait aussi « navigation » : des boutons ou des gestes pour les fiches et le filage.
+  // Depuis le 2026-11-10, les gestes sont la seule navigation ; une valeur encore enregistrée sur
+  // un téléphone ne sert plus à rien, et ne gêne pas.)
   affichagePieces: {}, // les choix de furigana et de traduction propres à une pièce (voir plus bas)
 };
 

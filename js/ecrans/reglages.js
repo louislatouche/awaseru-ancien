@@ -94,19 +94,6 @@ function creerVoixEnregistrees() {
       })));
 }
 
-// Comment on commande les fiches et le filage : des boutons (avec ou sans leur nom), ou des gestes.
-function creerNavigation() {
-  return el('section', { className: 'card pile' },
-    el('h2', { className: 'titre-section' }, t('Navigation')),
-    creerChoixUnique([
-      { valeur: 'icones', libelle: t('Icônes') },
-      { valeur: 'icones-labels', libelle: t('Icônes et labels') },
-      { valeur: 'gestes', libelle: t('Gestes') },
-    ], lireReglages().navigation, (choix) => {
-      changerReglage('navigation', choix);
-    }));
-}
-
 // Furigana et traduction pour toutes les pièces. Sur les écrans d'une pièce, les mêmes
 // interrupteurs changent le choix pour cette pièce seulement (voir lireAffichage dans stockage.js).
 function creerAffichageGeneral() {
@@ -310,7 +297,6 @@ export async function afficherReglages(racine) {
       el('button', { type: 'button', className: 'btn-ghost', onclick: () => lireReplique(PHRASE_ESSAI) }, t('Essayer la voix du téléphone')),
       creerDidascalies()),
     creerAffichageGeneral(),
-    creerNavigation(),
     el('section', { className: 'card pile' },
       el('h2', { className: 'titre-section' }, t('Progression')),
       trierParUtilisation([...fournies, ...importees]).map(creerRemiseAZero)),

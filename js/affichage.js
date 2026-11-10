@@ -142,17 +142,12 @@ export async function lireReplique(ligne) {
   return resultat;
 }
 
-// Le réglage Navigation demande-t-il le nom sous chaque icône ?
-const avecLabels = () => lireReglages().navigation === 'icones-labels';
-
-// Un bouton à icône. Selon le réglage Navigation, son nom s'écrit dessous, ou reste seulement
-// dans aria-label (lu par les lecteurs d'écran) et dans title (affiché au survol sur ordinateur).
-// mot : un nom plus court pour l'écrire sous l'icône, si le libellé complet est trop long.
-export function creerBoutonIcone(nomIcone, libelle, classe, onclick, mot = libelle) {
-  const ecrit = avecLabels();
+// Un bouton à icône. Son nom reste dans aria-label (lu par les lecteurs d'écran) et dans title
+// (affiché au survol sur ordinateur).
+export function creerBoutonIcone(nomIcone, libelle, classe, onclick) {
   return el('button', {
-    type: 'button', className: `${classe} bouton-icone${ecrit ? ' avec-label' : ''}`, title: libelle, 'aria-label': libelle, onclick,
-  }, icone(nomIcone), ecrit && el('span', { className: 'label' }, mot));
+    type: 'button', className: `${classe} bouton-icone`, title: libelle, 'aria-label': libelle, onclick,
+  }, icone(nomIcone));
 }
 
 // L'écoute d'une réplique : la mienne (bouton ▶ et carte), ou mon signal (sa carte seulement).
@@ -164,14 +159,14 @@ export function creerBoutonIcone(nomIcone, libelle, classe, onclick, mot = libel
 // quoi piloter la lecture depuis la carte (toucher ; ecouter, qui lance sans jamais interrompre ;
 // et arreter pour l'appui long).
 // lierCarte(carte) : le filet de la carte suit alors la lecture (voir dessinerFilet). Seulement quand
-// le bouton n'est pas à l'écran (mode Gestes, signal des fiches) : sinon son trait suffit.
+// le bouton n'est pas à l'écran (fiches, filage) : sinon son trait suffit.
 // surLecture est appelée à chaque lancement de sa réplique (les fiches s'en servent pour permettre
 // l'évaluation). libelle : le nom du bouton à l'arrêt. surEtat(etat, ligneLue) est appelée à chaque
 // changement : lecture, pause ou arrêt, et quelle réplique est concernée.
 //
-// Le même bouton peut aussi lire une autre réplique : toucher(autreLigne). Les fiches s'en servent
-// pour le signal : le bouton ▶ du bas pilote alors la lecture en cours, quelle qu'elle soit.
-// Sans réplique précisée, toucher() agit sur la lecture en cours, ou lance la sienne s'il n'y en a pas.
+// toucher(laLigne) lit cette réplique-là, même si une autre se lisait (les fiches s'en servent pour
+// ma réplique). Sans réplique précisée, toucher() agit sur la lecture en cours, ou lance la sienne
+// s'il n'y en a pas.
 export function creerEcoute(ligne, { surLecture = null, libelle: libelleArret = t('Écouter ma réplique'), surEtat = null } = {}) {
   let etat = 'arret'; // 'arret', 'lecture' ou 'pause'
   // Le jeton change à chaque arrêt voulu : la fin d'une lecture abandonnée ne touche plus au bouton.
@@ -180,9 +175,8 @@ export function creerEcoute(ligne, { surLecture = null, libelle: libelleArret = 
   let enCours = ligne; // la réplique qui se lit, ou s'est lue en dernier
   let pret = false;   // surEtat n'est appelée qu'après la création : la page n'a pas encore ses cartes
 
-  const ecrit = avecLabels();
   const trait = el('span', { className: 'progression', hidden: true });
-  const bouton = el('button', { type: 'button', className: `btn-ghost bouton-icone${ecrit ? ' avec-label' : ''}` });
+  const bouton = el('button', { type: 'button', className: 'btn-ghost bouton-icone' });
 
   function majTrait() {
     const avance = progressionVoix();
@@ -200,12 +194,10 @@ export function creerEcoute(ligne, { surLecture = null, libelle: libelleArret = 
 
   function dessiner() {
     const libelle = { arret: libelleArret, lecture: t('Pause'), pause: t('Reprendre') }[etat];
-    // Sous l'icône, le mot court : « Écouter » tient dans un quart d'écran, pas la phrase entière.
-    const mot = etat === 'arret' ? t('Écouter') : libelle;
     const nomIcone = etat === 'lecture' ? 'pause' : 'lecture';
     bouton.title = libelle;
     bouton.setAttribute('aria-label', libelle);
-    remplacer(bouton, icone(nomIcone), ecrit && el('span', { className: 'label' }, mot), trait);
+    remplacer(bouton, icone(nomIcone), trait);
     majTrait();
     if (pret) surEtat?.(etat, enCours);
   }

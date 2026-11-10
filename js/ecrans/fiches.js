@@ -2,12 +2,12 @@
 
 import { cascade, definirRetour, el, hautDePage, remplacer, salve, signaler } from '../dom.js';
 import {
-  creerAvisEnchainement, creerAvisSansSelection, creerAvisVoix, creerBascule, creerBoutonIcone, creerChoixUnique,
+  creerAvisEnchainement, creerAvisSansSelection, creerAvisVoix, creerBascule, creerChoixUnique,
   creerEcoute, creerInterrupteurs, creerReplique, creerTitreVue,
 } from '../affichage.js';
 import { t } from '../langues.js';
 import { enchainementsDe, lignesDe, signalDe } from '../pieces.js';
-import { changerStatut, lireReglages, lireSelection, lireStatuts } from '../stockage.js';
+import { changerStatut, lireSelection, lireStatuts } from '../stockage.js';
 import { arreterVoix } from '../voix.js';
 import { noterPosition, oublierPosition, positionAReprendre } from '../reprise.js';
 import { brancherGestes } from '../gestes.js';
@@ -161,44 +161,30 @@ export function afficherFiches(racine, piece) {
       const signal = seules ? null : signalDe(lignes, index);
       const selection = lireSelection(piece);
 
-      // Le réglage Navigation : des boutons en bas de l'écran, ou des gestes sur la carte.
-      const gestes = lireReglages().navigation === 'gestes';
-
-      // On ne peut s'évaluer qu'après avoir vu ou entendu la réplique : d'ici là, ces deux boutons
-      // sont grisés, et la carte refuse de partir.
+      // Tout se fait au doigt, sur les cartes : il n'y a pas de boutons en bas de l'écran (les gestes
+      // sont la seule navigation depuis le 2026-11-10, à la demande de Louis).
+      // On ne peut s'évaluer qu'après avoir vu ou entendu la réplique : d'ici là, la carte refuse de partir.
       let evaluable = false;
-      const boutonSu = creerBoutonIcone('su', t('Je savais'), 'btn', () => noter(ligne, 'su'));
-      const boutonRevoir = creerBoutonIcone('revoir', t('À revoir'), 'btn btn--muted', () => noter(ligne, 'a_revoir'));
-      boutonSu.disabled = true;
-      boutonRevoir.disabled = true;
-      const permettreNote = () => {
-        evaluable = true;
-        boutonSu.disabled = false;
-        boutonRevoir.disabled = false;
-      };
+      const permettreNote = () => { evaluable = true; };
 
       // ---- La lecture ----
-      // Avec les boutons, un seul bouton ▶, en bas, pilote la lecture en cours : celle du signal comme
-      // celle de ma réplique. Il passe en pause et son trait avance quelle que soit la carte lue : le
-      // signal n'a donc pas de filet. En mode Gestes, il n'y a pas de bouton : chaque carte a sa propre
-      // écoute, et c'est son filet qui suit la lecture. Aucune icône sur les cartes : Louis n'en veut pas.
-      // Dans les deux cas, la carte qui se lit passe au premier plan (voir mettreEnAvant).
+      // Chaque carte a sa propre écoute, et c'est son filet qui suit la lecture. Aucune icône sur les
+      // cartes : Louis n'en veut pas. La carte qui se lit passe au premier plan (voir mettreEnAvant).
       const carteDe = (laLigne) => (laLigne === ligne ? carteMoi : carteSignal);
       const suivreEtat = (etat, laLigne) => mettreEnAvant(carteDe(laLigne), etat !== 'arret');
       const ecoute = creerEcoute(ligne, { surLecture: permettreNote, surEtat: suivreEtat });
-      const ecouteSignal = signal && gestes ? creerEcoute(signal, { libelle: t('Réécouter'), surEtat: suivreEtat }) : null;
+      const ecouteSignal = signal ? creerEcoute(signal, { libelle: t('Réécouter'), surEtat: suivreEtat }) : null;
 
       // Le signal : sa carte elle-même se touche pour le lire ou le mettre en pause, et un appui long arrête.
       const carteSignal = signal && creerReplique(signal, piece, {
         mienne: selection.has(signal.numero),
         statut: lireStatuts(piece.id)[signal.numero],
-        surTouche: () => (ecouteSignal ? ecouteSignal.toucher() : ecoute.toucher(signal)),
+        surTouche: () => ecouteSignal.toucher(),
       });
-      if (carteSignal) brancherGestes(carteSignal, { maintenir: () => (ecouteSignal ?? ecoute).arreter() });
+      if (carteSignal) brancherGestes(carteSignal, { maintenir: () => ecouteSignal.arreter() });
 
       function devoiler() {
         carteMoi.classList.remove('est-cachee');
-        boutonVoir.disabled = true;
         permettreNote();
         carteMoi.scrollIntoView({ block: 'center' }); // la carte vient de grandir
       }
@@ -215,29 +201,23 @@ export function afficherFiches(racine, piece) {
         },
       });
 
-      // Mode Gestes : les filets, une fois les deux cartes créées.
-      if (gestes) {
-        ecoute.lierCarte(carteMoi);
-        if (carteSignal) ecouteSignal.lierCarte(carteSignal);
-      }
+      // Les filets, une fois les deux cartes créées.
+      ecoute.lierCarte(carteMoi);
+      if (carteSignal) ecouteSignal.lierCarte(carteSignal);
 
-      const boutonVoir = creerBoutonIcone('voir', t('Voir'), 'btn-ghost', devoiler);
-      // Déjà visible : je peux m'évaluer tout de suite, et le bouton Voir n'a plus rien à montrer.
+      // Déjà visible : je peux m'évaluer tout de suite.
       if (seules) permettreNote();
 
-      // Mode Gestes : la carte se glisse à droite (je savais) ou à gauche (à revoir), et un appui
-      // long arrête l'écoute. Les boutons ne sont alors pas affichés.
-      const zoneMoi = gestes
-        ? brancherGestes(carteMoi, {
-          maintenir: ecoute.arreter,
-          glisser: {
-            droite: { icone: 'su', libelle: t('Je savais'), action: () => noter(ligne, 'su') },
-            gauche: { icone: 'revoir', libelle: t('À revoir'), action: () => noter(ligne, 'a_revoir') },
-            permis: () => evaluable,
-            refus: () => signaler(t("Regarde ou écoute d'abord ta réplique.")),
-          },
-        })
-        : carteMoi;
+      // La carte se glisse à droite (je savais) ou à gauche (à revoir), et un appui long arrête l'écoute.
+      const zoneMoi = brancherGestes(carteMoi, {
+        maintenir: ecoute.arreter,
+        glisser: {
+          droite: { icone: 'su', libelle: t('Je savais'), action: () => noter(ligne, 'su') },
+          gauche: { icone: 'revoir', libelle: t('À revoir'), action: () => noter(ligne, 'a_revoir') },
+          permis: () => evaluable,
+          refus: () => signaler(t("Regarde ou écoute d'abord ta réplique.")),
+        },
+      });
 
       remplacer(racine,
         el('p', { className: 'eyebrow fiche-compteur' }, t('Fiche {position} sur {total}', { position: position + 1, total: paquet.length })),
@@ -247,20 +227,12 @@ export function afficherFiches(racine, piece) {
         el('h2', { className: 'titre-section' }, t('À toi')),
         zoneMoi,
         creerInterrupteurs(piece.id),
-        // Collés en bas de l'écran : on répète le téléphone à la main, sans avoir à faire défiler.
-        // En « mes répliques seules », pas de bouton Voir : trois boutons au lieu de quatre.
-        !gestes && el('div', { className: 'commandes' },
-          el('div', { className: `boutons ${seules ? 'boutons-trois' : 'boutons-quatre'}` },
-            !seules && boutonVoir, ecoute.bouton, boutonSu, boutonRevoir)),
       );
       // Passer à la fiche suivante : un fondu court, comme les étapes de Faktur.
       for (const bloc of racine.children) bloc.classList.add('etape');
       hautDePage();
-      // Le signal se lit tout seul : par le bouton ▶ du bas, qui passe en pause, ou par sa propre écoute en mode Gestes.
-      if (signal && lireLeSignal) {
-        if (ecouteSignal) ecouteSignal.toucher();
-        else ecoute.toucher(signal);
-      }
+      // Le signal se lit tout seul, par sa propre écoute.
+      if (signal && lireLeSignal) ecouteSignal.toucher();
       lireLeSignal = true;
     }
 

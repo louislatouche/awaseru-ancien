@@ -23,7 +23,7 @@ import { brancherGestes } from '../gestes.js';
 import { langueActive, t, traduire } from '../langues.js';
 import { lignesDe, piecesChargees } from '../pieces.js';
 import { noterPosition, positionAReprendre } from '../reprise.js';
-import { changerStatutMot, lireReglages, lireSelection, lireStatutsMots, motAReviser } from '../stockage.js';
+import { changerStatutMot, lireSelection, lireStatutsMots, motAReviser } from '../stockage.js';
 import { ajouterAvecFurigana, creerJaponais, enRomaji, lectureEnKana, texteBrut } from '../texte.js';
 import { arreterVoix, messagePourResultat, parler } from '../voix.js';
 
@@ -817,13 +817,7 @@ export function afficherVocabulaire(racine, piece) {
       const { mot, parPiece } = paquet[position];
       const [saPiece, sesLignes] = parPiece[0]; // la première pièce où il revient, et sa première réplique
       const depuisLeSens = duSens[position];
-      const gestes = lireReglages().navigation === 'gestes';
       let vu = false;
-
-      const boutonSu = creerBoutonIcone('su', t('Je savais'), 'btn', () => noter(mot, 'su'));
-      const boutonRevoir = creerBoutonIcone('revoir', t('À revoir'), 'btn btn--muted', () => noter(mot, 'a_revoir'));
-      boutonSu.disabled = true;
-      boutonRevoir.disabled = true;
 
       // La question et la réponse, cachée jusqu'au premier toucher avec la réplique d'origine.
       // D'habitude : le mot japonais, puis sa lecture et son sens. « Du français » : le sens, puis le
@@ -844,10 +838,6 @@ export function afficherVocabulaire(racine, piece) {
         carte.classList.add('est-devoile');
         reponse.hidden = false;
         contexte.hidden = false;
-        boutonVoir.disabled = true;
-        boutonEcouter.disabled = false;
-        boutonSu.disabled = false;
-        boutonRevoir.disabled = false;
         direMot(mot);
       }
 
@@ -859,29 +849,21 @@ export function afficherVocabulaire(racine, piece) {
         onclick: () => (vu ? direMot(mot) : devoiler()),
       }, question, el('span', { className: 'grand-mot-masque' }, t('Touche pour voir')), reponse);
 
-      const boutonVoir = creerBoutonIcone('voir', t('Voir'), 'btn-ghost', devoiler);
-      const boutonEcouter = creerBoutonIcone('lecture', t('Écouter'), 'btn-ghost', () => direMot(mot));
-      // En partant du sens, entendre le mot avant de retourner la carte donnerait la réponse.
-      boutonEcouter.disabled = depuisLeSens;
-
-      // Mode Gestes : la carte se glisse à droite (je savais) ou à gauche (à revoir), comme les fiches.
-      const zoneCarte = gestes
-        ? brancherGestes(carte, {
-          glisser: {
-            droite: { icone: 'su', libelle: t('Je savais'), action: () => noter(mot, 'su') },
-            gauche: { icone: 'revoir', libelle: t('À revoir'), action: () => noter(mot, 'a_revoir') },
-            permis: () => vu,
-            refus: () => devoiler(),
-          },
-        })
-        : carte;
+      // La carte se glisse à droite (je savais) ou à gauche (à revoir), comme les fiches. Glissée
+      // avant d'être retournée, elle se retourne.
+      const zoneCarte = brancherGestes(carte, {
+        glisser: {
+          droite: { icone: 'su', libelle: t('Je savais'), action: () => noter(mot, 'su') },
+          gauche: { icone: 'revoir', libelle: t('À revoir'), action: () => noter(mot, 'a_revoir') },
+          permis: () => vu,
+          refus: () => devoiler(),
+        },
+      });
 
       remplacer(racine,
         el('p', { className: 'eyebrow fiche-compteur' }, t('Mot {position} sur {total}', { position: position + 1, total: paquet.length })),
         zoneCarte,
-        contexte,
-        !gestes && el('div', { className: 'commandes' },
-          el('div', { className: 'boutons boutons-quatre' }, boutonVoir, boutonEcouter, boutonSu, boutonRevoir)));
+        contexte);
       for (const bloc of racine.children) bloc.classList.add('etape');
       hautDePage();
     }

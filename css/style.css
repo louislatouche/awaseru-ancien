@@ -205,10 +205,8 @@ body:has(.tabbar:not([hidden])) { --place-bas: calc(var(--tabbar-h) + var(--safe
 .btn-petit { flex: none; width: auto; min-height: 44px; padding: 8px 16px; font-size: 14px; }
 
 .boutons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.boutons-quatre { grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.boutons-trois { grid-template-columns: repeat(3, 1fr); gap: 8px; } /* fiches « mes répliques seules » : sans Voir */
 
-/* Les boutons réduits à leur icône (fiches et filage) : moins hauts, sans texte. */
+/* Les boutons réduits à leur icône : moins hauts, sans texte. */
 .bouton-icone {
   position: relative; /* repère pour le trait de progression */
   min-height: 48px;
@@ -219,12 +217,6 @@ body:has(.tabbar:not([hidden])) { --place-bas: calc(var(--tabbar-h) + var(--safe
 }
 
 .bouton-icone svg { display: block; width: 24px; height: 24px; }
-
-/* Réglage « Icônes et labels » : le nom du bouton sous son icône, comme les onglets du bas. */
-.bouton-icone.avec-label { flex-direction: column; gap: 3px; min-height: 58px; padding-bottom: 4px; }
-.bouton-icone.avec-label svg { width: 22px; height: 22px; }
-.bouton-icone .label { font-size: 12px; font-weight: 700; line-height: 1.1; }
-.bouton-icone.avec-label .progression { bottom: 4px; }
 
 /* Le trait au pied du bouton ▶ : jusqu'où la réplique a été lue. */
 .progression {
@@ -758,7 +750,7 @@ button.replique:disabled { cursor: default; }
 
 /* Une nouvelle fiche, une nouvelle réplique du filage, des boutons qui arrivent. */
 @keyframes wizfade { from { opacity: 0; transform: translateY(8px); } }
-.etape, .journal > *, .boutons-apparition { animation: wizfade .25s ease; }
+.etape, .journal > * { animation: wizfade .25s ease; }
 
 /* Sélectionner quelque chose : un petit rebond (voir rebond dans dom.js). */
 @keyframes pop-bounce { 40% { transform: scale(1.09); } }
@@ -843,7 +835,7 @@ button.replique:active, .coche-replique:active, .bouton-numero:active { transfor
 
 /* Si le téléphone demande de réduire les animations, on les coupe toutes. */
 @media (prefers-reduced-motion: reduce) {
-  .ecran-contenu, .vue-texte, .grille-numeros, .cascade, .etape, .journal > *, .boutons-apparition, .rebond,
+  .ecran-contenu, .vue-texte, .grille-numeros, .cascade, .etape, .journal > *, .rebond,
   .clignote, .chargement::after, .courante .replique-masque, .en-appui::before { animation: none; }
   .chip:active, button.replique:active, .coche-replique:active, .bouton-numero:active, .tab:active svg { transform: none; }
   .vue-texte, .grille-numeros { transition: none; }
