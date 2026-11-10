@@ -1,20 +1,24 @@
-// Écran 5 : le vocabulaire de la pièce. On lit le texte, et on touche un mot pour voir son
-// explication en bas de l'écran : sa lecture en kana, sa prononciation en lettres latines, son sens
-// (et son sens dans cette phrase), et les autres répliques où il revient. L'interrupteur « Mot à
-// mot » écrit la traduction sous chaque mot. Et une révision en fiches, comme pour les répliques :
-// le mot seul, puis sa lecture et son sens.
+// Écran 5 : le vocabulaire de la pièce, de deux façons.
+// - Le texte : on lit les répliques, et on touche un mot pour voir son explication en bas de l'écran :
+//   sa lecture en kana, sa prononciation en lettres latines, son sens (et son sens dans cette
+//   phrase), et les autres répliques où il revient. L'interrupteur « Mot à mot » écrit la traduction
+//   sous chaque mot.
+// - La liste : une carte par mot, qu'un toucher fait entendre. Sous chaque mot, les numéros des
+//   répliques où il revient ; un numéro touché ouvre le texte à cette réplique, mot expliqué.
+// Et une révision en fiches, comme pour les répliques : le mot seul, puis sa lecture et son sens.
 //
 // Tout vient du fichier de la pièce : la liste « vocabulaire », et le découpage « mots » de chaque
 // réplique (voir validation.js). Une pièce qui ne les a pas affiche simplement un message.
 
 import { cascade, definirRetour, el, hautDePage, icone, remplacer, salve, signaler } from '../dom.js';
 import {
-  creerAvisSansSelection, creerBascule, creerBoutonIcone, creerChoixUnique, creerEcoute, creerNomRole, creerTitreScene,
+  creerAvisSansSelection, creerBascule, creerBoutonIcone, creerChoixTexte, creerEcoute, creerNomRole, creerTitreScene,
   creerTitreVue,
 } from '../affichage.js';
 import { brancherGestes } from '../gestes.js';
 import { langueActive, t, traduire } from '../langues.js';
 import { lignesDe } from '../pieces.js';
+import { noterPosition, positionAReprendre } from '../reprise.js';
 import { changerStatutMot, lireReglages, lireSelection, lireStatutsMots } from '../stockage.js';
 import { ajouterAvecFurigana, creerJaponais, enRomaji, lectureEnKana } from '../texte.js';
 import { arreterVoix, messagePourResultat, parler } from '../voix.js';
@@ -39,9 +43,14 @@ export function afficherVocabulaire(racine, piece) {
     return;
   }
 
-  // Ce que l'on regarde : mes répliques ou toute la pièce, avec ou sans le mot à mot.
-  let gloses = false;
-  let portee = selection.size > 0 ? 'miennes' : 'tout';
+  // Ce que l'on regarde : mes répliques ou toute la pièce, en texte ou en liste, avec ou sans le mot
+  // à mot. Si Android vient de relancer l'app (en dépliant le Fold, voir reprise.js), on reprend les
+  // mêmes choix : sans eux, l'écran rouvrirait en texte, et sa position de défilement ne voudrait plus rien dire.
+  const reprise = positionAReprendre('vocabulaire');
+  let gloses = reprise?.gloses ?? false;
+  let portee = reprise?.portee ?? (selection.size > 0 ? 'miennes' : 'tout');
+  let vue = reprise?.vue ?? 'texte';
+  const noterChoix = () => noterPosition('vocabulaire', { vue, portee, gloses });
 
   const lignesChoisies = () => (portee === 'miennes' ? lignes.filter((ligne) => selection.has(ligne.numero)) : lignes);
 
@@ -251,7 +260,8 @@ export function afficherVocabulaire(racine, piece) {
   // en cache une partie. Elle se déplace au plus court, vers le haut ou vers le bas, et pas du tout
   // si elle se voit déjà en entier. Une carte trop haute pour tenir à l'écran montre au moins le mot
   // touché, ou à défaut son début (là où la lecture commence).
-  function montrer(carte, motTouche = null) {
+  // instant : sans défilement doux, pour arriver d'un coup depuis la liste (un changement de vue).
+  function montrer(carte, motTouche = null, { instant = false } = {}) {
     const MARGE = 12;
     // L'en-tête passe par-dessus le haut de cette zone : la partie visible commence sous lui.
     const entete = document.querySelector('.app-header');
@@ -269,6 +279,13 @@ export function afficherVocabulaire(racine, piece) {
     // Là où l'écran arrivera : il ne peut pas défiler au-delà du haut ni du bas de la page.
     const arrivee = Math.min(Math.max(ecran.scrollTop + decalage, 0), ecran.scrollHeight - ecran.clientHeight);
     if (Math.abs(arrivee - ecran.scrollTop) < 1) return;
+    if (instant) {
+      // behavior 'instant' : un vrai saut. Changer scrollTop ne suffit pas, car style.css demande un
+      // défilement doux à cette zone : l'écran glisserait, et ce glissement fermerait l'explication.
+      ecran.scrollTo({ top: arrivee, behavior: 'instant' });
+      repere = ecran.scrollTop; // ce saut n'est pas une reprise de la lecture : l'explication reste ouverte
+      return;
+    }
     // Ce défilement-là ne ferme pas l'explication. Il se termine par l'événement scrollend ; au cas
     // où il manquerait, la minuterie rend la main au bout de deux secondes.
     defilementDeLApp = true;
@@ -354,20 +371,83 @@ export function afficherVocabulaire(racine, piece) {
     return carte;
   }
 
-  // ---- L'écran principal : le texte, dont chaque mot se touche ----
+  // ---- La liste : une carte par mot ----
 
-  const compteur = el('span', { className: 'pill pill--ok' });
+  // Un mot de la liste. Un toucher sur la carte le fait entendre. Dessous, les numéros des répliques
+  // où il revient : un numéro touché ouvre le texte à cette réplique.
+  function creerCarteMot({ mot, ou }) {
+    return el('div', {
+      className: 'replique carte-mot',
+      // Un numéro est un bouton à part : le toucher ouvre le texte, sans faire parler le mot.
+      onclick: (evenement) => {
+        if (!evenement.target.closest('button')) direMot(mot);
+      },
+    },
+      // Le mot avec ses furigana (ils donnent déjà la lecture en kana) et sa prononciation, puis son
+      // statut à droite. Sur un écran étroit, la prononciation passe sous le mot plutôt que de le couper.
+      el('span', { className: 'mot-tete' },
+        el('span', { className: 'mot-nom' },
+          creerJaponais(mot.mot, 'mot-japonais'),
+          el('span', { className: 'mot-romaji' }, enRomaji(lectureEnKana(mot.mot)))),
+        creerPastilleMot(statuts[mot.id])),
+      el('span', { className: 'mot-sens' }, traduire(mot, 'fr')),
+      el('span', { className: 'numeros-mot' }, ou.map((ligne) => el('button', {
+        type: 'button',
+        className: 'chip chip-numero',
+        'aria-label': t('Réplique {n}', { n: ligne.numero }),
+        onclick: () => ouvrirDansLeTexte(mot, ligne),
+      }, String(ligne.numero)))));
+  }
+
+  // D'un numéro de la liste au texte : l'écran arrive d'un coup sur la réplique, le mot surligné et
+  // expliqué en bas, comme si on l'avait touché. Une réplique qui n'est pas à moi oblige à montrer
+  // toute la pièce.
+  function ouvrirDansLeTexte(mot, ligne) {
+    vue = 'texte';
+    if (portee === 'miennes' && !selection.has(ligne.numero)) portee = 'tout';
+    afficherPrincipal({ enHaut: false, animer: false });
+    const apparition = (apparitions.get(mot.id) ?? []).find((une) => une.ligne === ligne);
+    if (!apparition) return;
+    choisir(mot, apparition.morceau, apparition.bouton);
+    // Après choisir : le panneau a sa nouvelle hauteur, la partie visible de l'écran aussi.
+    montrer(apparition.bouton.closest('.carte-texte'), apparition.bouton, { instant: true });
+  }
+
+  // ---- L'écran principal : le texte ou la liste ----
+
   const boutonReviser = el('button', { type: 'button', className: 'btn' }, t('Réviser'));
 
-  function dessinerTexte() {
+  // Les commandes, redessinées à chaque affichage : Texte ou Liste à droite du titre, puis mes
+  // répliques ou toute la pièce, puis le mot à mot (pour le texte seulement).
+  const coinTitre = el('div');
+  const choixPortee = el('div');
+  const rangeeMotAMot = el('div', { className: 'chips' });
+
+  function dessinerCommandes() {
+    remplacer(coinTitre, creerChoixTexte([
+      { valeur: 'texte', libelle: t('Texte') },
+      { valeur: 'liste', libelle: t('Liste') },
+    ], vue, (valeur) => { vue = valeur; dessinerContenu(); }));
+    remplacer(choixPortee, creerChoixTexte([
+      { valeur: 'miennes', libelle: t('Mes répliques') },
+      { valeur: 'tout', libelle: t('La pièce') },
+    ], portee, (valeur) => { portee = valeur; dessinerContenu(); }));
+    // Le mot à mot : la traduction écrite sous chaque mot, pour suivre la construction de la phrase.
+    rangeeMotAMot.hidden = vue !== 'texte';
+    remplacer(rangeeMotAMot, creerBascule(t('Mot à mot'), gloses, (actif) => { gloses = actif; dessinerContenu(); }));
+  }
+
+  // animer : la vague d'entrée des cartes (non, quand on arrive d'un numéro sur une autre partie du texte).
+  function dessinerContenu({ animer = true } = {}) {
     arreterFermeture();
     definirRetour(null);
     arreterVoix();
     apparitions = new Map();
     statuts = lireStatutsMots(piece.id);
+    noterChoix();
+    dessinerCommandes();
     const lignesVues = lignesChoisies();
     const entrees = entreesDe(lignesVues);
-    compteur.textContent = t(entrees.length > 1 ? '{n} mots' : '{n} mot', { n: entrees.length });
     boutonReviser.disabled = entrees.length === 0;
     boutonReviser.onclick = () => lancerRevision(entrees);
 
@@ -376,34 +456,35 @@ export function afficherVocabulaire(racine, piece) {
       panneau.hidden = true;
       return;
     }
-    panneau.hidden = false;
-    // Les répliques, rangées par scène comme dans le script.
-    let scene = null;
-    remplacer(zone, lignesVues.flatMap((ligne) => {
-      const titre = ligne.scene !== scene ? creerTitreScene(ligne.scene) : null;
-      scene = ligne.scene;
-      return [titre, creerCarteTexte(ligne)];
-    }));
-    afficherAide();
-    cascade(zone);
+    if (vue === 'liste') {
+      // Pas de panneau d'explication : chaque carte montre déjà tout.
+      panneau.hidden = true;
+      remplacer(zone, entrees.map(creerCarteMot));
+    } else {
+      panneau.hidden = false;
+      // Les répliques, rangées par scène comme dans le script.
+      let scene = null;
+      remplacer(zone, lignesVues.flatMap((ligne) => {
+        const titre = ligne.scene !== scene ? creerTitreScene(ligne.scene) : null;
+        scene = ligne.scene;
+        return [titre, creerCarteTexte(ligne)];
+      }));
+      afficherAide();
+    }
+    if (animer) cascade(zone);
   }
 
-  function afficherListe() {
+  // enHaut : revenir en haut de l'écran (non, quand on arrive d'un numéro : montrer place l'écran).
+  function afficherPrincipal({ enHaut = true, animer = true } = {}) {
     remplacer(racine,
-      creerTitreVue(t('Vocabulaire'), compteur),
-      el('div', { className: 'chips-vocabulaire' },
-        creerChoixUnique([
-          { valeur: 'miennes', libelle: t('Mes répliques') },
-          { valeur: 'tout', libelle: t('Toute la pièce') },
-        ], portee, (choix) => { portee = choix; dessinerTexte(); }),
-        // Le mot à mot : la traduction écrite sous chaque mot, pour suivre la construction de la phrase.
-        el('div', { className: 'chips' }, creerBascule(t('Mot à mot'), gloses, (actif) => { gloses = actif; dessinerTexte(); }))),
+      creerTitreVue(t('Vocabulaire'), coinTitre),
+      el('div', { className: 'chips-vocabulaire' }, choixPortee, rangeeMotAMot),
       boutonReviser,
       zone,
       // Collé en bas de l'écran, comme les commandes des fiches.
       panneau);
-    dessinerTexte();
-    hautDePage();
+    dessinerContenu({ animer });
+    if (enHaut) hautDePage();
   }
 
   // ---- La révision : une série de fiches de mots ----
@@ -415,7 +496,7 @@ export function afficherVocabulaire(racine, piece) {
     // Pendant la série, la flèche de retour ramène à la liste des mots.
     definirRetour(() => {
       arreterVoix();
-      afficherListe();
+      afficherPrincipal();
     });
 
     function noter(mot, statut) {
@@ -493,7 +574,7 @@ export function afficherVocabulaire(racine, piece) {
         el('section', { className: 'card bilan-mots' },
           el('span', { className: 'pastille-mot su' }, icone('su')), String(resultats.su),
           el('span', { className: 'pastille-mot a-revoir' }, icone('revoir')), String(resultats.a_revoir)),
-        el('button', { type: 'button', className: 'btn', onclick: afficherListe }, t('Revenir au vocabulaire')));
+        el('button', { type: 'button', className: 'btn', onclick: afficherPrincipal }, t('Revenir au vocabulaire')));
       cascade(racine);
       hautDePage();
     }
@@ -501,7 +582,7 @@ export function afficherVocabulaire(racine, piece) {
     montrerFiche();
   }
 
-  afficherListe();
+  afficherPrincipal();
 
   // En quittant l'écran : la zone qui défile reste, ses écouteurs pour ce Vocabulaire-ci partent.
   return () => {

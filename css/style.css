@@ -599,7 +599,41 @@ button.replique:disabled { cursor: default; }
 
 /* ---- Vocabulaire ---- */
 .chips-vocabulaire, .pile-vocabulaire { display: flex; flex-direction: column; gap: 10px; }
+.chips-vocabulaire { gap: 6px; }
 .pile-vocabulaire { gap: 14px; }
+
+/* Un choix « un parmi plusieurs » écrit en texte (creerChoixTexte dans affichage.js) : l'option
+   choisie en gras et soulignée. Le bouton n'est pas dessiné, mais sa zone à toucher garde 44 px de haut. */
+.choix-texte { display: flex; flex-wrap: wrap; align-items: center; gap: 0 20px; }
+.choix-texte-option {
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.choix-texte-option.is-selected {
+  color: var(--accent-dark);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 7px;
+}
+.choix-texte-option:disabled { opacity: .4; cursor: default; }
+
+/* La liste : une carte par mot. Sur une ligne, le mot, sa prononciation et son statut ; dessous, son
+   sens, puis les numéros des répliques où il revient (de petits boutons qui mènent au texte). */
+.pile-vocabulaire:has(.carte-mot) { gap: 10px; }
+.carte-mot { display: flex; flex-direction: column; gap: 2px; padding: 8px 14px 10px; cursor: pointer; }
+.mot-nom { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; min-width: 0; margin-inline-end: auto; }
+.carte-mot .mot-japonais { margin-inline-end: 0; font-size: 1.35rem; line-height: 1.75; white-space: nowrap; }
+.mot-romaji { color: var(--ink-soft); font-size: 15px; }
+.carte-mot .mot-sens { font-size: 16px; }
+.numeros-mot { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.chip-numero { min-width: 36px; min-height: 32px; padding: 2px 10px; font-size: 13px; text-align: center; justify-content: center; }
 
 /* Le texte : chaque mot se touche, sans en avoir l'air. Touché, il se surligne. */
 .carte-texte-tete { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

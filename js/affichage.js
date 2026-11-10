@@ -69,6 +69,33 @@ export function creerChoixUnique(options, valeurInitiale, surChoix) {
   return el('div', { className: 'chips' }, chips.map((element) => element.chip));
 }
 
+// Le même choix « un parmi plusieurs », écrit en simple texte : l'option choisie en gras et soulignée,
+// sans bouton dessiné autour. Il prend moins de place que les chips, pour un écran chargé de commandes
+// (le Vocabulaire). La zone à toucher garde pourtant la hauteur d'un doigt (.choix-texte dans style.css).
+// options : une liste de { valeur, libelle, desactive } ; desactive grise une option qui ne s'applique pas.
+export function creerChoixTexte(options, valeurInitiale, surChoix) {
+  const boutons = options.map((option) => el('button', {
+    type: 'button',
+    className: 'choix-texte-option',
+    disabled: Boolean(option.desactive),
+    onclick: () => {
+      marquer(option.valeur);
+      surChoix(option.valeur);
+    },
+  }, option.libelle));
+
+  function marquer(valeur) {
+    boutons.forEach((bouton, rang) => {
+      const choisie = options[rang].valeur === valeur;
+      bouton.classList.toggle('is-selected', choisie);
+      bouton.setAttribute('aria-pressed', String(choisie)); // annonce le choix aux lecteurs d'écran
+    });
+  }
+
+  marquer(valeurInitiale);
+  return el('div', { className: 'choix-texte' }, boutons);
+}
+
 // Sur les écrans d'une pièce : ces interrupteurs ne changent que cette pièce.
 // Le choix pour toutes les pièces se fait dans les Réglages.
 function creerInterrupteur(libelle, nom, pieceId) {
