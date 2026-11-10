@@ -51,6 +51,8 @@ const REGLAGES_PAR_DEFAUT = {
   furigana: true,
   traduction: true,
   labelsOnglets: true, // le nom sous chaque icône des onglets du bas (voir appliquerAffichage)
+  tutos: true, // les pastilles « ? » qui montrent les gestes (voir tuto.js)
+  tutosVus: [], // les tutos déjà vus, par nom d'écran : leur pastille ne revient plus
   // (Il y avait aussi « navigation » : des boutons ou des gestes pour les fiches et le filage.
   // Depuis le 2026-11-10, les gestes sont la seule navigation ; une valeur encore enregistrée sur
   // un téléphone ne sert plus à rien, et ne gêne pas.)

@@ -11,6 +11,7 @@ import { changerStatut, lireSelection, lireStatuts } from '../stockage.js';
 import { arreterVoix } from '../voix.js';
 import { noterPosition, oublierPosition, positionAReprendre } from '../reprise.js';
 import { brancherGestes } from '../gestes.js';
+import { montrerGestes, proposerTuto } from '../tuto.js';
 
 // Mélange de Fisher-Yates : la méthode classique pour que chaque ordre ait la même chance.
 // (Le célèbre tri par Math.random() - 0.5 est, lui, biaisé.)
@@ -218,6 +219,21 @@ export function afficherFiches(racine, piece) {
           refus: () => signaler(t("Regarde ou écoute d'abord ta réplique.")),
         },
       });
+
+      // Le tuto : une pastille « ? » au coin de ma carte, tant qu'elle n'a pas été touchée (tuto.js).
+      // En « mes répliques seules », la carte est déjà visible : le premier toucher l'écoute directement.
+      proposerTuto('fiches', zoneMoi, () => montrerGestes({
+        carte: carteMoi,
+        cadre: zoneMoi,
+        ecran: racine,
+        etapes: [
+          !seules && { geste: 'toucher', titre: t('Toucher'), texte: t('voir ta réplique') },
+          { geste: 'toucher', titre: t(seules ? 'Toucher' : 'Toucher encore'), texte: t("l'écouter, ou faire pause") },
+          { geste: 'maintenir', titre: t('Appui long'), texte: t("arrêter l'écoute") },
+          { geste: 'glisser', sens: 1, titre: t('Glisser à droite'), texte: t('Je savais') },
+          { geste: 'glisser', sens: -1, titre: t('Glisser à gauche'), texte: t('À revoir') },
+        ].filter(Boolean),
+      }));
 
       remplacer(racine,
         el('p', { className: 'eyebrow fiche-compteur' }, t('Fiche {position} sur {total}', { position: position + 1, total: paquet.length })),

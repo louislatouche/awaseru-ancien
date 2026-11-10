@@ -103,6 +103,12 @@ function creerNavigation() {
       creerBascule(t('Labels'), lireReglages().labelsOnglets, (actif) => {
         changerReglage('labelsOnglets', actif);
         appliquerAffichage();
+      }),
+      // Les pastilles « ? » des tutos (voir tuto.js). Les rallumer les remet toutes, même celles
+      // déjà vues : c'est la façon de revoir un tuto, choisie par Louis.
+      creerBascule(t('Tutos'), lireReglages().tutos, (actif) => {
+        changerReglage('tutos', actif);
+        if (actif) changerReglage('tutosVus', []);
       })));
 }
 
