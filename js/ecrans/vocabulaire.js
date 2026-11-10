@@ -127,32 +127,37 @@ export function afficherVocabulaire(racine, piece) {
   // pour les surligner toutes et passer de l'une à l'autre. Refait à chaque affichage du texte.
   let apparitions = new Map();
 
+  // Un mot de réplique qui se touche : un simple <span>, plutôt qu'un <button>, car un bouton
+  // réserverait la largeur de ses furigana et creuserait des espaces dans la phrase. role et tabIndex
+  // le rendent utilisable au clavier et par les lecteurs d'écran, comme un vrai bouton.
+  const creerTouchable = (classes, action, ...contenu) => el('span', {
+    className: `${classes} mot-touchable`,
+    role: 'button',
+    tabIndex: 0,
+    onclick: action,
+    onkeydown: (evenement) => {
+      if (evenement.key === 'Enter' || evenement.key === ' ') {
+        evenement.preventDefault();
+        action();
+      }
+    },
+  }, ...contenu);
+
   // Un morceau de réplique : le japonais (avec furigana), et en mot à mot sa traduction dessous.
   // interactif : un mot du vocabulaire devient un bouton, qui affiche son explication en bas.
-  function creerMorceau(morceau, ligne, { gloses, surligne, didascalie, interactif }) {
+  // direSurligne : le mot surligné se touche pour l'entendre tel qu'il est écrit dans la réplique.
+  function creerMorceau(morceau, ligne, { gloses, surligne, didascalie, interactif, direSurligne }) {
     const japonais = el('span', { className: 'morceau-ja' });
     ajouterAvecFurigana(japonais, morceau.t);
     const mot = morceau.v ? parId.get(morceau.v) : null;
     const classes = ['morceau', gloses && 'avec-glose', surligne && 'surligne', didascalie && 'didascalie'].filter(Boolean).join(' ');
     // La traduction du mot tel qu'il est employé ici ; à défaut, celle du vocabulaire.
     const glose = gloses && mot && el('span', { className: 'glose', lang: langueActive() }, traduire(morceau, 'fr') ?? traduire(mot, 'fr'));
+    // Sous une fiche de révision : on entend 通りかかりました, pas la forme du dictionnaire 通りかかる.
+    if (surligne && direSurligne) return creerTouchable(classes, () => dire(morceau.t), japonais, glose);
     if (!interactif || !mot) return el('span', { className: classes }, japonais, glose);
 
-    // Un simple <span> qui se touche, plutôt qu'un <button> : un bouton réserverait la largeur de ses
-    // furigana et creuserait des espaces dans la phrase. role et tabIndex le rendent utilisable au
-    // clavier et par les lecteurs d'écran, comme un vrai bouton.
-    const bouton = el('span', {
-      className: `${classes} mot-touchable`,
-      role: 'button',
-      tabIndex: 0,
-      onclick: () => toucherMot(mot, morceau, bouton),
-      onkeydown: (evenement) => {
-        if (evenement.key === 'Enter' || evenement.key === ' ') {
-          evenement.preventDefault();
-          toucherMot(mot, morceau, bouton);
-        }
-      },
-    }, japonais, glose);
+    const bouton = creerTouchable(classes, () => toucherMot(mot, morceau, bouton), japonais, glose);
     if (!apparitions.has(mot.id)) apparitions.set(mot.id, []);
     apparitions.get(mot.id).push({ bouton, ligne, morceau });
     return bouton;
@@ -160,7 +165,8 @@ export function afficherVocabulaire(racine, piece) {
 
   // Une réplique dessinée mot par mot. surligner : l'id d'un mot à mettre en évidence.
   // gloses : le mot à mot, chaque mot avec sa traduction dessous. interactif : les mots se touchent.
-  function creerPhrase(ligne, { surligner = null, gloses = false, interactif = false } = {}) {
+  // direSurligne : le mot surligné se touche pour l'entendre (voir creerMorceau).
+  function creerPhrase(ligne, { surligner = null, gloses = false, interactif = false, direSurligne = false } = {}) {
     if (!ligne.mots) return creerJaponais(ligne.texte, 'japonais japonais-petit'); // réplique pas encore découpée
     const phrase = el('span', { className: gloses ? 'mot-a-mot' : 'japonais japonais-petit', lang: 'ja' });
     let dansDidascalie = false;
@@ -171,7 +177,7 @@ export function afficherVocabulaire(racine, piece) {
         if (!partie) return;
         if (partie.includes('（')) dansDidascalie = true;
         phrase.append(creerMorceau({ ...morceau, t: partie }, ligne, {
-          gloses, interactif, surligne: surligner !== null && morceau.v === surligner, didascalie: dansDidascalie,
+          gloses, interactif, direSurligne, surligne: surligner !== null && morceau.v === surligner, didascalie: dansDidascalie,
         }));
         if (partie.includes('）')) dansDidascalie = false;
       });
@@ -187,9 +193,10 @@ export function afficherVocabulaire(racine, piece) {
     el('span', { className: 'role-fr' }, t('Scène {n}', { n: ligne.scene.numero })));
 
   // Le contexte d'un mot : la réplique où il apparaît, le mot surligné, et la traduction de la phrase.
-  const creerContexte = (mot, ligne, saPiece = piece) => el('div', { className: 'contexte' },
+  // motADire : le mot surligné se touche pour l'entendre tel qu'il est écrit là.
+  const creerContexte = (mot, ligne, saPiece = piece, { motADire = false } = {}) => el('div', { className: 'contexte' },
     enTete(ligne, saPiece),
-    creerPhrase(ligne, { surligner: mot.id }),
+    creerPhrase(ligne, { surligner: mot.id, direSurligne: motADire }),
     el('span', { className: 'replique-fr traduction' }, traduire(ligne, 'fr')));
 
   // Su ou à revoir : une petite icône, comprise dans toutes les langues.
@@ -829,7 +836,8 @@ export function afficherVocabulaire(racine, piece) {
         depuisLeSens && creerJaponais(mot.mot, 'mot-japonais'),
         creerLecture(mot),
         !depuisLeSens && el('div', { className: 'mot-sens' }, traduire(mot, 'fr')));
-      const contexte = creerContexte(mot, sesLignes[0], saPiece);
+      // Sous la carte, la réplique d'origine : son mot surligné se touche pour l'entendre conjugué.
+      const contexte = creerContexte(mot, sesLignes[0], saPiece, { motADire: true });
       contexte.hidden = true;
 
       // Voir la réponse, c'est aussi l'entendre : le mot est dit dès qu'il se retourne, sans second toucher.
