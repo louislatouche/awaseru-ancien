@@ -153,7 +153,7 @@ export function afficherVocabulaire(racine, piece) {
     const classes = ['morceau', gloses && 'avec-glose', surligne && 'surligne', didascalie && 'didascalie'].filter(Boolean).join(' ');
     // La traduction du mot tel qu'il est employé ici ; à défaut, celle du vocabulaire.
     const glose = gloses && mot && el('span', { className: 'glose', lang: langueActive() }, traduire(morceau, 'fr') ?? traduire(mot, 'fr'));
-    // Sous une fiche de révision : on entend 通りかかりました, pas la forme du dictionnaire 通りかかる.
+    // Dans le contexte d'un mot : on entend 通りかかりました, pas la forme du dictionnaire 通りかかる.
     if (surligne && direSurligne) return creerTouchable(classes, () => dire(morceau.t), japonais, glose);
     if (!interactif || !mot) return el('span', { className: classes }, japonais, glose);
 
@@ -193,10 +193,10 @@ export function afficherVocabulaire(racine, piece) {
     el('span', { className: 'role-fr' }, t('Scène {n}', { n: ligne.scene.numero })));
 
   // Le contexte d'un mot : la réplique où il apparaît, le mot surligné, et la traduction de la phrase.
-  // motADire : le mot surligné se touche pour l'entendre tel qu'il est écrit là.
-  const creerContexte = (mot, ligne, saPiece = piece, { motADire = false } = {}) => el('div', { className: 'contexte' },
+  // Le mot surligné se touche pour l'entendre tel qu'il est écrit là, conjugué.
+  const creerContexte = (mot, ligne, saPiece = piece) => el('div', { className: 'contexte' },
     enTete(ligne, saPiece),
-    creerPhrase(ligne, { surligner: mot.id, direSurligne: motADire }),
+    creerPhrase(ligne, { surligner: mot.id, direSurligne: true }),
     el('span', { className: 'replique-fr traduction' }, traduire(ligne, 'fr')));
 
   // Su ou à revoir : une petite icône, comprise dans toutes les langues.
@@ -621,9 +621,10 @@ export function afficherVocabulaire(racine, piece) {
 
     const carte = el('div', {
       className: 'replique carte-mot',
-      // Un numéro est un bouton à part : le toucher déplie la carte, sans faire parler le mot.
+      // Un numéro est un bouton à part : le toucher déplie la carte, sans faire parler le mot. Le mot
+      // surligné de la réplique dépliée aussi (role="button") : il se dit lui-même, conjugué.
       onclick: (evenement) => {
-        if (!evenement.target.closest('button')) direMot(mot);
+        if (!evenement.target.closest('button, [role="button"]')) direMot(mot);
       },
     },
       // Le mot avec ses furigana (ils donnent déjà la lecture en kana) et sa prononciation, puis son
@@ -837,7 +838,7 @@ export function afficherVocabulaire(racine, piece) {
         creerLecture(mot),
         !depuisLeSens && el('div', { className: 'mot-sens' }, traduire(mot, 'fr')));
       // Sous la carte, la réplique d'origine : son mot surligné se touche pour l'entendre conjugué.
-      const contexte = creerContexte(mot, sesLignes[0], saPiece, { motADire: true });
+      const contexte = creerContexte(mot, sesLignes[0], saPiece);
       contexte.hidden = true;
 
       // Voir la réponse, c'est aussi l'entendre : le mot est dit dès qu'il se retourne, sans second toucher.
