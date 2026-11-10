@@ -72,7 +72,8 @@ export function creerChoixUnique(options, valeurInitiale, surChoix) {
 // Le même choix « un parmi plusieurs », écrit en simple texte : l'option choisie en gras et soulignée,
 // sans bouton dessiné autour. Il prend moins de place que les chips, pour un écran chargé de commandes
 // (le Vocabulaire). La zone à toucher garde pourtant la hauteur d'un doigt (.choix-texte dans style.css).
-// options : une liste de { valeur, libelle, desactive } ; desactive grise une option qui ne s'applique pas.
+// options : une liste de { valeur, libelle, nombre, desactive }. nombre (facultatif) s'écrit en clair
+// après le libellé, par exemple combien de mots ; desactive grise une option qui ne s'applique pas.
 export function creerChoixTexte(options, valeurInitiale, surChoix) {
   const boutons = options.map((option) => el('button', {
     type: 'button',
@@ -82,7 +83,9 @@ export function creerChoixTexte(options, valeurInitiale, surChoix) {
       marquer(option.valeur);
       surChoix(option.valeur);
     },
-  }, option.libelle));
+    // L'espace avant le nombre est insécable et fait partie du texte : le soulignement passe dessous
+    // sans interruption, ce qu'une marge ne permettrait pas.
+  }, option.libelle, option.nombre !== undefined && el('span', { className: 'choix-texte-nombre' }, ` ${option.nombre}`)));
 
   function marquer(valeur) {
     boutons.forEach((bouton, rang) => {

@@ -623,6 +623,7 @@ button.replique:disabled { cursor: default; }
   text-underline-offset: 7px;
 }
 .choix-texte-option:disabled { opacity: .4; cursor: default; }
+.choix-texte-nombre { font-weight: 400; }
 
 /* La liste : une carte par mot. Sur une ligne, le mot, sa prononciation et son statut ; dessous, son
    sens, puis les numéros des répliques où il revient (de petits boutons qui mènent au texte). */

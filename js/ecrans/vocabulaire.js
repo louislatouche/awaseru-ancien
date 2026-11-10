@@ -5,7 +5,9 @@
 //   sous chaque mot.
 // - La liste : une carte par mot, qu'un toucher fait entendre. Sous chaque mot, les numéros des
 //   répliques où il revient ; un numéro touché ouvre le texte à cette réplique, mot expliqué.
+//   Un filtre (Tous, À revoir, Nouveaux) choisit les mots montrés.
 // Et une révision en fiches, comme pour les répliques : le mot seul, puis sa lecture et son sens.
+// Elle se lance depuis la liste, en bas, et reprend exactement les mots que la liste montre.
 //
 // Tout vient du fichier de la pièce : la liste « vocabulaire », et le découpage « mots » de chaque
 // réplique (voir validation.js). Une pièce qui ne les a pas affiche simplement un message.
@@ -44,13 +46,15 @@ export function afficherVocabulaire(racine, piece) {
   }
 
   // Ce que l'on regarde : mes répliques ou toute la pièce, en texte ou en liste, avec ou sans le mot
-  // à mot. Si Android vient de relancer l'app (en dépliant le Fold, voir reprise.js), on reprend les
-  // mêmes choix : sans eux, l'écran rouvrirait en texte, et sa position de défilement ne voudrait plus rien dire.
+  // à mot, et dans la liste, quels mots (le filtre). Si Android vient de relancer l'app (en dépliant
+  // le Fold, voir reprise.js), on reprend les mêmes choix : sans eux, l'écran rouvrirait en texte, et
+  // sa position de défilement ne voudrait plus rien dire.
   const reprise = positionAReprendre('vocabulaire');
   let gloses = reprise?.gloses ?? false;
   let portee = reprise?.portee ?? (selection.size > 0 ? 'miennes' : 'tout');
   let vue = reprise?.vue ?? 'texte';
-  const noterChoix = () => noterPosition('vocabulaire', { vue, portee, gloses });
+  let filtre = reprise?.filtre ?? 'tous'; // 'tous', 'a-revoir' ou 'nouveaux'
+  const noterChoix = () => noterPosition('vocabulaire', { vue, portee, gloses, filtre });
 
   const lignesChoisies = () => (portee === 'miennes' ? lignes.filter((ligne) => selection.has(ligne.numero)) : lignes);
 
@@ -415,15 +419,23 @@ export function afficherVocabulaire(racine, piece) {
 
   // ---- L'écran principal : le texte ou la liste ----
 
-  const boutonReviser = el('button', { type: 'button', className: 'btn' }, t('Réviser'));
-
   // Les commandes, redessinées à chaque affichage : Texte ou Liste à droite du titre, puis mes
-  // répliques ou toute la pièce, puis le mot à mot (pour le texte seulement).
+  // répliques ou toute la pièce, puis le mot à mot (pour le texte) ou le filtre (pour la liste).
   const coinTitre = el('div');
   const choixPortee = el('div');
   const rangeeMotAMot = el('div', { className: 'chips' });
+  const rangeeFiltre = el('div');
+  // En bas de la liste, collé comme les commandes des fiches : Réviser, avec le nombre de mots.
+  const barreReviser = el('div', { className: 'commandes' });
 
-  function dessinerCommandes() {
+  // Les mots de chaque filtre. Ce que la liste montre, c'est ce que l'on révise.
+  const parFiltre = (entrees) => ({
+    tous: entrees,
+    'a-revoir': entrees.filter(({ mot }) => statuts[mot.id] === 'a_revoir'),
+    nouveaux: entrees.filter(({ mot }) => !statuts[mot.id]), // jamais révisés
+  });
+
+  function dessinerCommandes(series) {
     remplacer(coinTitre, creerChoixTexte([
       { valeur: 'texte', libelle: t('Texte') },
       { valeur: 'liste', libelle: t('Liste') },
@@ -435,6 +447,13 @@ export function afficherVocabulaire(racine, piece) {
     // Le mot à mot : la traduction écrite sous chaque mot, pour suivre la construction de la phrase.
     rangeeMotAMot.hidden = vue !== 'texte';
     remplacer(rangeeMotAMot, creerBascule(t('Mot à mot'), gloses, (actif) => { gloses = actif; dessinerContenu(); }));
+    // Le filtre, avec le nombre de mots de chacun. Un filtre sans aucun mot ne se choisit pas.
+    rangeeFiltre.hidden = vue !== 'liste';
+    remplacer(rangeeFiltre, creerChoixTexte([
+      { valeur: 'tous', libelle: t('Tous'), nombre: series.tous.length },
+      { valeur: 'a-revoir', libelle: t('À revoir'), nombre: series['a-revoir'].length, desactive: series['a-revoir'].length === 0 },
+      { valeur: 'nouveaux', libelle: t('Nouveaux'), nombre: series.nouveaux.length, desactive: series.nouveaux.length === 0 },
+    ], filtre, (valeur) => { filtre = valeur; dessinerContenu(); }));
   }
 
   // animer : la vague d'entrée des cartes (non, quand on arrive d'un numéro sur une autre partie du texte).
@@ -444,24 +463,34 @@ export function afficherVocabulaire(racine, piece) {
     arreterVoix();
     apparitions = new Map();
     statuts = lireStatutsMots(piece.id);
-    noterChoix();
-    dessinerCommandes();
     const lignesVues = lignesChoisies();
-    const entrees = entreesDe(lignesVues);
-    boutonReviser.disabled = entrees.length === 0;
-    boutonReviser.onclick = () => lancerRevision(entrees);
+    const series = parFiltre(entreesDe(lignesVues));
+    // Le filtre choisi n'a plus de mots (tous les « À revoir » sont devenus sus) : retour à Tous.
+    if (series[filtre].length === 0) filtre = 'tous';
+    const vues = series[filtre];
+    noterChoix();
+    dessinerCommandes(series);
 
     if (portee === 'miennes' && selection.size === 0) {
       remplacer(zone, creerAvisSansSelection(piece));
       panneau.hidden = true;
+      barreReviser.hidden = true;
       return;
     }
     if (vue === 'liste') {
-      // Pas de panneau d'explication : chaque carte montre déjà tout.
+      // Pas de panneau d'explication : chaque carte montre déjà tout. À sa place, Réviser.
       panneau.hidden = true;
-      remplacer(zone, entrees.map(creerCarteMot));
+      barreReviser.hidden = false;
+      remplacer(barreReviser, el('button', {
+        type: 'button',
+        className: 'btn',
+        disabled: vues.length === 0,
+        onclick: () => lancerRevision(vues),
+      }, t('Réviser ({n})', { n: vues.length })));
+      remplacer(zone, vues.map(creerCarteMot));
     } else {
       panneau.hidden = false;
+      barreReviser.hidden = true;
       // Les répliques, rangées par scène comme dans le script.
       let scene = null;
       remplacer(zone, lignesVues.flatMap((ligne) => {
@@ -478,11 +507,12 @@ export function afficherVocabulaire(racine, piece) {
   function afficherPrincipal({ enHaut = true, animer = true } = {}) {
     remplacer(racine,
       creerTitreVue(t('Vocabulaire'), coinTitre),
-      el('div', { className: 'chips-vocabulaire' }, choixPortee, rangeeMotAMot),
-      boutonReviser,
+      el('div', { className: 'chips-vocabulaire' }, choixPortee, rangeeMotAMot, rangeeFiltre),
       zone,
-      // Collé en bas de l'écran, comme les commandes des fiches.
-      panneau);
+      // Collés en bas de l'écran, comme les commandes des fiches : l'explication du mot touché
+      // (dans le texte) ou Réviser (dans la liste). Un seul des deux se montre à la fois.
+      panneau,
+      barreReviser);
     dessinerContenu({ animer });
     if (enHaut) hautDePage();
   }
