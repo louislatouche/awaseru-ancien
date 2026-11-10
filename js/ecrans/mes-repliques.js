@@ -260,17 +260,26 @@ export function afficherMesRepliques(racine, piece) {
   }), { libelle: t('Voir les gestes de cet écran') });
   // Sur la grille, au coin du premier numéro (elle se montre avec la grille) : le doigt le touche,
   // sans rien choisir, puis le garde enfoncé, et l'écran revient au texte sur sa réplique, pour de vrai.
+  // À la fin, retour à la grille, comme avant la démo ; l'endroit du texte où l'on était avant
+  // d'ouvrir la grille est remis aussi, pour que « Texte » y ramène toujours.
   const premiere = lignes[0];
   if (premiere) {
     const premierNumero = boutonsGrille.get(premiere.numero);
-    proposerTuto('mes-repliques-grille', vueGrille, () => montrerGestes({
-      carte: vueGrille,
-      ecran: racine,
-      etapes: [
-        { geste: 'toucher', titre: t('Toucher'), texte: t('choisir la réplique, ou la retirer'), cible: premierNumero },
-        { geste: 'maintenir', titre: t('Appui long'), texte: t('revenir au texte, sur cette réplique'), cible: premierNumero, agir: () => allerA(premiere.numero) },
-      ],
-    }), { cote: 'gauche', libelle: t('Voir les gestes de cet écran') });
+    proposerTuto('mes-repliques-grille', vueGrille, () => {
+      const positionTexteAvant = positionTexte;
+      montrerGestes({
+        carte: vueGrille,
+        ecran: racine,
+        etapes: [
+          { geste: 'toucher', titre: t('Toucher'), texte: t('choisir la réplique, ou la retirer'), cible: premierNumero },
+          { geste: 'maintenir', titre: t('Appui long'), texte: t('revenir au texte, sur cette réplique'), cible: premierNumero, agir: () => allerA(premiere.numero) },
+        ],
+        fin: () => {
+          montrerGrille(true);
+          positionTexte = positionTexteAvant;
+        },
+      });
+    }, { cote: 'gauche', libelle: t('Voir les gestes de cet écran') });
   }
 
   afficherVue(false);

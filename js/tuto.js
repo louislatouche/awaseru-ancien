@@ -64,7 +64,8 @@ export function proposerTuto(nom, ancre, montrer, { cote = 'droite', libelle = t
 // Le doigt fantôme fait les gestes sur la carte, un par un, chacun avec sa légende.
 // carte : la vraie carte ; cadre : l'élément où se pose le doigt (il défile donc avec la carte) :
 // la carte elle-même, ou le cadre qui la contient avec ses indices de glissement ; ecran : où
-// poser la légende ; fin() : appelée quand la démo est allée jusqu'au bout.
+// poser la légende ; fin() : appelée quand la démo est allée jusqu'au bout, pour défaire ce qu'elle
+// a fait pour de vrai (replier une carte, revenir à la grille) : une démo finit là où elle a commencé.
 // etapes : [{ geste: 'toucher' | 'maintenir' | 'glisser' | 'pincer' | 'ecarter', sens: 1 (droite)
 //   ou -1, titre, texte, cible, agir, suivre, relacher }]. cible : ce que le doigt touche, si ce
 //   n'est pas la carte entière (un mot, un numéro), ou une fonction qui le trouve au moment voulu.
@@ -255,6 +256,10 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
 
   // Le doigt seul ne sert pas si la démo ne fait que pincer et écarter (ce sont deux autres doigts).
   const avecUnDoigt = etapes.some(({ geste }) => geste !== 'pincer' && geste !== 'ecarter');
+  // Où en était l'écran : une démo qui déplie une carte ou change de vue le fait défiler. À la fin,
+  // on y revient, pour retrouver l'écran tel qu'il était avant la démo (demande de Louis, 2026-11-11).
+  const zoneQuiDefile = document.getElementById('ecran');
+  const defilementDeDepart = zoneQuiDefile?.scrollTop ?? 0;
 
   try {
     // Le doigt arrive un peu en dessous du milieu de la carte, puis se place.
@@ -289,7 +294,10 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
     if (avecUnDoigt) await animer(doigt, [{ opacity: 1, scale: 1 }, { opacity: 0, scale: 0.8 }], { duration: 260, easing: 'ease' });
     await pause(700);
     await animer(legende, [{ opacity: 1 }, { opacity: 0 }], { duration: 220 });
+    // Retour au point de départ : ce que la démo a changé pour de vrai est défait (fin), puis
+    // l'écran revient, en douceur, là où il était.
     fin?.();
+    zoneQuiDefile?.scrollTo({ top: defilementDeDepart, behavior: 'smooth' });
   } catch (erreur) {
     if (erreur !== ARRET) throw erreur;
   } finally {
