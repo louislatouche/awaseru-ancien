@@ -56,7 +56,10 @@ export function afficherVocabulaire(racine, piece) {
   let vue = reprise?.vue ?? 'texte';
   let filtre = reprise?.filtre ?? 'tous'; // 'tous', 'a-reviser' ou 'nouveaux'
   let recherche = reprise?.recherche ?? ''; // ce qui est tapé dans « Chercher un mot »
-  const noterChoix = () => noterPosition('vocabulaire', { vue, portee, gloses, filtre, recherche });
+  // Les particules (に, を, は... marquées « particule » dans la pièce) : mises de côté dans la liste,
+  // et donc dans la révision, sauf si l'interrupteur « Particules » les demande.
+  let particules = reprise?.particules ?? false;
+  const noterChoix = () => noterPosition('vocabulaire', { vue, portee, gloses, filtre, recherche, particules });
 
   const lignesChoisies = () => (portee === 'miennes' ? lignes.filter((ligne) => selection.has(ligne.numero)) : lignes);
 
@@ -627,7 +630,14 @@ export function afficherVocabulaire(racine, piece) {
       if (evenement.key === 'Enter') champRecherche.blur();
     },
   });
-  const blocRecherche = el('div', { className: 'form-group recherche-mot' }, champRecherche);
+  // À droite du champ, l'interrupteur « Particules » : allumé, elles reviennent dans la liste.
+  // Fait une fois lui aussi : il garde de lui-même son état allumé ou éteint.
+  const basculeParticules = creerBascule(t('Particules'), particules, (actif) => {
+    particules = actif;
+    dessinerContenu();
+  });
+  const blocRecherche = el('div', { className: 'ligne-recherche' },
+    el('div', { className: 'form-group recherche-mot' }, champRecherche), basculeParticules);
   // En bas de la liste, collé comme les commandes des fiches : Réviser, avec le nombre de mots.
   const barreReviser = el('div', { className: 'commandes' });
 
@@ -674,8 +684,10 @@ export function afficherVocabulaire(racine, piece) {
     apparitions = new Map();
     statuts = lireStatutsMots(); // communs à toutes les pièces : un mot su l'est partout
     const lignesVues = lignesChoisies();
-    // La recherche ne sert que dans la liste : le texte, lui, montre toujours toutes les répliques.
-    const series = parFiltre(entreesDe(lignesVues).filter(({ mot }) => vue !== 'liste' || correspond(mot)));
+    // La recherche et les particules ne comptent que dans la liste : le texte, lui, montre toujours
+    // toutes les répliques, et chacun de leurs mots se touche.
+    const dansLaListe = ({ mot }) => (particules || !mot.particule) && correspond(mot);
+    const series = parFiltre(entreesDe(lignesVues).filter((entree) => vue !== 'liste' || dansLaListe(entree)));
     // Le filtre choisi n'a plus de mots (tous les « À réviser » ont été révisés) : retour à Tous.
     // Pas pendant une recherche : on garderait Tous après avoir effacé ce qu'on a tapé.
     // Et un filtre qui n'existe plus (noté pour la reprise par une version précédente) : Tous aussi.

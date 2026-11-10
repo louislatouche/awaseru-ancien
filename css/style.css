@@ -607,6 +607,10 @@ button.replique:disabled { cursor: default; }
    la colonne des commandes a déjà son écart. */
 .recherche-mot { margin: 0; }
 .recherche-mot input { background: var(--surface); box-shadow: var(--shadow-card); }
+/* Le champ prend la place, l'interrupteur « Particules » se cale à sa droite. */
+.ligne-recherche { display: flex; align-items: center; gap: 8px; }
+.ligne-recherche .recherche-mot { flex: 1; min-width: 0; }
+.ligne-recherche .chip { flex: none; }
 
 /* Un choix « un parmi plusieurs » écrit en texte (creerChoixTexte dans affichage.js) : l'option
    choisie en gras et soulignée. Le bouton n'est pas dessiné, mais sa zone à toucher garde 44 px de haut. */

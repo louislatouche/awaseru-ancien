@@ -2937,7 +2937,8 @@
       "id": "ni",
       "mot": "に",
       "fr": "à, dans, vers (lieu, cible)",
-      "en": "at, in, to (place, target)"
+      "en": "at, in, to (place, target)",
+      "particule": true
     },
     {
       "id": "yasashii",
@@ -2955,7 +2956,8 @@
       "id": "to",
       "mot": "と",
       "fr": "et (entre noms) ; avec",
-      "en": "and (between nouns); with"
+      "en": "and (between nouns); with",
+      "particule": true
     },
     {
       "id": "obaasan",
@@ -2967,7 +2969,8 @@
       "id": "ga",
       "mot": "が",
       "fr": "particule du sujet",
-      "en": "subject particle"
+      "en": "subject particle",
+      "particule": true
     },
     {
       "id": "sumu",
@@ -2991,7 +2994,8 @@
       "id": "wo",
       "mot": "を",
       "fr": "particule du complément d'objet",
-      "en": "object particle"
+      "en": "object particle",
+      "particule": true
     },
     {
       "id": "ageru",
@@ -3009,7 +3013,8 @@
       "id": "wa",
       "mot": "は",
       "fr": "particule du thème",
-      "en": "topic particle"
+      "en": "topic particle",
+      "particule": true
     },
     {
       "id": "shiroi",
@@ -3027,7 +3032,8 @@
       "id": "no",
       "mot": "の",
       "fr": "de (possession, lien)",
-      "en": "of, 's (possession, link)"
+      "en": "of, 's (possession, link)",
+      "particule": true
     },
     {
       "id": "shiro",
@@ -3081,7 +3087,8 @@
       "id": "de",
       "mot": "で",
       "fr": "à, dans (lieu) ; avec (moyen)",
-      "en": "at, in (place); with (means)"
+      "en": "at, in (place); with (means)",
+      "particule": true
     },
     {
       "id": "hoeru",
@@ -3135,13 +3142,15 @@
       "id": "no-explication",
       "mot": "の",
       "fr": "c'est que (explication)",
-      "en": "it's that (explanation)"
+      "en": "it's that (explanation)",
+      "particule": true
     },
     {
       "id": "ka",
       "mot": "か",
       "fr": "particule interrogative",
-      "en": "question particle"
+      "en": "question particle",
+      "particule": true
     },
     {
       "id": "yoshi",
@@ -3183,7 +3192,8 @@
       "id": "kara",
       "mot": "から",
       "fr": "de, depuis (point de départ)",
-      "en": "from"
+      "en": "from",
+      "particule": true
     },
     {
       "id": "okane",
@@ -3207,7 +3217,8 @@
       "id": "yo",
       "mot": "よ",
       "fr": "(insistance : « tu sais ! »)",
-      "en": "(emphasis: \"you know!\")"
+      "en": "(emphasis: \"you know!\")",
+      "particule": true
     },
     {
       "id": "arigatou",
@@ -3243,7 +3254,8 @@
       "id": "ne",
       "mot": "ね",
       "fr": "(« n'est-ce pas ? »)",
-      "en": "(\"right?\", \"isn't it?\")"
+      "en": "(\"right?\", \"isn't it?\")",
+      "particule": true
     },
     {
       "id": "tonari",
@@ -3351,7 +3363,8 @@
       "id": "mo",
       "mot": "も",
       "fr": "aussi, même",
-      "en": "also, too"
+      "en": "also, too",
+      "particule": true
     },
     {
       "id": "kane",
@@ -3399,7 +3412,8 @@
       "id": "zo",
       "mot": "ぞ",
       "fr": "(affirmation forte, masculine)",
-      "en": "(strong assertion, masculine)"
+      "en": "(strong assertion, masculine)",
+      "particule": true
     },
     {
       "id": "uwaa",
@@ -3579,7 +3593,8 @@
       "id": "to-quand",
       "mot": "と",
       "fr": "quand, dès que (après un verbe)",
-      "en": "when, whenever (after a verb)"
+      "en": "when, whenever (after a verb)",
+      "particule": true
     },
     {
       "id": "fushigi",
@@ -3621,13 +3636,15 @@
       "id": "ga-mais",
       "mot": "が",
       "fr": "mais (entre deux phrases)",
-      "en": "but (between clauses)"
+      "en": "but (between clauses)",
+      "particule": true
     },
     {
       "id": "ya",
       "mot": "や",
       "fr": "et (entre autres)",
-      "en": "and (among others)"
+      "en": "and (among others)",
+      "particule": true
     },
     {
       "id": "doubutsu",
@@ -3777,7 +3794,8 @@
       "id": "e",
       "mot": "へ",
       "fr": "vers (direction)",
-      "en": "to, towards (direction)"
+      "en": "to, towards (direction)",
+      "particule": true
     },
     {
       "id": "uma",

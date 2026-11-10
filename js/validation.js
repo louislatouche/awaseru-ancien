@@ -66,6 +66,8 @@ export function validerPiece(piece) {
 
   // Le vocabulaire (facultatif) : les mots de la pièce, chacun avec un id court, le mot en japonais
   // (furigana compris) et sa traduction. Les répliques y renvoient par cet id (voir « mots » plus bas).
+  // « particule »: true (facultatif) range le mot avec les particules (に, を, は...), que la liste
+  // du Vocabulaire met de côté sauf si on les demande.
   const idsMots = new Set();
   if (piece.vocabulaire !== undefined) {
     if (!Array.isArray(piece.vocabulaire)) {
@@ -80,6 +82,7 @@ export function validerPiece(piece) {
         exigerJaponais(mot.mot, `${lieu}, « mot »`);
         exigerFrancais(mot.fr, `${lieu}, « fr »`);
         if (mot.en !== undefined && typeof mot.en !== 'string') erreurs.push(`${lieu} : « en » doit être un texte.`);
+        if (mot.particule !== undefined && typeof mot.particule !== 'boolean') erreurs.push(`${lieu} : « particule » doit valoir true ou false.`);
       });
     }
   }

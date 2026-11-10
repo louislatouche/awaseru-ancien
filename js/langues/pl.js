@@ -91,6 +91,7 @@ export default {
   'À réviser': 'Do przejrzenia',
   'Chercher un mot': 'Szukaj słówka',
   'Aucun mot trouvé.': 'Nie znaleziono słówka.',
+  'Particules': 'Partykuły',
   'Mot {position} sur {total}': 'Słowo {position} z {total}',
   'Et dans une autre réplique': 'I w jeszcze jednej kwestii',
   'Et dans {n} autres répliques': 'I w {n} innych kwestiach',

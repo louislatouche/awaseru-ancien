@@ -90,6 +90,7 @@ export default {
   'À réviser': 'Due',
   'Chercher un mot': 'Search for a word',
   'Aucun mot trouvé.': 'No word found.',
+  'Particules': 'Particles',
   'Mot {position} sur {total}': 'Word {position} of {total}',
   'Et dans une autre réplique': 'And in one other line',
   'Et dans {n} autres répliques': 'And in {n} other lines',
