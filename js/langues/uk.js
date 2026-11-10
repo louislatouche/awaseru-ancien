@@ -147,7 +147,7 @@ export default {
   'Essayer la voix du téléphone': 'Спробувати голос телефона',
   Progression: 'Прогрес',
   'Remettre à zéro ?': 'Скинути?',
-  'La progression de « {titre} » sera effacée. Tes répliques choisies sont conservées.': 'Прогрес п’єси «{titre}» буде стерто. Обрані репліки збережуться.',
+  'La progression de « {titre} » sera effacée. Tes répliques choisies et ton vocabulaire sont conservés.': 'Прогрес п’єси «{titre}» буде стерто. Обрані репліки й словник збережуться.',
   'Remettre à zéro': 'Скинути',
   'Progression remise à zéro.': 'Прогрес скинуто.',
   Sauvegarde: 'Резервна копія',

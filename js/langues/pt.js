@@ -147,7 +147,7 @@ export default {
   'Essayer la voix du téléphone': 'Experimentar a voz do telemóvel',
   Progression: 'Progresso',
   'Remettre à zéro ?': 'Repor?',
-  'La progression de « {titre} » sera effacée. Tes répliques choisies sont conservées.': 'O progresso de «{titre}» será apagado. As tuas falas escolhidas são mantidas.',
+  'La progression de « {titre} » sera effacée. Tes répliques choisies et ton vocabulaire sont conservés.': 'O progresso de «{titre}» será apagado. As tuas falas escolhidas e o teu vocabulário são mantidos.',
   'Remettre à zéro': 'Repor',
   'Progression remise à zéro.': 'Progresso reposto.',
   Sauvegarde: 'Cópia de segurança',

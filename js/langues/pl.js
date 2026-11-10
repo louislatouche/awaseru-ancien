@@ -148,7 +148,7 @@ export default {
   'Essayer la voix du téléphone': 'Wypróbuj głos telefonu',
   Progression: 'Postępy',
   'Remettre à zéro ?': 'Wyzerować?',
-  'La progression de « {titre} » sera effacée. Tes répliques choisies sont conservées.': 'Postępy w „{titre}” zostaną usunięte. Twoje wybrane kwestie zostają.',
+  'La progression de « {titre} » sera effacée. Tes répliques choisies et ton vocabulaire sont conservés.': 'Postępy w „{titre}” zostaną usunięte. Twoje wybrane kwestie i słówka zostają.',
   'Remettre à zéro': 'Wyzeruj',
   'Progression remise à zéro.': 'Postępy wyzerowane.',
   Sauvegarde: 'Kopia zapasowa',

@@ -147,7 +147,7 @@ export default {
   'Essayer la voix du téléphone': 'Probar la voz del teléfono',
   Progression: 'Progreso',
   'Remettre à zéro ?': '¿Restablecer?',
-  'La progression de « {titre} » sera effacée. Tes répliques choisies sont conservées.': 'Se borrará el progreso de «{titre}». Tus réplicas elegidas se conservan.',
+  'La progression de « {titre} » sera effacée. Tes répliques choisies et ton vocabulaire sont conservés.': 'Se borrará el progreso de «{titre}». Tus réplicas elegidas y tu vocabulario se conservan.',
   'Remettre à zéro': 'Restablecer',
   'Progression remise à zéro.': 'Progreso restablecido.',
   Sauvegarde: 'Copia de seguridad',

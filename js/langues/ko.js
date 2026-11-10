@@ -147,7 +147,7 @@ export default {
   'Essayer la voix du téléphone': '휴대폰 음성 들어 보기',
   Progression: '진행 상황',
   'Remettre à zéro ?': '초기화할까요?',
-  'La progression de « {titre} » sera effacée. Tes répliques choisies sont conservées.': '“{titre}”의 진행 상황이 지워져요. 고른 대사는 그대로 남아요.',
+  'La progression de « {titre} » sera effacée. Tes répliques choisies et ton vocabulaire sont conservés.': '“{titre}”의 진행 상황이 지워져요. 고른 대사와 어휘는 그대로 남아요.',
   'Remettre à zéro': '초기화',
   'Progression remise à zéro.': '진행 상황을 초기화했어요.',
   Sauvegarde: '백업',

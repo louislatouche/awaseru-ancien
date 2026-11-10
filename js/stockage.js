@@ -116,21 +116,50 @@ export function changerStatut(pieceId, numero, statut) {
   ecrire(`progression:${pieceId}`, { ...lireStatuts(pieceId), [numero]: statut });
 }
 
+// Remettre une pièce à zéro efface les coches de ses répliques, pas celles des mots : un mot su
+// l'est dans toutes les pièces (voir plus bas), il ne s'oublie pas avec l'une d'elles. Choix de
+// Louis, le 2026-11-10.
 export function effacerProgression(pieceId) {
   localStorage.removeItem(`${PREFIXE}progression:${pieceId}`);
-  localStorage.removeItem(`${PREFIXE}vocabulaire:${pieceId}`);
 }
 
-// ---- Les mots du vocabulaire : su ou à revoir, comme les répliques ----
-// Rangés par id de mot (voir « vocabulaire » dans le fichier de la pièce) : { horu: 'su', ... }
+// ---- Les mots du vocabulaire : su ou à revoir, communs à toutes les pièces ----
+// Rangés par id de mot (voir « vocabulaire » dans le fichier d'une pièce) : { horu: 'su', ... }.
+// Un mot su l'est partout : les pièces qui l'emploient lui donnent le même id, et lisent donc la
+// même coche.
 
-export function lireStatutsMots(pieceId) {
-  return lire(`vocabulaire:${pieceId}`, {});
+export function lireStatutsMots() {
+  return lire('vocabulaire', {});
 }
 
-export function changerStatutMot(pieceId, idMot, statut) {
-  ecrire(`vocabulaire:${pieceId}`, { ...lireStatutsMots(pieceId), [idMot]: statut });
+export function changerStatutMot(idMot, statut) {
+  ecrire('vocabulaire', { ...lireStatutsMots(), [idMot]: statut });
 }
+
+// Jusqu'à la version 100, chaque pièce rangeait ses coches à part, sous « vocabulaire:<id de la
+// pièce> ». On les verse une fois dans le rangement commun, puis on efface les anciennes. Cela se
+// fait au chargement de ce fichier, et après la restauration d'une sauvegarde faite avant ce
+// changement. Si deux pièces disaient autre chose du même mot, « à revoir » l'emporte : mieux vaut
+// revoir un mot qu'on sait que d'en croire su un qu'on a oublié.
+function rangerLesMotsEnCommun() {
+  try {
+    const anciennes = Object.keys(localStorage).filter((cle) => cle.startsWith(`${PREFIXE}vocabulaire:`));
+    if (anciennes.length === 0) return;
+    const communs = lireStatutsMots();
+    for (const ancienne of anciennes) {
+      const statuts = lire(ancienne.slice(PREFIXE.length), {}); // une donnée abîmée compte pour rien
+      for (const [idMot, statut] of Object.entries(statuts)) {
+        if (communs[idMot] !== 'a_revoir') communs[idMot] = statut;
+      }
+    }
+    ecrire('vocabulaire', communs);
+    // Seulement une fois le rangement commun écrit : rien ne se perd en route.
+    anciennes.forEach((cle) => localStorage.removeItem(cle));
+  } catch {
+    // stockage inaccessible ou plein : les anciennes coches restent, on réessaiera au prochain lancement
+  }
+}
+rangerLesMotsEnCommun(); // au chargement de ce fichier, donc avant toute lecture
 
 // ---- Dernière utilisation : le moment où une pièce a été ouverte, en millisecondes ----
 // Il sert à remonter les pièces récentes en haut de la liste. Jamais ouverte : 0.
@@ -185,4 +214,6 @@ export function remplacerToutesLesDonnees(donnees) {
     toutEcrire(avant);
     throw new Error('le stockage du téléphone est plein : rien n\'a été changé.');
   }
+  // Une sauvegarde d'avant la version 101 range encore les mots pièce par pièce.
+  rangerLesMotsEnCommun();
 }

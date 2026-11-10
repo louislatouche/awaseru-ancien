@@ -147,7 +147,7 @@ export default {
   'Essayer la voix du téléphone': 'Prova telefonens röst',
   Progression: 'Framsteg',
   'Remettre à zéro ?': 'Nollställa?',
-  'La progression de « {titre} » sera effacée. Tes répliques choisies sont conservées.': 'Framstegen för ”{titre}” raderas. Dina valda repliker sparas.',
+  'La progression de « {titre} » sera effacée. Tes répliques choisies et ton vocabulaire sont conservés.': 'Framstegen för ”{titre}” raderas. Dina valda repliker och ditt ordförråd sparas.',
   'Remettre à zéro': 'Nollställ',
   'Progression remise à zéro.': 'Framstegen har nollställts.',
   Sauvegarde: 'Säkerhetskopia',

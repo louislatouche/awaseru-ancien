@@ -147,7 +147,7 @@ export default {
   'Essayer la voix du téléphone': 'Telefoonstem uitproberen',
   Progression: 'Voortgang',
   'Remettre à zéro ?': 'Opnieuw instellen?',
-  'La progression de « {titre} » sera effacée. Tes répliques choisies sont conservées.': 'De voortgang van „{titre}” wordt gewist. Je gekozen regels blijven bewaard.',
+  'La progression de « {titre} » sera effacée. Tes répliques choisies et ton vocabulaire sont conservés.': 'De voortgang van „{titre}” wordt gewist. Je gekozen regels en je woordenschat blijven bewaard.',
   'Remettre à zéro': 'Opnieuw instellen',
   'Progression remise à zéro.': 'Voortgang opnieuw ingesteld.',
   Sauvegarde: 'Back-up',

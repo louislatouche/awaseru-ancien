@@ -147,7 +147,7 @@ export default {
   'Essayer la voix du téléphone': 'Handystimme testen',
   Progression: 'Fortschritt',
   'Remettre à zéro ?': 'Zurücksetzen?',
-  'La progression de « {titre} » sera effacée. Tes répliques choisies sont conservées.': 'Der Fortschritt von „{titre}“ wird gelöscht. Deine gewählten Zeilen bleiben erhalten.',
+  'La progression de « {titre} » sera effacée. Tes répliques choisies et ton vocabulaire sont conservés.': 'Der Fortschritt von „{titre}“ wird gelöscht. Deine gewählten Zeilen und deine Vokabeln bleiben erhalten.',
   'Remettre à zéro': 'Zurücksetzen',
   'Progression remise à zéro.': 'Fortschritt zurückgesetzt.',
   Sauvegarde: 'Sicherung',

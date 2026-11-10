@@ -148,7 +148,7 @@ export default {
   'Essayer la voix du téléphone': 'Δοκίμασε τη φωνή του τηλεφώνου',
   Progression: 'Πρόοδος',
   'Remettre à zéro ?': 'Μηδενισμός;',
-  'La progression de « {titre} » sera effacée. Tes répliques choisies sont conservées.': 'Η πρόοδος για το «{titre}» θα διαγραφεί. Οι επιλεγμένες ατάκες διατηρούνται.',
+  'La progression de « {titre} » sera effacée. Tes répliques choisies et ton vocabulaire sont conservés.': 'Η πρόοδος για το «{titre}» θα διαγραφεί. Οι επιλεγμένες ατάκες και το λεξιλόγιό σου διατηρούνται.',
   'Remettre à zéro': 'Μηδενισμός',
   'Progression remise à zéro.': 'Η πρόοδος μηδενίστηκε.',
   Sauvegarde: 'Αντίγραφο ασφαλείας',

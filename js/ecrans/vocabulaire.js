@@ -613,7 +613,7 @@ export function afficherVocabulaire(racine, piece) {
     definirRetour(null);
     arreterVoix();
     apparitions = new Map();
-    statuts = lireStatutsMots(piece.id);
+    statuts = lireStatutsMots(); // communs à toutes les pièces : un mot su l'est partout
     const lignesVues = lignesChoisies();
     const series = parFiltre(entreesDe(lignesVues));
     // Le filtre choisi n'a plus de mots (tous les « À revoir » sont devenus sus) : retour à Tous.
@@ -682,7 +682,7 @@ export function afficherVocabulaire(racine, piece) {
 
     function noter(mot, statut) {
       arreterVoix();
-      changerStatutMot(piece.id, mot.id, statut);
+      changerStatutMot(mot.id, statut);
       if (statut === 'su') salve();
       resultats[statut] += 1;
       position += 1;

@@ -136,7 +136,8 @@ function creerRemiseAZero(piece) {
       onclick: async () => {
         const accepte = await confirmer({
           titre: t('Remettre à zéro ?'),
-          message: t('La progression de « {titre} » sera effacée. Tes répliques choisies sont conservées.', { titre: texteBrut(piece.titre) }),
+          // Les mots restent : ils sont communs à toutes les pièces (voir effacerProgression).
+          message: t('La progression de « {titre} » sera effacée. Tes répliques choisies et ton vocabulaire sont conservés.', { titre: texteBrut(piece.titre) }),
           oui: t('Remettre à zéro'),
         });
         if (!accepte) return;

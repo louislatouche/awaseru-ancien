@@ -148,7 +148,7 @@ export default {
   'Essayer la voix du téléphone': '端末の音声を試す',
   Progression: '進み具合',
   'Remettre à zéro ?': 'リセットしますか？',
-  'La progression de « {titre} » sera effacée. Tes répliques choisies sont conservées.': '「{titre}」の進み具合を消去します。選んだセリフは残ります。',
+  'La progression de « {titre} » sera effacée. Tes répliques choisies et ton vocabulaire sont conservés.': '「{titre}」の進み具合を消去します。選んだセリフと語彙は残ります。',
   'Remettre à zéro': 'リセット',
   'Progression remise à zéro.': '進み具合をリセットしました。',
   Sauvegarde: 'バックアップ',

@@ -148,7 +148,7 @@ export default {
   'Essayer la voix du téléphone': 'Vyzkoušet hlas telefonu',
   Progression: 'Postup',
   'Remettre à zéro ?': 'Vynulovat?',
-  'La progression de « {titre} » sera effacée. Tes répliques choisies sont conservées.': 'Postup ve hře „{titre}“ se smaže. Tvoje vybrané repliky zůstanou.',
+  'La progression de « {titre} » sera effacée. Tes répliques choisies et ton vocabulaire sont conservés.': 'Postup ve hře „{titre}“ se smaže. Tvoje vybrané repliky a slovíčka zůstanou.',
   'Remettre à zéro': 'Vynulovat',
   'Progression remise à zéro.': 'Postup byl vynulován.',
   Sauvegarde: 'Záloha',

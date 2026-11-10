@@ -148,7 +148,7 @@ export default {
   'Essayer la voix du téléphone': 'Kokeile puhelimen ääntä',
   Progression: 'Edistyminen',
   'Remettre à zéro ?': 'Nollataanko?',
-  'La progression de « {titre} » sera effacée. Tes répliques choisies sont conservées.': 'Näytelmän ”{titre}” edistyminen poistetaan. Valitut repliikkisi säilyvät.',
+  'La progression de « {titre} » sera effacée. Tes répliques choisies et ton vocabulaire sont conservés.': 'Näytelmän ”{titre}” edistyminen poistetaan. Valitut repliikkisi ja sanastosi säilyvät.',
   'Remettre à zéro': 'Nollaa',
   'Progression remise à zéro.': 'Edistyminen nollattu.',
   Sauvegarde: 'Varmuuskopio',

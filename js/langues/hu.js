@@ -148,7 +148,7 @@ export default {
   'Essayer la voix du téléphone': 'Telefon hangjának kipróbálása',
   Progression: 'Előrehaladás',
   'Remettre à zéro ?': 'Nullázod?',
-  'La progression de « {titre} » sera effacée. Tes répliques choisies sont conservées.': 'Törlődik az előrehaladás ehhez a darabhoz: „{titre}”. A kiválasztott replikáid megmaradnak.',
+  'La progression de « {titre} » sera effacée. Tes répliques choisies et ton vocabulaire sont conservés.': 'Törlődik az előrehaladás ehhez a darabhoz: „{titre}”. A kiválasztott replikáid és a szókincsed megmaradnak.',
   'Remettre à zéro': 'Nullázás',
   'Progression remise à zéro.': 'Az előrehaladás nullázva.',
   Sauvegarde: 'Biztonsági mentés',

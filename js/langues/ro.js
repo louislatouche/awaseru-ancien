@@ -147,7 +147,7 @@ export default {
   'Essayer la voix du téléphone': 'Încearcă vocea telefonului',
   Progression: 'Progres',
   'Remettre à zéro ?': 'Resetezi?',
-  'La progression de « {titre} » sera effacée. Tes répliques choisies sont conservées.': 'Progresul pentru „{titre}” va fi șters. Replicile alese sunt păstrate.',
+  'La progression de « {titre} » sera effacée. Tes répliques choisies et ton vocabulaire sont conservés.': 'Progresul pentru „{titre}” va fi șters. Replicile alese și vocabularul tău sunt păstrate.',
   'Remettre à zéro': 'Resetează',
   'Progression remise à zéro.': 'Progres resetat.',
   Sauvegarde: 'Copie de rezervă',

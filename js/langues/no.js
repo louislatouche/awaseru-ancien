@@ -147,7 +147,7 @@ export default {
   'Essayer la voix du téléphone': 'Prøv telefonens stemme',
   Progression: 'Fremgang',
   'Remettre à zéro ?': 'Nullstille?',
-  'La progression de « {titre} » sera effacée. Tes répliques choisies sont conservées.': 'Fremgangen for «{titre}» slettes. De valgte replikkene beholdes.',
+  'La progression de « {titre} » sera effacée. Tes répliques choisies et ton vocabulaire sont conservés.': 'Fremgangen for «{titre}» slettes. De valgte replikkene og ordforrådet ditt beholdes.',
   'Remettre à zéro': 'Nullstill',
   'Progression remise à zéro.': 'Fremgangen er nullstilt.',
   Sauvegarde: 'Sikkerhetskopi',
