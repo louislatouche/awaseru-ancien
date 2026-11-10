@@ -377,6 +377,8 @@ export function afficherVocabulaire(racine, piece) {
   function creerCarteMot({ mot, ou }) {
     let ouverte = null; // la réplique dépliée, s'il y en a une
     let contexte = null; // et son bloc, sous les numéros
+    let mouvement = []; // les animations en cours sur cette carte
+    let sortant = null; // le bloc qui s'efface pendant que la carte se replie, retiré à la fin
 
     const numeros = ou.map((ligne) => el('button', {
       type: 'button',
@@ -386,21 +388,70 @@ export function afficherVocabulaire(racine, piece) {
       onclick: () => deplier(ligne),
     }, String(ligne.numero)));
 
+    // Arrête net le mouvement en cours (un numéro touché pendant qu'elle bouge encore).
+    function arreterMouvement() {
+      mouvement.forEach((animation) => animation.cancel());
+      mouvement = [];
+      sortant?.remove();
+      sortant = null;
+      carte.classList.remove('se-deroule');
+    }
+
+    // La carte passe en douceur d'une hauteur à l'autre, pendant que la réplique apparaît ou s'efface.
+    // Les valeurs de l'app : 0,28 s comme « À propos de cette pièce » dans Script, avec la courbe
+    // « feutre » du panneau du mot ; le fondu d'arrivée est celui d'une fiche (wizfade dans style.css).
+    // Pendant le mouvement, la carte cache ce qui dépasse : la réplique se dévoile de haut en bas.
+    function derouler(avant, apres, fondus) {
+      carte.classList.add('se-deroule');
+      // fill 'forwards' : la carte garde sa hauteur d'arrivée jusqu'au nettoyage, qui retire le bloc
+      // sortant dans le même instant. Sans cela, elle reprendrait une image sa hauteur d'avant.
+      const hauteur = carte.animate([{ height: `${avant}px` }, { height: `${apres}px` }], { duration: 280, easing: FEUTRE, fill: 'forwards' });
+      mouvement = [hauteur, ...fondus];
+      hauteur.finished.then(arreterMouvement, () => {}); // annulée : un autre toucher a pris la suite
+    }
+
     function deplier(ligne) {
-      contexte?.remove();
-      contexte = null;
+      // La hauteur de départ : celle qu'on voit, même au milieu d'un mouvement interrompu.
+      const avant = carte.getBoundingClientRect().height;
+      arreterMouvement();
+      const ancien = contexte;
       ouverte = ouverte === ligne ? null : ligne;
       // Le numéro de la réplique dépliée reste coloré : c'est lui qu'on touche pour la replier.
       numeros.forEach((bouton, rang) => {
         bouton.classList.toggle('is-selected', ou[rang] === ouverte);
         bouton.setAttribute('aria-pressed', String(ou[rang] === ouverte));
       });
-      if (!ouverte) return;
-      contexte = creerContexte(mot, ouverte);
+      contexte = ouverte ? creerContexte(mot, ouverte) : null;
+      const reduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // Replier : la réplique reste en place le temps de s'effacer, pendant que la carte se referme.
+      if (!contexte) {
+        if (reduit) {
+          ancien.remove();
+          return;
+        }
+        ancien.hidden = true; // pour mesurer la hauteur de la carte refermée
+        const apres = carte.getBoundingClientRect().height;
+        ancien.hidden = false;
+        sortant = ancien;
+        derouler(avant, apres, [ancien.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: 'ease-in', fill: 'forwards' })]);
+        return;
+      }
+
+      // Déplier, ou passer d'une réplique à une autre.
+      ancien?.remove();
       carte.append(contexte);
+      const apres = carte.getBoundingClientRect().height;
       // Une carte en bas de l'écran se déplierait sous Réviser : l'écran remonte juste assez pour la
-      // montrer. Si elle est trop haute pour tenir, c'est le mot surligné qui se voit.
+      // montrer, en même temps qu'elle s'ouvre. Si elle est trop haute pour tenir, c'est le mot
+      // surligné qui se voit. montrer mesure la carte avant le mouvement, à sa taille d'arrivée.
       montrer(carte, contexte.querySelector('.surligne') ?? contexte);
+      if (reduit) return;
+      // D'une réplique à l'autre, le fond gris reste en place : seul son texte change, en fondu.
+      const apparaissent = ancien ? [...contexte.children] : [contexte];
+      derouler(avant, apres, apparaissent.map((bloc) => bloc.animate(
+        [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 250, delay: 60, easing: 'ease', fill: 'backwards' })));
     }
 
     const carte = el('div', {
