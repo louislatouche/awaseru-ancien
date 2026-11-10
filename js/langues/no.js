@@ -91,7 +91,6 @@ export default {
   'Chercher un mot': 'Søk etter et ord',
   'Aucun mot trouvé.': 'Fant ingen ord.',
   'Particules': 'Partikler',
-  'Du français': 'Fra betydningen',
   'Mot {position} sur {total}': 'Ord {position} av {total}',
   'Et dans une autre réplique': 'Og i en annen replikk',
   'Et dans {n} autres répliques': 'Og i {n} andre replikker',

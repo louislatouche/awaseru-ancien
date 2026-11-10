@@ -633,7 +633,6 @@ button.replique:disabled { cursor: default; }
   text-underline-offset: 7px;
 }
 .choix-texte-option:disabled { opacity: .4; cursor: default; }
-.choix-texte-nombre { font-weight: 400; }
 
 /* La liste : une carte par mot. Sur une ligne, le mot, sa prononciation et son statut ; dessous, son
    sens, puis les numéros des répliques où il revient (de petits boutons qui mènent au texte). */
@@ -719,10 +718,9 @@ button.replique:disabled { cursor: default; }
 .grand-mot-masque { color: var(--ink-soft); font-weight: 700; }
 /* Réviser « Du français » : la question est le sens, en grand, dans la couleur des sens. */
 .sens-question { color: var(--accent-dark); font-size: 1.6rem; font-weight: 700; line-height: 1.3; text-wrap: balance; }
-/* En bas de la liste : l'interrupteur « Du français » à gauche, Réviser prend le reste. */
-.ligne-reviser { display: flex; align-items: center; gap: 10px; }
-.ligne-reviser .chip { flex: none; }
-.ligne-reviser .btn { flex: 1; }
+/* En bas de la liste, Réviser a la hauteur des chips (celle de « Particules »), et non celle des
+   grands boutons : une rangée de commande parmi les autres, pas une action qui domine l'écran. */
+.barre-reviser .btn { min-height: 44px; padding-block: 0; }
 .reponse-mot { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .bilan-mots { display: flex; align-items: center; justify-content: center; gap: 10px 14px; font-size: 22px; font-weight: 700; }
 

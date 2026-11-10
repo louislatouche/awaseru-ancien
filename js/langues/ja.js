@@ -92,7 +92,6 @@ export default {
   'Chercher un mot': '単語を検索',
   'Aucun mot trouvé.': '見つかりませんでした。',
   'Particules': '助詞',
-  'Du français': '意味から',
   'Mot {position} sur {total}': '{total}語中{position}語目',
   'Et dans une autre réplique': 'ほかに1つのセリフにも',
   'Et dans {n} autres répliques': 'ほかに{n}つのセリフにも',

@@ -92,7 +92,6 @@ export default {
   'Chercher un mot': 'Hae sanaa',
   'Aucun mot trouvé.': 'Sanaa ei löytynyt.',
   'Particules': 'Partikkelit',
-  'Du français': 'Merkityksestä',
   'Mot {position} sur {total}': 'Sana {position}/{total}',
   'Et dans une autre réplique': 'Ja yhdessä toisessa repliikissä',
   'Et dans {n} autres répliques': 'Ja {n} muussa repliikissä',

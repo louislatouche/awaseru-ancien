@@ -7,7 +7,8 @@
 //   répliques où il revient ; un numéro touché déplie la carte sur cette réplique, le mot surligné.
 //   Un filtre (Tous, À réviser, Nouveaux) choisit les mots montrés. « À réviser » suit la répétition
 //   espacée : les mots à revoir, et les mots sus revenus à leur jour (voir stockage.js).
-// Et une révision en fiches, comme pour les répliques : le mot seul, puis sa lecture et son sens.
+// Et une révision en fiches, comme pour les répliques : le mot seul, puis sa lecture et son sens ;
+// ou, pour la moitié des fiches tirées au hasard, le sens seul, puis le mot et sa lecture.
 // Elle se lance depuis la liste, en bas, et reprend exactement les mots que la liste montre.
 //
 // Tout vient du fichier de la pièce : la liste « vocabulaire », et le découpage « mots » de chaque
@@ -59,9 +60,7 @@ export function afficherVocabulaire(racine, piece) {
   // Les particules (に, を, は... marquées « particule » dans la pièce) : mises de côté dans la liste,
   // et donc dans la révision, sauf si l'interrupteur « Particules » les demande.
   let particules = reprise?.particules ?? false;
-  // Réviser « Du français » : la fiche montre le sens, et l'on cherche le mot japonais.
-  let duFrancais = reprise?.duFrancais ?? false;
-  const noterChoix = () => noterPosition('vocabulaire', { vue, portee, gloses, filtre, recherche, particules, duFrancais });
+  const noterChoix = () => noterPosition('vocabulaire', { vue, portee, gloses, filtre, recherche, particules });
 
   const lignesChoisies = () => (portee === 'miennes' ? lignes.filter((ligne) => selection.has(ligne.numero)) : lignes);
 
@@ -640,13 +639,8 @@ export function afficherVocabulaire(racine, piece) {
   });
   const blocRecherche = el('div', { className: 'ligne-recherche' },
     el('div', { className: 'form-group recherche-mot' }, champRecherche), basculeParticules);
-  // En bas de la liste, collé comme les commandes des fiches : Réviser, avec le nombre de mots, et à
-  // sa gauche l'interrupteur « Du français » (fait une fois, il garde son état de lui-même).
-  const barreReviser = el('div', { className: 'commandes' });
-  const basculeDuFrancais = creerBascule(t('Du français'), duFrancais, (actif) => {
-    duFrancais = actif;
-    noterChoix();
-  });
+  // En bas de la liste, collé comme les commandes des fiches : Réviser, avec le nombre de mots.
+  const barreReviser = el('div', { className: 'commandes barre-reviser' });
 
   // Les mots de chaque filtre. Ce que la liste montre, c'est ce que l'on révise.
   // À réviser : les mots à revoir, et les mots sus arrivés à leur jour de retour (répétition espacée).
@@ -669,15 +663,15 @@ export function afficherVocabulaire(racine, piece) {
     rangeeMotAMot.hidden = vue !== 'texte';
     remplacer(rangeeMotAMot, creerBascule(t('Mot à mot'), gloses, (actif) => { gloses = actif; dessinerContenu(); }));
     blocRecherche.hidden = vue !== 'liste';
-    // Le filtre, avec le nombre de mots de chacun (parmi ceux que la recherche trouve). Un filtre
-    // sans aucun mot ne se choisit pas, sauf pendant une recherche : la prochaine lettre peut lui
-    // en redonner.
+    // Le filtre, sans nombre : celui du filtre choisi est écrit sur Réviser (choix de Louis, le
+    // 2026-11-10 : collés au libellé suivant, les nombres se lisaient mal). Un filtre sans aucun mot
+    // ne se choisit pas, sauf pendant une recherche : la prochaine lettre peut lui en redonner.
     rangeeFiltre.hidden = vue !== 'liste';
     const vide = (serie) => !enRecherche() && serie.length === 0;
     remplacer(rangeeFiltre, creerChoixTexte([
-      { valeur: 'tous', libelle: t('Tous'), nombre: series.tous.length },
-      { valeur: 'a-reviser', libelle: t('À réviser'), nombre: series['a-reviser'].length, desactive: vide(series['a-reviser']) },
-      { valeur: 'nouveaux', libelle: t('Nouveaux'), nombre: series.nouveaux.length, desactive: vide(series.nouveaux) },
+      { valeur: 'tous', libelle: t('Tous') },
+      { valeur: 'a-reviser', libelle: t('À réviser'), desactive: vide(series['a-reviser']) },
+      { valeur: 'nouveaux', libelle: t('Nouveaux'), desactive: vide(series.nouveaux) },
     ], filtre, (valeur) => { filtre = valeur; dessinerContenu(); }));
   }
 
@@ -713,14 +707,12 @@ export function afficherVocabulaire(racine, piece) {
       // Pas de panneau d'explication : chaque carte montre déjà tout. À sa place, Réviser.
       panneau.hidden = true;
       barreReviser.hidden = false;
-      remplacer(barreReviser, el('div', { className: 'ligne-reviser' },
-        basculeDuFrancais,
-        el('button', {
-          type: 'button',
-          className: 'btn',
-          disabled: vues.length === 0,
-          onclick: () => lancerRevision(vues),
-        }, t('Réviser ({n})', { n: vues.length }))));
+      remplacer(barreReviser, el('button', {
+        type: 'button',
+        className: 'btn',
+        disabled: vues.length === 0,
+        onclick: () => lancerRevision(vues),
+      }, t('Réviser ({n})', { n: vues.length })));
       carteDepliee = null; // les cartes sont refaites, toutes repliées
       // Une liste vide ne peut venir que d'une recherche : on le dit, plutôt qu'un écran blanc.
       remplacer(zone, vues.length > 0 ? vues.map(creerCarteMot) : el('p', { className: 'vide' }, t('Aucun mot trouvé.')));
@@ -756,7 +748,10 @@ export function afficherVocabulaire(racine, piece) {
 
   function lancerRevision(entrees) {
     const paquet = melanger(entrees);
-    const depuisLeSens = duFrancais; // le sens de la série, fixé au départ
+    // Le sens de chaque fiche, mélangé (choix de Louis, le 2026-11-10) : la moitié part du japonais,
+    // l'autre du sens (« du français »), dans un ordre tiré au hasard. Tirer à pile ou face pour
+    // chaque fiche pourrait donner, sur une petite série, presque toutes les fiches dans le même sens.
+    const duSens = melanger(paquet.map((_, rang) => rang % 2 === 1));
     const resultats = { su: 0, a_revoir: 0 };
     let position = 0;
     // Pendant la série, la flèche de retour ramène à la liste des mots.
@@ -777,6 +772,7 @@ export function afficherVocabulaire(racine, piece) {
 
     function montrerFiche() {
       const { mot, ou } = paquet[position];
+      const depuisLeSens = duSens[position];
       const gestes = lireReglages().navigation === 'gestes';
       let vu = false;
 
