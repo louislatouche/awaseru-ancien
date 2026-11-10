@@ -559,6 +559,7 @@ export function afficherVocabulaire(racine, piece) {
       const contexte = creerContexte(mot, ou[0]);
       contexte.hidden = true;
 
+      // Voir la réponse, c'est aussi l'entendre : le mot est dit dès qu'il se retourne, sans second toucher.
       function devoiler() {
         vu = true;
         carte.classList.add('est-devoile');
@@ -567,9 +568,10 @@ export function afficherVocabulaire(racine, piece) {
         boutonVoir.disabled = true;
         boutonSu.disabled = false;
         boutonRevoir.disabled = false;
+        direMot(mot);
       }
 
-      // La carte : le mot seul, sans ses furigana. Un toucher la retourne, les suivants disent le mot.
+      // La carte : le mot seul, sans ses furigana. Un toucher la retourne et dit le mot, les suivants le redisent.
       const carte = el('button', {
         type: 'button',
         className: 'grand-mot',
