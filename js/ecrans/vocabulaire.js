@@ -390,6 +390,10 @@ export function afficherVocabulaire(racine, piece) {
     };
   }
 
+  // Une seule carte dépliée à la fois : déplier une carte replie celle qui l'était. C'est elle,
+  // s'il y en a une ; remis à zéro à chaque affichage de la liste.
+  let carteDepliee = null;
+
   // Un mot de la liste. Un toucher sur la carte le fait entendre. Dessous, les numéros des répliques
   // où il revient : un numéro touché déplie la carte sur cette réplique (le mot surligné, puis la
   // traduction de la phrase), sans quitter la liste. Le même numéro la replie ; un autre la remplace.
@@ -398,6 +402,8 @@ export function afficherVocabulaire(racine, piece) {
     let contexte = null; // son bloc gris, sous les numéros (il reste là le temps de se replier)
     let ligneDuBloc = null; // la réplique écrite dans ce bloc
     let tour = 0; // chaque toucher prend la main : un mouvement plus ancien s'arrête là où il en est
+    // Ce que les autres cartes savent de celle-ci : comment la replier quand l'une d'elles se déplie.
+    const cetteCarte = { replier: () => allerA(null, { seule: true }) };
 
     const numeros = ou.map((ligne) => el('button', {
       type: 'button',
@@ -420,6 +426,7 @@ export function afficherVocabulaire(racine, piece) {
     // lui. Pendant ce temps, il cache ce qui dépasse : la réplique se découvre de haut en bas. Son
     // texte arrive en fondu à mi-course, ou repart d'où il en était (opacite) s'il était en train de partir.
     function etirer(depart, opacite, { duree = 380, delaiTexte = 150 } = {}) {
+      carte.style.overflowAnchor = ''; // rouverte pendant qu'elle se repliait seule (voir allerA)
       contexte.removeAttribute('style');
       const arrivee = formeDu(contexte);
       // Une carte en bas de l'écran se déplierait sous Réviser : l'écran remonte juste assez pour la
@@ -436,9 +443,29 @@ export function afficherVocabulaire(racine, piece) {
       }
     }
 
-    async function deplier(ligne) {
+    // Un numéro touché : sa réplique se déplie, ou se replie si c'était déjà elle. La carte dépliée
+    // jusque-là, s'il y en a une autre, se replie d'elle-même.
+    function deplier(ligne) {
+      const cible = ouverte === ligne ? null : ligne;
+      const autre = cible && carteDepliee && carteDepliee !== cetteCarte ? carteDepliee : null;
+      carteDepliee = cible ? cetteCarte : null;
+      if (autre) {
+        const avant = carte.getBoundingClientRect().top;
+        autre.replier();
+        // Sans animation, l'autre carte se replie d'un coup : si elle était plus haut, tout ce qui
+        // suit remonterait, dont celle-ci, sous le doigt. On recale l'écran d'autant, aussitôt.
+        // (Avec animation, elle n'a pas encore bougé : c'est le navigateur qui s'en charge, voir allerA.)
+        const ecart = carte.getBoundingClientRect().top - avant;
+        if (Math.abs(ecart) >= 1) ecran.scrollBy({ top: ecart, behavior: 'instant' });
+      }
+      allerA(cible);
+    }
+
+    // Amène la carte à montrer la réplique « cible », ou à se replier si cible est null.
+    // seule : repliée parce qu'une autre carte se déplie, et non par un toucher sur celle-ci.
+    async function allerA(cible, { seule = false } = {}) {
       const ceTour = ++tour;
-      ouverte = ouverte === ligne ? null : ligne;
+      ouverte = cible;
       // Le numéro de la réplique dépliée reste coloré : c'est lui qu'on touche pour la replier.
       numeros.forEach((bouton, rang) => {
         bouton.classList.toggle('is-selected', ou[rang] === ouverte);
@@ -473,6 +500,13 @@ export function afficherVocabulaire(racine, piece) {
 
       // 2. Replier : le texte s'efface, pendant que le bloc se resserre jusqu'à disparaître.
       if (!ouverte) {
+        // Repliée seule, parce qu'une autre carte se déplie : si celle-ci est plus haut dans la liste,
+        // en rétrécissant elle ferait remonter tout ce qui suit, dont la carte qu'on vient de toucher.
+        // Le navigateur sait garder en place ce qu'on regarde quand le contenu change plus haut (le
+        // « scroll anchoring » de CSS) : il choisit un élément visible comme repère et recale l'écran
+        // pour que ce repère ne bouge pas. overflow-anchor: none lui interdit de prendre cette
+        // carte-ci comme repère : il prend la suivante, et l'écran suit le repli image par image.
+        if (seule) carte.style.overflowAnchor = 'none';
         const bloc = contexte;
         bloc.classList.add('en-mouvement');
         for (const partie of texteDuBloc()) {
@@ -487,6 +521,7 @@ export function afficherVocabulaire(racine, piece) {
         bloc.remove();
         contexte = null;
         ligneDuBloc = null;
+        carte.style.overflowAnchor = '';
         return;
       }
 
@@ -603,6 +638,7 @@ export function afficherVocabulaire(racine, piece) {
         disabled: vues.length === 0,
         onclick: () => lancerRevision(vues),
       }, t('Réviser ({n})', { n: vues.length })));
+      carteDepliee = null; // les cartes sont refaites, toutes repliées
       remplacer(zone, vues.map(creerCarteMot));
     } else {
       panneau.hidden = false;
