@@ -3,8 +3,9 @@
 // ce geste pour lui, pour zoomer dans la page, et ces fonctions ne seraient jamais appelées.
 
 // De combien l'écart entre les doigts doit changer pour que le geste compte.
-const RAPPROCHEMENT = 0.75; // l'écart a diminué d'un quart
-const ECARTEMENT = 1.35;    // l'écart a augmenté d'un tiers
+// (Exportés : le tuto de Mes répliques bascule au même seuil que les vrais doigts, voir tuto.js.)
+export const RAPPROCHEMENT = 0.75; // l'écart a diminué d'un quart
+export const ECARTEMENT = 1.35;    // l'écart a augmenté d'un tiers
 
 const ecartEntre = ([a, b]) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 

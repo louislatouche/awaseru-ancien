@@ -9,6 +9,7 @@
 
 import { el } from './dom.js';
 import { t } from './langues.js';
+import { ECARTEMENT, RAPPROCHEMENT } from './pincement.js';
 import { changerReglage, lireReglages } from './stockage.js';
 
 const ARRET = Symbol('tuto arrêté');
@@ -26,6 +27,9 @@ const GLYPHES = {
   toucher: '<svg class="glyphe-tuto" viewBox="0 0 24 24" aria-hidden="true"><circle class="trait-glyphe leger" cx="12" cy="12" r="8.5"/><circle class="point-glyphe" cx="12" cy="12" r="3.6"/></svg>',
   maintenir: '<svg class="glyphe-tuto" viewBox="0 0 24 24" aria-hidden="true"><circle class="trait-glyphe pale" cx="12" cy="12" r="8.5"/><path class="trait-glyphe" d="M12 3.5a8.5 8.5 0 1 1-8.5 8.5"/><circle class="point-glyphe" cx="12" cy="12" r="3.6"/></svg>',
   glisser: '<svg class="glyphe-tuto" viewBox="0 0 24 24" aria-hidden="true"><path class="trait-glyphe" d="M6 8.5 2.5 12 6 15.5M18 8.5l3.5 3.5-3.5 3.5"/><circle class="point-glyphe" cx="12" cy="12" r="3.6"/></svg>',
+  // Pincer : deux points en diagonale, des flèches qui vont vers le milieu ; écarter : vers les coins.
+  pincer: '<svg class="glyphe-tuto" viewBox="0 0 24 24" aria-hidden="true"><circle class="point-glyphe" cx="5.5" cy="18.5" r="2.8"/><circle class="point-glyphe" cx="18.5" cy="5.5" r="2.8"/><path class="trait-glyphe" d="M9 15l3-3M15 9l-3 3M12 12h-3.2M12 12v3.2M12 12h3.2M12 12V8.8"/></svg>',
+  ecarter: '<svg class="glyphe-tuto" viewBox="0 0 24 24" aria-hidden="true"><circle class="point-glyphe" cx="9" cy="15" r="2.8"/><circle class="point-glyphe" cx="15" cy="9" r="2.8"/><path class="trait-glyphe" d="M6.5 17.5l-3 3M20.5 3.5l-3 3M3.5 20.5h3.2M3.5 20.5v-3.2M20.5 3.5h-3.2M20.5 3.5v3.2"/></svg>',
 };
 
 function glyphe(geste) {
@@ -37,13 +41,16 @@ function glyphe(geste) {
 // Pose la pastille du tuto « nom » dans « ancre » (un élément en position: relative, qui contient
 // la carte), sauf si les tutos sont éteints ou si celui-ci a déjà été vu. montrer() joue la démo.
 // cote : 'droite' (le coin haut droit, d'habitude) ou 'gauche', quand un bouton occupe déjà la droite.
-export function proposerTuto(nom, ancre, montrer, { cote = 'droite' } = {}) {
+// libelle : ce que dit la pastille à un lecteur d'écran (« les gestes de cet écran », pour un geste
+// qui se fait sur tout l'écran, comme le pincement).
+export function proposerTuto(nom, ancre, montrer, { cote = 'droite', libelle = t('Voir les gestes de cette carte') } = {}) {
   const { tutos, tutosVus } = lireReglages();
   if (!tutos || tutosVus.includes(nom)) return;
+  ancre.classList.add('ancre-tuto'); // position: relative, pour que la pastille se pose à son coin
   const pastille = el('button', {
     type: 'button',
     className: `pastille-tuto${cote === 'gauche' ? ' a-gauche' : ''}`,
-    'aria-label': t('Voir les gestes de cette carte'),
+    'aria-label': libelle,
     onclick: (evenement) => {
       evenement.stopPropagation(); // la carte qui la porte ne doit pas croire qu'on l'a touchée
       changerReglage('tutosVus', [...lireReglages().tutosVus, nom]);
@@ -58,14 +65,17 @@ export function proposerTuto(nom, ancre, montrer, { cote = 'droite' } = {}) {
 // carte : la vraie carte ; cadre : l'élément où se pose le doigt (il défile donc avec la carte) :
 // la carte elle-même, ou le cadre qui la contient avec ses indices de glissement ; ecran : où
 // poser la légende ; fin() : appelée quand la démo est allée jusqu'au bout.
-// etapes : [{ geste: 'toucher' | 'maintenir' | 'glisser', sens: 1 (droite) ou -1, titre, texte,
-//   cible, agir }]. cible : ce que le doigt touche, si ce n'est pas la carte entière (un mot, un
-//   numéro), ou une fonction qui le trouve au moment voulu. agir() : ce que le toucher fait pour de
-//   vrai, quand c'est sans risque (déplier une carte de la liste, par exemple).
+// etapes : [{ geste: 'toucher' | 'maintenir' | 'glisser' | 'pincer' | 'ecarter', sens: 1 (droite)
+//   ou -1, titre, texte, cible, agir, suivre, relacher }]. cible : ce que le doigt touche, si ce
+//   n'est pas la carte entière (un mot, un numéro), ou une fonction qui le trouve au moment voulu.
+//   agir() : ce que le geste fait pour de vrai, quand c'est sans risque (déplier une carte de la
+//   liste, passer à la grille...). Pour pincer et écarter, deux doigts au milieu de l'écran :
+//   suivre(rapport) fait suivre l'écran à leur écart, relacher() le remet en place.
+// zoneArret : là où le vrai doigt arrête la démo (la carte, d'habitude ; tout l'écran, pour un pincement).
 //
 // Sinon, la démo ne fait rien pour de vrai : une réplique cachée le reste (la montrer gâcherait
 // l'exercice), rien ne se lit, rien n'est noté. Si le vrai doigt se pose sur la carte, elle s'arrête.
-export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin = null }) {
+export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin = null, zoneArret = carte }) {
   const doigt = el('div', { className: 'doigt-tuto', 'aria-hidden': 'true' }, el('span', { className: 'doigt-point' }));
   doigt.insertAdjacentHTML('beforeend', '<svg class="doigt-anneau" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" pathLength="100"/></svg>');
   const anneau = doigt.querySelector('circle');
@@ -84,7 +94,7 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
   const animations = new Set();
   let arrete = false;
   const arreter = () => { arrete = true; };
-  carte.addEventListener('pointerdown', arreter, { once: true });
+  zoneArret.addEventListener('pointerdown', arreter, { once: true });
 
   // Une animation de la démo. fill: 'forwards' garde l'état d'arrivée jusqu'au nettoyage final.
   async function animer(element, images, options) {
@@ -139,12 +149,85 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
     await animer(point, [{ scale: 1 }, { scale: 0.78 }, { scale: 1 }], { duration: 280, easing: 'ease-out', fill: 'none' });
   }
 
-  // Le doigt s'enfonce, l'anneau fait le tour en une demi-seconde (le temps de l'appui long), il se relève.
-  async function maintenir() {
+  // Le doigt s'enfonce, l'anneau fait le tour en une demi-seconde (le temps de l'appui long), il se
+  // relève. Un numéro de la grille se remplit en même temps, comme sous le vrai doigt (en-appui).
+  async function maintenir(cible) {
     await animer(point, [{ scale: 1 }, { scale: 0.82 }], { duration: 140 });
-    await animer(anneau, [{ strokeDashoffset: 100 }, { strokeDashoffset: 0 }], { duration: 650, easing: 'linear', fill: 'none' });
+    if (cible !== carte) cible.classList.add('en-appui');
+    try {
+      await animer(anneau, [{ strokeDashoffset: 100 }, { strokeDashoffset: 0 }], { duration: 650, easing: 'linear', fill: 'none' });
+    } finally {
+      cible.classList.remove('en-appui');
+    }
     onde();
     await animer(point, [{ scale: 0.82 }, { scale: 1 }], { duration: 200, easing: 'ease-out' });
+  }
+
+  // Pincer ou écarter : deux doigts, en diagonale autour du milieu de l'écran, se rapprochent ou
+  // s'éloignent. L'écran suit leur écart image par image, comme sous de vrais doigts (suivre). Dès
+  // que l'écart franchit le même seuil que pour les vrais doigts (pincement.js), l'écran revient en
+  // place (relacher) et le geste agit pour de vrai (agir : la grille, ou le texte). Les doigts
+  // finissent leur mouvement, l'écran ne les suit plus.
+  const doigtsDuPincement = new Set();
+  let pincementEnCours = null; // si la démo s'arrête au milieu, l'écran doit quand même revenir
+  async function pincer(etape) {
+    const pince = etape.geste === 'pincer';
+    const [de, a] = pince ? [110, 40] : [40, 110];
+    let franchi = false;
+    const agirUneFois = () => {
+      if (franchi) return;
+      franchi = true;
+      pincementEnCours = null;
+      etape.relacher?.();
+      etape.agir?.();
+    };
+    const visible = document.getElementById('ecran').getBoundingClientRect();
+    const centre = { x: visible.left + visible.width / 2, y: visible.top + visible.height / 2 };
+    const doigts = [1, -1].map((signe) => {
+      const unDoigt = el('div', { className: 'doigt-tuto doigt-fixe', 'aria-hidden': 'true' }, el('span', { className: 'doigt-point' }));
+      unDoigt.signe = signe;
+      ecran.append(unDoigt);
+      doigtsDuPincement.add(unDoigt);
+      return unDoigt;
+    });
+    const placer = (distance) => {
+      const pas = distance / Math.SQRT2;
+      for (const unDoigt of doigts) {
+        unDoigt.style.left = `${centre.x + unDoigt.signe * pas}px`;
+        unDoigt.style.top = `${centre.y - unDoigt.signe * pas}px`;
+      }
+    };
+    placer(de);
+    await Promise.all(doigts.map((unDoigt) => animer(unDoigt, [{ opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1 }], { duration: 320, easing: FEUTRE })));
+    await pause(150);
+    pincementEnCours = etape;
+    await new Promise((ok, ko) => {
+      const debut = performance.now();
+      const image = (maintenant) => {
+        if (arrete || !cadre.isConnected) {
+          ko(ARRET);
+          return;
+        }
+        const avance = Math.min((maintenant - debut) / 700, 1);
+        const courbe = avance < 0.5 ? 2 * avance * avance : 1 - (-2 * avance + 2) ** 2 / 2; // douce aux deux bouts
+        const distance = de + (a - de) * courbe;
+        placer(distance);
+        if (!franchi) {
+          const rapport = distance / de;
+          etape.suivre?.(rapport);
+          if (pince ? rapport < RAPPROCHEMENT : rapport > ECARTEMENT) agirUneFois();
+        }
+        if (avance < 1) requestAnimationFrame(image);
+        else ok();
+      };
+      requestAnimationFrame(image);
+    });
+    agirUneFois(); // au cas où le seuil n'aurait pas été franchi
+    await Promise.all(doigts.map((unDoigt) => animer(unDoigt, [{ opacity: 1, scale: 1 }, { opacity: 0, scale: 0.8 }], { duration: 260, easing: 'ease' })));
+    for (const unDoigt of doigts) {
+      unDoigt.remove();
+      doigtsDuPincement.delete(unDoigt);
+    }
   }
 
   // La carte suit le doigt comme dans gestes.js : elle penche un peu, et découvre l'indice de son côté.
@@ -170,17 +253,24 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
     await animer(legende, [{ opacity: 0, translate: '0 6px' }, { opacity: 1, translate: '0 0' }], { duration: 260, easing: FEUTRE });
   }
 
+  // Le doigt seul ne sert pas si la démo ne fait que pincer et écarter (ce sont deux autres doigts).
+  const avecUnDoigt = etapes.some(({ geste }) => geste !== 'pincer' && geste !== 'ecarter');
+
   try {
     // Le doigt arrive un peu en dessous du milieu de la carte, puis se place.
     const depart = milieu(carte);
     x = depart.x + 50;
     y = depart.y + 50;
     Object.assign(doigt.style, { left: `${x}px`, top: `${y}px` });
-    await animer(doigt, [{ opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1 }], { duration: 320, easing: FEUTRE });
+    if (avecUnDoigt) await animer(doigt, [{ opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1 }], { duration: 320, easing: FEUTRE });
 
     for (const etape of etapes) {
       const cible = (typeof etape.cible === 'function' ? etape.cible() : etape.cible) ?? carte;
-      if (etape.geste === 'glisser') {
+      if (etape.geste === 'pincer' || etape.geste === 'ecarter') {
+        dire(etape).catch(() => {});
+        await pincer(etape);
+        await pause(1100);
+      } else if (etape.geste === 'glisser') {
         await viser(carte, 0);
         await dire(etape);
         await glisser(etape.sens * ECART, 520);
@@ -190,23 +280,26 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
       } else {
         await viser(cible);
         dire(etape).catch(() => {}); // la légende arrive pendant le geste (arrêtée, la démo s'en charge)
-        await (etape.geste === 'maintenir' ? maintenir() : toucher(cible));
+        await (etape.geste === 'maintenir' ? maintenir(cible) : toucher(cible));
         etape.agir?.();
         await pause(etape.geste === 'maintenir' ? 1100 : 1500);
       }
     }
 
-    await animer(doigt, [{ opacity: 1, scale: 1 }, { opacity: 0, scale: 0.8 }], { duration: 260, easing: 'ease' });
+    if (avecUnDoigt) await animer(doigt, [{ opacity: 1, scale: 1 }, { opacity: 0, scale: 0.8 }], { duration: 260, easing: 'ease' });
     await pause(700);
     await animer(legende, [{ opacity: 1 }, { opacity: 0 }], { duration: 220 });
     fin?.();
   } catch (erreur) {
     if (erreur !== ARRET) throw erreur;
   } finally {
-    // Tout revient comme avant : la carte à sa place, les indices cachés, ni doigt ni légende.
-    carte.removeEventListener('pointerdown', arreter);
+    // Tout revient comme avant : la carte à sa place, les indices cachés, l'écran pas déformé, ni
+    // doigt ni légende.
+    zoneArret.removeEventListener('pointerdown', arreter);
+    pincementEnCours?.relacher?.();
     animations.forEach((animation) => animation.cancel());
     doigt.remove();
+    doigtsDuPincement.forEach((unDoigt) => unDoigt.remove());
     legende.remove();
   }
 }

@@ -13,6 +13,7 @@ import { creerJaponais } from '../texte.js';
 import { creerNomRole, creerTitreScene, creerTitreVue } from '../affichage.js';
 import { lignesDe } from '../pieces.js';
 import { enregistrerSelection, lireSelection } from '../stockage.js';
+import { montrerGestes, proposerTuto } from '../tuto.js';
 
 export function afficherMesRepliques(racine, piece) {
   const lignes = lignesDe(piece);
@@ -129,10 +130,11 @@ export function afficherMesRepliques(racine, piece) {
   const titre = creerTitreVue(t('Mes répliques'), compteur);
   titre.classList.add('tete-collante'); // le compteur reste visible pendant qu'on fait défiler
 
+  const carteRoles = el('section', { className: 'card pile' },
+    el('h2', { className: 'titre-section' }, t('Des rôles entiers')),
+    piece.roles.map(creerLigneRole));
   const vueTexte = el('div', { className: 'vue-texte' },
-    el('section', { className: 'card pile' },
-      el('h2', { className: 'titre-section' }, t('Des rôles entiers')),
-      piece.roles.map(creerLigneRole)),
+    carteRoles,
     el('h2', { className: 'titre-section' }, t('Réplique par réplique')),
     piece.scenes.map((scene) => el('section', { className: 'scene' },
       creerTitreScene(scene),
@@ -140,8 +142,9 @@ export function afficherMesRepliques(racine, piece) {
 
   const vueGrille = el('div', { className: 'grille-numeros', hidden: true }, lignes.map((ligne) => creerBoutonGrille(ligne)));
 
-  // Un geste ne se devine pas : on l'annonce, et le bouton sert aussi sans écran tactile.
-  const aide = el('p', { className: 'legende' });
+  // Le pincement ne se devine pas : le tuto le montre (plus bas). Le bouton fait la même chose, et
+  // sert aussi sans écran tactile. (Il y avait une phrase d'aide à côté : retirée le 2026-11-11 à
+  // la demande de Louis, qui ne veut pas d'aide écrite sur les écrans.)
   const bascule = el('button', { type: 'button', className: 'chip', onclick: () => montrerGrille(vueGrille.hidden) });
 
   const mouvementReduit = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -182,9 +185,6 @@ export function afficherMesRepliques(racine, piece) {
   function afficherVue(grille) {
     vueGrille.hidden = !grille;
     vueTexte.hidden = grille;
-    aide.textContent = grille
-      ? t('Garde le doigt sur un numéro pour aller à sa réplique. Écarte deux doigts pour revoir le texte.')
-      : t("Pince l'écran avec deux doigts pour n'afficher que les numéros.");
     bascule.textContent = grille ? t('Texte') : t('Grille');
   }
 
@@ -243,7 +243,35 @@ export function afficherMesRepliques(racine, piece) {
     surRelache: relacher,
   });
 
-  remplacer(racine, titre, el('div', { className: 'ligne-aide' }, aide, bascule), vueTexte, vueGrille);
+  remplacer(racine, titre, el('div', { className: 'ligne-bascule' }, bascule), vueTexte, vueGrille);
+
+  // Les tutos (tuto.js), chacun avec sa pastille « ? », tant qu'elle n'a pas été touchée.
+  // Sur le texte, au coin de la carte des rôles : deux doigts fantômes pincent l'écran, qui passe
+  // vraiment à la grille, puis s'écartent pour revenir au texte (variante A, choisie par Louis le
+  // 2026-11-11). Un vrai doigt posé n'importe où sur l'écran arrête la démo.
+  proposerTuto('mes-repliques-texte', carteRoles, () => montrerGestes({
+    carte: carteRoles,
+    ecran: racine,
+    zoneArret: racine,
+    etapes: [
+      { geste: 'pincer', titre: t('Pincer'), texte: t('voir la grille des numéros'), suivre: suivreLesDoigts, relacher, agir: () => montrerGrille(true) },
+      { geste: 'ecarter', titre: t('Écarter'), texte: t('revenir au texte'), suivre: suivreLesDoigts, relacher, agir: () => montrerGrille(false) },
+    ],
+  }), { libelle: t('Voir les gestes de cet écran') });
+  // Sur la grille, au coin du premier numéro (elle se montre avec la grille) : le doigt le touche,
+  // sans rien choisir, puis le garde enfoncé, et l'écran revient au texte sur sa réplique, pour de vrai.
+  const premiere = lignes[0];
+  if (premiere) {
+    const premierNumero = boutonsGrille.get(premiere.numero);
+    proposerTuto('mes-repliques-grille', vueGrille, () => montrerGestes({
+      carte: vueGrille,
+      ecran: racine,
+      etapes: [
+        { geste: 'toucher', titre: t('Toucher'), texte: t('choisir la réplique, ou la retirer'), cible: premierNumero },
+        { geste: 'maintenir', titre: t('Appui long'), texte: t('revenir au texte, sur cette réplique'), cible: premierNumero, agir: () => allerA(premiere.numero) },
+      ],
+    }), { cote: 'gauche', libelle: t('Voir les gestes de cet écran') });
+  }
 
   afficherVue(false);
   actualiser();

@@ -497,8 +497,9 @@ button.replique:disabled { cursor: default; }
 /* La grille de numéros, et la zone où le pincement remplace le zoom du navigateur. */
 .zone-pincement { touch-action: pan-y; }
 .vue-texte { display: flex; flex-direction: column; gap: 16px; }
-.ligne-aide { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.ligne-aide .chip { flex: none; }
+/* Le bouton Grille / Texte, seul sur sa ligne, à droite (la phrase d'aide qui l'accompagnait est retirée). */
+.ligne-bascule { display: flex; justify-content: flex-end; }
+.ligne-bascule .chip { flex: none; }
 
 .grille-numeros { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 8px; }
 
@@ -597,6 +598,8 @@ button.replique:disabled { cursor: default; }
   cursor: pointer;
   animation: respire 1.8s ease-out infinite;
 }
+/* L'élément qui porte la pastille : elle se pose à son coin (voir proposerTuto). */
+.ancre-tuto { position: relative; }
 /* Au coin gauche, quand un bouton occupe déjà le coin droit (la lecture, dans le texte du Vocabulaire). */
 .pastille-tuto.a-gauche { right: auto; left: -4px; }
 /* Une zone de toucher plus grande que le rond, pour ne pas le rater du doigt. */
@@ -616,6 +619,8 @@ button.replique:disabled { cursor: default; }
   border: 2px solid color-mix(in srgb, var(--surface) 92%, transparent);
   box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 28%, transparent);
 }
+/* Les deux doigts du pincement se posent au milieu de l'écran, pas sur une carte. */
+.doigt-tuto.doigt-fixe { position: fixed; z-index: 36; }
 .doigt-anneau { position: absolute; inset: 0; overflow: visible; rotate: -90deg; }
 .doigt-anneau circle { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; }
 .doigt-onde { position: absolute; inset: 12px; border-radius: 50%; border: 2px solid var(--accent); pointer-events: none; }
