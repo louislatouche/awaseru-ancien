@@ -4,7 +4,7 @@
 //   phrase), et les autres répliques où il revient. L'interrupteur « Mot à mot » écrit la traduction
 //   sous chaque mot.
 // - La liste : une carte par mot, qu'un toucher fait entendre. Sous chaque mot, les numéros des
-//   répliques où il revient ; un numéro touché ouvre le texte à cette réplique, mot expliqué.
+//   répliques où il revient ; un numéro touché déplie la carte sur cette réplique, le mot surligné.
 //   Un filtre (Tous, À revoir, Nouveaux) choisit les mots montrés.
 // Et une révision en fiches, comme pour les répliques : le mot seul, puis sa lecture et son sens.
 // Elle se lance depuis la liste, en bas, et reprend exactement les mots que la liste montre.
@@ -260,17 +260,18 @@ export function afficherVocabulaire(racine, piece) {
     Promise.all(fermeture.map((animation) => animation.finished)).then(() => { fermeture = []; }, () => {});
   }
 
-  // Amène une carte dans la partie visible de l'écran : entre l'en-tête et le panneau du bas, qui
-  // en cache une partie. Elle se déplace au plus court, vers le haut ou vers le bas, et pas du tout
-  // si elle se voit déjà en entier. Une carte trop haute pour tenir à l'écran montre au moins le mot
-  // touché, ou à défaut son début (là où la lecture commence).
-  // instant : sans défilement doux, pour arriver d'un coup depuis la liste (un changement de vue).
-  function montrer(carte, motTouche = null, { instant = false } = {}) {
+  // Amène une carte dans la partie visible de l'écran : entre l'en-tête et ce qui est collé en bas
+  // (le panneau du mot dans le texte, Réviser dans la liste), qui en cache une partie. Elle se déplace
+  // au plus court, vers le haut ou vers le bas, et pas du tout si elle se voit déjà en entier. Une
+  // carte trop haute pour tenir à l'écran montre au moins le mot touché, ou à défaut son début (là
+  // où la lecture commence).
+  function montrer(carte, motTouche = null) {
     const MARGE = 12;
     // L'en-tête passe par-dessus le haut de cette zone : la partie visible commence sous lui.
     const entete = document.querySelector('.app-header');
     const haut = Math.max(ecran.getBoundingClientRect().top, entete?.getBoundingClientRect().bottom ?? 0) + MARGE;
-    const bas = panneau.getBoundingClientRect().top - MARGE;
+    // Un élément caché n'a pas de position : on mesure celui des deux qui se montre.
+    const bas = (panneau.hidden ? barreReviser : panneau).getBoundingClientRect().top - MARGE;
     const cadre = carte.getBoundingClientRect();
     let decalage = 0;
     if (cadre.height <= bas - haut || motTouche) {
@@ -283,13 +284,6 @@ export function afficherVocabulaire(racine, piece) {
     // Là où l'écran arrivera : il ne peut pas défiler au-delà du haut ni du bas de la page.
     const arrivee = Math.min(Math.max(ecran.scrollTop + decalage, 0), ecran.scrollHeight - ecran.clientHeight);
     if (Math.abs(arrivee - ecran.scrollTop) < 1) return;
-    if (instant) {
-      // behavior 'instant' : un vrai saut. Changer scrollTop ne suffit pas, car style.css demande un
-      // défilement doux à cette zone : l'écran glisserait, et ce glissement fermerait l'explication.
-      ecran.scrollTo({ top: arrivee, behavior: 'instant' });
-      repere = ecran.scrollTop; // ce saut n'est pas une reprise de la lecture : l'explication reste ouverte
-      return;
-    }
     // Ce défilement-là ne ferme pas l'explication. Il se termine par l'événement scrollend ; au cas
     // où il manquerait, la minuterie rend la main au bout de deux secondes.
     defilementDeLApp = true;
@@ -378,11 +372,40 @@ export function afficherVocabulaire(racine, piece) {
   // ---- La liste : une carte par mot ----
 
   // Un mot de la liste. Un toucher sur la carte le fait entendre. Dessous, les numéros des répliques
-  // où il revient : un numéro touché ouvre le texte à cette réplique.
+  // où il revient : un numéro touché déplie la carte sur cette réplique (le mot surligné, puis la
+  // traduction de la phrase), sans quitter la liste. Le même numéro la replie ; un autre la remplace.
   function creerCarteMot({ mot, ou }) {
-    return el('div', {
+    let ouverte = null; // la réplique dépliée, s'il y en a une
+    let contexte = null; // et son bloc, sous les numéros
+
+    const numeros = ou.map((ligne) => el('button', {
+      type: 'button',
+      className: 'chip chip-numero',
+      'aria-label': t('Réplique {n}', { n: ligne.numero }),
+      'aria-pressed': 'false', // pour un lecteur d'écran : enfoncé quand sa réplique est dépliée
+      onclick: () => deplier(ligne),
+    }, String(ligne.numero)));
+
+    function deplier(ligne) {
+      contexte?.remove();
+      contexte = null;
+      ouverte = ouverte === ligne ? null : ligne;
+      // Le numéro de la réplique dépliée reste coloré : c'est lui qu'on touche pour la replier.
+      numeros.forEach((bouton, rang) => {
+        bouton.classList.toggle('is-selected', ou[rang] === ouverte);
+        bouton.setAttribute('aria-pressed', String(ou[rang] === ouverte));
+      });
+      if (!ouverte) return;
+      contexte = creerContexte(mot, ouverte);
+      carte.append(contexte);
+      // Une carte en bas de l'écran se déplierait sous Réviser : l'écran remonte juste assez pour la
+      // montrer. Si elle est trop haute pour tenir, c'est le mot surligné qui se voit.
+      montrer(carte, contexte.querySelector('.surligne') ?? contexte);
+    }
+
+    const carte = el('div', {
       className: 'replique carte-mot',
-      // Un numéro est un bouton à part : le toucher ouvre le texte, sans faire parler le mot.
+      // Un numéro est un bouton à part : le toucher déplie la carte, sans faire parler le mot.
       onclick: (evenement) => {
         if (!evenement.target.closest('button')) direMot(mot);
       },
@@ -395,26 +418,8 @@ export function afficherVocabulaire(racine, piece) {
           el('span', { className: 'mot-romaji' }, enRomaji(lectureEnKana(mot.mot)))),
         creerPastilleMot(statuts[mot.id])),
       el('span', { className: 'mot-sens' }, traduire(mot, 'fr')),
-      el('span', { className: 'numeros-mot' }, ou.map((ligne) => el('button', {
-        type: 'button',
-        className: 'chip chip-numero',
-        'aria-label': t('Réplique {n}', { n: ligne.numero }),
-        onclick: () => ouvrirDansLeTexte(mot, ligne),
-      }, String(ligne.numero)))));
-  }
-
-  // D'un numéro de la liste au texte : l'écran arrive d'un coup sur la réplique, le mot surligné et
-  // expliqué en bas, comme si on l'avait touché. Une réplique qui n'est pas à moi oblige à montrer
-  // toute la pièce.
-  function ouvrirDansLeTexte(mot, ligne) {
-    vue = 'texte';
-    if (portee === 'miennes' && !selection.has(ligne.numero)) portee = 'tout';
-    afficherPrincipal({ enHaut: false, animer: false });
-    const apparition = (apparitions.get(mot.id) ?? []).find((une) => une.ligne === ligne);
-    if (!apparition) return;
-    choisir(mot, apparition.morceau, apparition.bouton);
-    // Après choisir : le panneau a sa nouvelle hauteur, la partie visible de l'écran aussi.
-    montrer(apparition.bouton.closest('.carte-texte'), apparition.bouton, { instant: true });
+      el('span', { className: 'numeros-mot' }, numeros));
+    return carte;
   }
 
   // ---- L'écran principal : le texte ou la liste ----
@@ -456,8 +461,7 @@ export function afficherVocabulaire(racine, piece) {
     ], filtre, (valeur) => { filtre = valeur; dessinerContenu(); }));
   }
 
-  // animer : la vague d'entrée des cartes (non, quand on arrive d'un numéro sur une autre partie du texte).
-  function dessinerContenu({ animer = true } = {}) {
+  function dessinerContenu() {
     arreterFermeture();
     definirRetour(null);
     arreterVoix();
@@ -500,11 +504,10 @@ export function afficherVocabulaire(racine, piece) {
       }));
       afficherAide();
     }
-    if (animer) cascade(zone);
+    cascade(zone);
   }
 
-  // enHaut : revenir en haut de l'écran (non, quand on arrive d'un numéro : montrer place l'écran).
-  function afficherPrincipal({ enHaut = true, animer = true } = {}) {
+  function afficherPrincipal() {
     remplacer(racine,
       creerTitreVue(t('Vocabulaire'), coinTitre),
       el('div', { className: 'chips-vocabulaire' }, choixPortee, rangeeMotAMot, rangeeFiltre),
@@ -513,8 +516,8 @@ export function afficherVocabulaire(racine, piece) {
       // (dans le texte) ou Réviser (dans la liste). Un seul des deux se montre à la fois.
       panneau,
       barreReviser);
-    dessinerContenu({ animer });
-    if (enHaut) hautDePage();
+    dessinerContenu();
+    hautDePage();
   }
 
   // ---- La révision : une série de fiches de mots ----
