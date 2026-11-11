@@ -23,20 +23,42 @@ const statutValide = (statut) => statut === 'su' || statut === 'a_revoir';
 const motValide = (etat) => estObjet(etat) && (etat.statut === 'a_revoir'
   || (etat.statut === 'su' && [0, 1, 2, 3, 4].includes(etat.palier) && /^\d{4}-\d{2}-\d{2}$/.test(etat.revient)));
 
-export function telechargerSauvegarde() {
+// Fait le fichier de sauvegarde et le confie au téléphone. Renvoie ce qui s'est passé :
+// 'partagee' (le menu de partage l'a envoyé où tu as choisi), 'annulee' (tu as refermé ce menu),
+// ou 'telechargee' (enregistré dans les téléchargements, là où le partage n'existe pas).
+export async function telechargerSauvegarde() {
   const maintenant = new Date();
-  const contenu = { type: TYPE, version: VERSION_DU_FORMAT, date: maintenant.toISOString(), donnees: toutesLesDonnees() };
+  const contenu = JSON.stringify({ type: TYPE, version: VERSION_DU_FORMAT, date: maintenant.toISOString(), donnees: toutesLesDonnees() });
+  // sv-SE écrit les dates en AAAA-MM-JJ, à l'heure du téléphone. toISOString donnerait l'heure de
+  // Londres : juste après minuit, le fichier porterait encore la date de la veille.
+  const nom = `awaseru-sauvegarde-${maintenant.toLocaleDateString('sv-SE')}`;
+
+  // D'abord le menu de partage du téléphone (demandé par Louis le 2026-11-11), pour envoyer le
+  // fichier où l'on veut : Drive, un e-mail, une messagerie... Chrome sur Android (et Brave, qui en
+  // est tiré) ne laisse partager que certains types de fichiers : le texte oui, le JSON non (liste
+  // « Shareable file types » de MDN, lue le 2026-11-11). La sauvegarde part donc en .txt, avec
+  // exactement le même contenu ; la restauration accepte les deux. canShare dit si le téléphone
+  // accepte ce fichier : sinon, on le télécharge, comme avant.
+  const fichier = new File([contenu], `${nom}.txt`, { type: 'text/plain' });
+  if (navigator.canShare?.({ files: [fichier] })) {
+    try {
+      await navigator.share({ files: [fichier], title: t('Sauvegarde Awaseru') });
+      return 'partagee';
+    } catch (erreur) {
+      if (erreur.name === 'AbortError') return 'annulee'; // le menu de partage a été refermé
+      // Une autre erreur (le partage a été refusé) : on se rabat sur le téléchargement.
+    }
+  }
 
   // Un « blob » est un fichier qui n'existe qu'en mémoire. Un lien avec l'attribut download
   // demande au navigateur de l'enregistrer plutôt que de l'ouvrir.
-  const adresse = URL.createObjectURL(new Blob([JSON.stringify(contenu)], { type: 'application/json' }));
+  const adresse = URL.createObjectURL(new Blob([contenu], { type: 'application/json' }));
   const lien = document.createElement('a');
   lien.href = adresse;
-  // sv-SE écrit les dates en AAAA-MM-JJ, à l'heure du téléphone. toISOString donnerait l'heure de
-  // Londres : juste après minuit, le fichier porterait encore la date de la veille.
-  lien.download = `awaseru-sauvegarde-${maintenant.toLocaleDateString('sv-SE')}.json`;
+  lien.download = `${nom}.json`;
   lien.click();
   setTimeout(() => URL.revokeObjectURL(adresse), 30000); // le temps que le téléchargement démarre
+  return 'telechargee';
 }
 
 // Vérifie chaque donnée : ce fichier vient de l'extérieur et va remplacer tout ce qui est enregistré.

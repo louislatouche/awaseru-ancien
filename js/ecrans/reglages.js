@@ -181,10 +181,11 @@ function creerSauvegarde() {
   }
 
   // accept : sans lui, le navigateur croit que tout convient et propose aussi l'appareil photo et
-  // les images. Avec lui, seuls les fichiers JSON se choisissent, et une sauvegarde en est un.
+  // les images. Avec lui, seuls les fichiers JSON et texte se choisissent : une sauvegarde est l'un
+  // ou l'autre (en .txt quand elle a été partagée, en .json quand elle a été téléchargée).
   const champFichier = el('input', {
     type: 'file',
-    accept: 'application/json,.json',
+    accept: 'application/json,.json,text/plain,.txt', // .txt : une sauvegarde partagée (voir sauvegarde.js)
     hidden: true,
     onchange: async () => {
       const fichier = champFichier.files[0];
@@ -207,7 +208,7 @@ function creerSauvegarde() {
     try {
       poignees = await window.showOpenFilePicker({
         startIn: 'downloads',
-        types: [{ description: t('Sauvegarde Awaseru'), accept: { 'application/json': ['.json'] } }],
+        types: [{ description: t('Sauvegarde Awaseru'), accept: { 'application/json': ['.json'], 'text/plain': ['.txt'] } }],
       });
     } catch (erreur) {
       // AbortError : tu as simplement refermé le sélecteur. Sinon, on essaie l'autre voie.
@@ -224,9 +225,10 @@ function creerSauvegarde() {
       el('button', {
         type: 'button',
         className: 'btn-ghost',
-        onclick: () => {
-          telechargerSauvegarde();
-          signaler(t('Sauvegarde enregistrée dans tes téléchargements.'));
+        // Le menu de partage du téléphone, ou un simple téléchargement là où il n'existe pas (voir
+        // sauvegarde.js). Le message ne vient que pour le téléchargement : un partage se voit déjà.
+        onclick: async () => {
+          if (await telechargerSauvegarde() === 'telechargee') signaler(t('Sauvegarde enregistrée dans tes téléchargements.'));
         },
       }, t('Sauvegarder')),
       el('button', { type: 'button', className: 'btn-ghost', onclick: choisirFichier }, t('Restaurer'))),
