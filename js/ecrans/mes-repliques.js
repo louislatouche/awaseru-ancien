@@ -248,11 +248,10 @@ export function afficherMesRepliques(racine, piece) {
   // Les tutos (tuto.js), chacun avec sa pastille « ? », tant qu'elle n'a pas été touchée.
   // Sur le texte, au coin de la carte des rôles : deux doigts fantômes pincent l'écran, qui passe
   // vraiment à la grille, puis s'écartent pour revenir au texte (variante A, choisie par Louis le
-  // 2026-11-11). Un vrai doigt posé n'importe où sur l'écran arrête la démo.
+  // 2026-11-11). Pendant la démo, l'écran ne réagit pas au doigt (tuto.js).
   proposerTuto('mes-repliques-texte', carteRoles, () => montrerGestes({
     carte: carteRoles,
     ecran: racine,
-    zoneArret: racine,
     etapes: [
       { geste: 'pincer', titre: t('Pincer'), texte: t('voir la grille des numéros'), suivre: suivreLesDoigts, relacher, agir: () => montrerGrille(true) },
       { geste: 'ecarter', titre: t('Écarter'), texte: t('revenir au texte'), suivre: suivreLesDoigts, relacher, agir: () => montrerGrille(false) },

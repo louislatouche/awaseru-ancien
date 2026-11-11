@@ -182,7 +182,6 @@ export function afficherFilage(racine, piece) {
         carte,
         cadre,
         ecran: racine,
-        zoneArret: journal,
         etapes: [
           { geste: 'toucher', titre: t('Toucher'), texte: t("voir ta réplique, et l'entendre") },
           { geste: 'toucher', titre: t('Toucher encore'), texte: t('pause, ou reprendre') },
@@ -474,7 +473,6 @@ export function afficherFilage(racine, piece) {
         carte: lue,
         cadre: racine,
         ecran: racine,
-        zoneArret: racine,
         etapes: [
           { geste: 'toucher', titre: t('Toucher'), texte: t('pause, ou reprendre') },
           suivante && { geste: 'toucher', titre: t('Toucher une autre réplique'), texte: t('la lecture repart de là'), cible: suivante },

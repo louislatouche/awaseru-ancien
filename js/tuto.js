@@ -90,15 +90,15 @@ export function proposerTuto(nom, ancre, montrer, { cote = 'droite', libelle = t
 //   (le filage) : journal, l'élément qui suit le doigt, et apercu(), la carte de la réplique
 //   suivante qui se devine pendant le geste (ou rien). quitter : la démo s'arrête juste après ce
 //   geste, sans attendre, et passe à fin() (qui peut lancer la suite ailleurs : dans un menu ouvert).
-// zoneArret : là où le vrai doigt arrête la démo (la carte, d'habitude ; tout l'écran, pour un pincement).
-// nettoyer() : appelée dans tous les cas, même si la démo s'arrête en route, pour retirer ce qu'elle
-// a seulement montré (une carte éclairée comme lue, dans le Script).
+// nettoyer() : appelée dans tous les cas, même si la démo s'arrête en route (l'écran a changé), pour
+// retirer ce qu'elle a seulement montré (une carte éclairée comme lue, dans le Script).
 // dansUnMenu : la démo se passe dans une feuille du bas, posée sur l'écran : la légende va en haut
 // (la feuille occupe le bas), et l'écran derrière ne défile pas.
 //
 // Sinon, la démo ne fait rien pour de vrai : une réplique cachée le reste (la montrer gâcherait
-// l'exercice), rien ne se lit, rien n'est noté. Si le vrai doigt se pose sur la carte, elle s'arrête.
-export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin = null, nettoyer = null, zoneArret = carte, dansUnMenu = false }) {
+// l'exercice), rien ne se lit, rien n'est noté. Pendant qu'elle tourne, l'écran ne réagit plus au
+// doigt (voir le bouclier, plus bas).
+export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin = null, nettoyer = null, dansUnMenu = false }) {
   const doigt = el('div', { className: 'doigt-tuto', 'aria-hidden': 'true' }, el('span', { className: 'doigt-point' }));
   doigt.insertAdjacentHTML('beforeend', '<svg class="doigt-anneau" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" pathLength="100"/></svg>');
   const anneau = doigt.querySelector('circle');
@@ -113,15 +113,20 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
   const barre = dansUnMenu ? null : ecran.querySelector('.commandes:not([hidden])');
   if (barre) legende.style.bottom = `calc(var(--place-bas) + ${barre.offsetHeight + 12}px)`;
 
+  // Le bouclier : une couche invisible sur tout l'écran, le temps de la démo. Le vrai doigt ne touche
+  // plus rien (ni carte, ni défilement, ni onglet) : il ne peut pas brouiller la démo (demande de
+  // Louis, 2026-11-11). Le bouton Retour du téléphone, lui, marche toujours : changer d'écran arrête
+  // la démo, et le bouclier part avec elle.
+  const bouclier = el('div', { className: 'bouclier-tuto', 'aria-hidden': 'true' });
+  document.body.append(bouclier);
+
   // Toutes les animations de la démo, pour les défaire d'un coup à la fin.
   const animations = new Set();
-  let arrete = false;
-  const arreter = () => { arrete = true; };
-  zoneArret.addEventListener('pointerdown', arreter, { once: true });
+  const ecranQuitte = () => !cadre.isConnected; // l'écran a changé : la démo s'arrête
 
   // Une animation de la démo. fill: 'forwards' garde l'état d'arrivée jusqu'au nettoyage final.
   async function animer(element, images, options) {
-    if (arrete || !cadre.isConnected) throw ARRET;
+    if (ecranQuitte()) throw ARRET;
     const animation = element.animate(images, { fill: 'forwards', ...options, duration: lent(options.duration ?? 0) });
     animations.add(animation);
     try {
@@ -129,10 +134,10 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
     } catch {
       throw ARRET; // annulée
     }
-    if (arrete || !cadre.isConnected) throw ARRET; // le doigt s'est posé, ou l'écran a changé
+    if (ecranQuitte()) throw ARRET;
   }
   const pause = (ms) => new Promise((ok, ko) => {
-    setTimeout(() => (arrete || !cadre.isConnected ? ko(ARRET) : ok()), lent(ms));
+    setTimeout(() => (ecranQuitte() ? ko(ARRET) : ok()), lent(ms));
   });
 
   // Le doigt se déplace d'un point à un autre du cadre.
@@ -297,7 +302,7 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
     await new Promise((ok, ko) => {
       const debut = performance.now();
       const image = (maintenant) => {
-        if (arrete || !cadre.isConnected) {
+        if (ecranQuitte()) {
           ko(ARRET);
           return;
         }
@@ -416,7 +421,7 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
   } finally {
     // Tout revient comme avant : la carte à sa place, les indices cachés, l'écran pas déformé, ni
     // doigt ni légende.
-    zoneArret.removeEventListener('pointerdown', arreter);
+    bouclier.remove();
     pincementEnCours?.relacher?.();
     nettoyer?.();
     animations.forEach((animation) => animation.cancel());

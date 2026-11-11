@@ -201,7 +201,7 @@ export function afficherScript(racine, piece) {
       if (carteActive) return;
       for (const autre of cartesDeLaDemo) autre.classList.toggle('en-lecture', autre === carte);
     };
-    // Après la démo, même interrompue : plus aucune carte éclairée, sauf celle qui se lit vraiment.
+    // Après la démo, même arrêtée en route (l'écran a changé) : plus aucune carte éclairée, sauf celle qui se lit vraiment.
     const eteindreLaDemo = () => {
       for (const autre of cartesDeLaDemo) if (autre !== carteActive) autre.classList.remove('en-lecture');
     };

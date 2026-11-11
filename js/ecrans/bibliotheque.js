@@ -189,7 +189,6 @@ export async function afficherBibliotheque(racine) {
         carte: premiere,
         cadre: zoneListe,
         ecran: racine,
-        zoneArret: zoneListe,
         etapes: [
           { geste: 'toucher', titre: t('Toucher une pièce'), texte: t("l'ouvrir et la travailler"), cible: premiere.querySelector('.carte-lien') },
           suppression && { geste: 'toucher', titre: suppression.textContent, texte: t('la retirer, sans perdre ta progression'), cible: suppression },
@@ -217,7 +216,6 @@ export async function afficherBibliotheque(racine) {
     montrerGestes({
       carte: feuille,
       ecran: fond,
-      zoneArret: fond,
       dansUnMenu: true,
       etapes: [
         { geste: 'toucher', titre: t('Cocher une pièce'), texte: t('la choisir'), cible: ligne.querySelector('input') ?? ligne },
