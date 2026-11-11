@@ -40,6 +40,12 @@ export async function telechargerSauvegarde() {
   // exactement le même contenu ; la restauration accepte les deux. canShare dit si le téléphone
   // accepte ce fichier : sinon, on le télécharge, comme avant.
   const fichier = new File([contenu], `${nom}.txt`, { type: 'text/plain' });
+  // TEMPORAIRE (2026-11-11) : sur le téléphone de Louis (Brave), le partage n'a pas eu lieu et la
+  // documentation ne dit pas pourquoi. raison note ce que le navigateur a répondu ; le message de
+  // reglages.js l'affiche. À retirer dès la cause connue.
+  let raison = '';
+  if (!navigator.share) raison = 'navigator.share absent';
+  else if (!navigator.canShare) raison = 'navigator.canShare absent';
   if (navigator.canShare?.({ files: [fichier] })) {
     try {
       await navigator.share({ files: [fichier], title: t('Sauvegarde Awaseru') });
@@ -47,8 +53,13 @@ export async function telechargerSauvegarde() {
     } catch (erreur) {
       if (erreur.name === 'AbortError') return 'annulee'; // le menu de partage a été refermé
       // Une autre erreur (le partage a été refusé) : on se rabat sur le téléchargement.
+      raison = `erreur ${erreur.name} : ${erreur.message}`;
     }
+  } else if (!raison) {
+    const essai = (nomFichier, type) => (navigator.canShare({ files: [new File(['x'], nomFichier, { type })] }) ? 'oui' : 'non');
+    raison = `fichiers refusés (txt ${essai('a.txt', 'text/plain')}, png ${essai('a.png', 'image/png')}, pdf ${essai('a.pdf', 'application/pdf')}, lien ${navigator.canShare({ url: location.href }) ? 'oui' : 'non'})`;
   }
+  telechargerSauvegarde.raison = raison;
 
   // Un « blob » est un fichier qui n'existe qu'en mémoire. Un lien avec l'attribut download
   // demande au navigateur de l'enregistrer plutôt que de l'ouvrir.

@@ -228,7 +228,8 @@ function creerSauvegarde() {
         // Le menu de partage du téléphone, ou un simple téléchargement là où il n'existe pas (voir
         // sauvegarde.js). Le message ne vient que pour le téléchargement : un partage se voit déjà.
         onclick: async () => {
-          if (await telechargerSauvegarde() === 'telechargee') signaler(t('Sauvegarde enregistrée dans tes téléchargements.'));
+          // TEMPORAIRE (2026-11-11) : la raison de l'échec du partage, le temps de la trouver (voir sauvegarde.js).
+          if (await telechargerSauvegarde() === 'telechargee') signaler(`${t('Sauvegarde enregistrée dans tes téléchargements.')} [Partage : ${telechargerSauvegarde.raison}]`, 15000);
         },
       }, t('Sauvegarder')),
       el('button', { type: 'button', className: 'btn-ghost', onclick: choisirFichier }, t('Restaurer'))),
