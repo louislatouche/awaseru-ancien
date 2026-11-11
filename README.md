@@ -39,8 +39,10 @@ Une application web installable (PWA) pour apprendre ses répliques de théâtre
 | `outils/generer-audio.mjs` | Fabrique ces fichiers audio avec AivisSpeech. Il tourne sur ton ordinateur, pas dans l'app. |
 | `icons/` | Les dessins sources (SVG) et les icônes exportées (PNG). |
 | `.nojekyll` | Fichier vide : dit à GitHub Pages de publier les fichiers tels quels. |
-| `CLAUDE.md` | Les consignes du projet pour Claude. |
-| `.claude/skills/nouvelle-piece/` | Le skill qui transforme un PDF de pièce en fichier Awaseru. |
+| `AGENTS.md` | Les consignes du projet pour les assistants de code (Codex, Claude Code). |
+| `CLAUDE.md` | Importe `AGENTS.md` : Claude Code lit ce nom-là. |
+| `.agents/skills/nouvelle-piece/` | Le skill qui transforme un PDF de pièce en fichier Awaseru, avec une pièce d'exemple. Codex le lit ici. |
+| `.claude/skills/nouvelle-piece/` | Le même skill pour Claude Code, qui renvoie au précédent. |
 
 ## L'apparence
 
@@ -162,7 +164,7 @@ Les répliques choisies, la progression et les réglages restent sur le téléph
 
 ## Ajouter une nouvelle pièce
 
-**Depuis un PDF du cours :** dans Claude Code, lance `/nouvelle-piece chemin/du/script.pdf`. Le skill convertit le PDF, pose les furigana, choisit les voix, génère l'audio, vérifie le tout et ajoute la pièce à l'app.
+**Depuis un PDF du cours :** dans Claude Code, lance `/nouvelle-piece chemin/du/script.pdf`. Dans Codex (inclus dans le forfait gratuit de ChatGPT, en accès limité), tape `$nouvelle-piece` suivi du chemin du PDF. Le skill installe au besoin Node.js, ffmpeg et AivisSpeech, convertit le PDF, pose les furigana, choisit les voix, génère l'audio, vérifie le tout et ajoute la pièce à l'app.
 
 **À la main :**
 
