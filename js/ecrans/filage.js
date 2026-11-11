@@ -28,6 +28,7 @@ import { creerJaponais, texteAParler } from '../texte.js';
 import { arreterVoix, mettreEnPauseVoix, reprendreVoix, voixJaponaises, voixPretes } from '../voix.js';
 import { noterPosition, oublierPosition, positionAReprendre } from '../reprise.js';
 import { brancherBalayage, brancherGestes } from '../gestes.js';
+import { montrerGestes, proposerTuto, tutoAVoir } from '../tuto.js';
 
 const SILENCE_ENTRE_REPLIQUES = 350; // millisecondes, pour que ça respire
 const DUREE_LIGNE_MUETTE = 1500;     // le temps de lire une ligne qui n'est qu'une didascalie
@@ -159,7 +160,46 @@ export function afficherFilage(racine, piece) {
     });
     carteCourante = carte;
     carteCourante.classList.add('courante');
-    journal.append(...avis, carte);
+    // Le tuto (tuto.js), tant qu'il n'a pas été vu : une pastille « ? » au coin de ma réplique quand
+    // vient mon tour. La carte est un bouton : la pastille se pose dans un cadre autour d'elle.
+    const tuto = mienne && tutoAVoir('filage');
+    const place = tuto ? el('div', { className: 'cadre-tuto' }, carte) : carte;
+    journal.append(...avis, place);
+    if (tuto) proposerTutoFilage(ligne, carte, place);
+  }
+
+  // Le tuto du filage, sur ma réplique en attente. Le doigt fantôme la touche (la voir, l'entendre),
+  // la retouche (pause), garde le doigt dessus (arrêt), pousse le journal vers le haut (la suite), et
+  // touche la réplique d'avant (la relire). Rien ne se fait pour de vrai : ma réplique reste cachée,
+  // le filage n'avance pas. Pendant le balayage, la réplique suivante se devine sous la mienne
+  // (variante B, choisie par Louis le 2026-11-11) ; la réplique relue s'éclaire, sans son.
+  function proposerTutoFilage(ligne, carte, cadre) {
+    const suivante = lignes[lignes.indexOf(ligne) + 1];
+    proposerTuto('filage', cadre, () => {
+      const passee = [...journal.querySelectorAll('.replique')].filter((autre) => autre !== carte).at(-1);
+      const aMoi = (autre) => selection.has(autre.numero);
+      montrerGestes({
+        carte,
+        cadre,
+        ecran: racine,
+        zoneArret: journal,
+        etapes: [
+          { geste: 'toucher', titre: t('Toucher'), texte: t("voir ta réplique, et l'entendre") },
+          { geste: 'toucher', titre: t('Toucher encore'), texte: t('pause, ou reprendre') },
+          { geste: 'maintenir', titre: t('Appui long'), texte: t("arrêter l'écoute") },
+          {
+            geste: 'balayer', titre: t('Balayer vers le haut'), texte: t('réplique suivante'), journal,
+            apercu: () => suivante && creerReplique(suivante, piece, { mienne: aMoi(suivante), cachee: aMoi(suivante) }),
+          },
+          passee && {
+            geste: 'toucher', titre: t('Toucher une réplique passée'), texte: t('la relire'), cible: passee,
+            agir: () => passee.classList.add('en-lecture'),
+          },
+        ].filter(Boolean),
+        // La réplique relue par la démo s'éteint, sauf si elle se relit vraiment entre-temps.
+        nettoyer: () => { if (passee && passee !== relue) passee.classList.remove('en-lecture'); },
+      });
+    });
   }
 
   async function jouerEtape(dejaAffichee = false) {
@@ -208,6 +248,9 @@ export function afficherFilage(racine, piece) {
     if (!verrouEcran) garderEcranAllume(); // on peut passer à la suite pendant une pause
     // La carte passée reste touchable : la toucher la relit (voir relire).
     carteCourante?.classList.remove('est-cachee', 'courante', 'is-syncing');
+    // Une pastille de tuto pas touchée ne reste pas sur une réplique passée : elle reviendra sur ma
+    // prochaine réplique, là où ses gestes s'appliquent.
+    journal.querySelector('.pastille-tuto')?.remove();
     position += 1;
     if (position >= lignes.length) terminer();
     else jouerEtape();
@@ -390,6 +433,7 @@ export function afficherFilage(racine, piece) {
     const statuts = lireStatuts(piece.id);
     suiteComplete = lignes.slice(depart);
     cartesCompletes.clear();
+    cadreTutoComplet = null; // refait plus bas, si le tuto n'a pas encore été vu
     // Seulement les scènes qui ont des répliques dans la suite : celles d'avant le départ n'y sont pas.
     const scenes = piece.scenes.filter((scene) => suiteComplete.some((ligne) => ligne.scene === scene));
     remplacer(racine, scenes.map((scene) => el('section', { className: 'scene' },
@@ -402,12 +446,44 @@ export function afficherFilage(racine, piece) {
         });
         brancherGestes(carte, { maintenir: () => { if (carteLue) arreterComplet(); } });
         cartesCompletes.set(ligne, carte);
-        return carte;
+        // La première carte porte la pastille du tuto, dans un cadre (la carte est un bouton).
+        if (ligne !== suiteComplete[0] || !tutoAVoir('filage-complet')) return carte;
+        cadreTutoComplet = el('div', { className: 'cadre-tuto' }, carte);
+        return cadreTutoComplet;
       }))));
+    if (cadreTutoComplet) proposerTutoComplet(cadreTutoComplet);
     if (repris) return; // le routeur remet lui-même l'écran là où il en était
     hautDePage(); // le bouton touché était plus bas : le texte, lui, commence en haut
     cascade(racine);
     lireEnContinu(0);
+  }
+
+  // Le tuto du filage complet, comme celui du Script : sur la carte qui se lit (sinon la première) et
+  // la suivante. La lecture se met en pause pendant la démo (c'est ce que montre le premier toucher),
+  // et reprend à la fin, pour que la démo finisse là où elle a commencé.
+  let cadreTutoComplet = null;
+  function proposerTutoComplet(cadre) {
+    proposerTuto('filage-complet', cadre, () => {
+      const cartes = [...cartesCompletes.values()];
+      const lue = carteLue ?? cartes[0];
+      const suivante = cartes[cartes.indexOf(lue) + 1];
+      const misEnPause = lectureComplete === 'lecture';
+      if (misEnPause) pauseComplete();
+      racine.classList.add('ancre-tuto'); // le doigt se pose dans l'écran entier : la carte lue peut être loin
+      montrerGestes({
+        carte: lue,
+        cadre: racine,
+        ecran: racine,
+        zoneArret: racine,
+        etapes: [
+          { geste: 'toucher', titre: t('Toucher'), texte: t('pause, ou reprendre') },
+          suivante && { geste: 'toucher', titre: t('Toucher une autre réplique'), texte: t('la lecture repart de là'), cible: suivante },
+          { geste: 'maintenir', titre: t('Appui long'), texte: t("arrêter l'écoute") },
+        ].filter(Boolean),
+        fin: () => { if (misEnPause && lectureComplete === 'pause') repriseComplete(); },
+        nettoyer: () => racine.classList.remove('ancre-tuto'),
+      });
+    });
   }
 
   // La carte lue se distingue par sa couleur (sauf la mienne, qui garde son ambre) et par le filet

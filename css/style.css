@@ -619,6 +619,8 @@ button.replique:disabled { cursor: default; }
   border: 2px solid color-mix(in srgb, var(--surface) 92%, transparent);
   box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 28%, transparent);
 }
+/* La réplique suivante, qui se devine pendant le balayage du tuto du filage : on ne la touche pas. */
+.apercu-tuto { pointer-events: none; }
 /* Les deux doigts du pincement se posent au milieu de l'écran, pas sur une carte. */
 .doigt-tuto.doigt-fixe { position: fixed; z-index: 36; }
 .doigt-anneau { position: absolute; inset: 0; overflow: visible; rotate: -90deg; }

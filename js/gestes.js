@@ -215,7 +215,7 @@ export function brancherGestes(carte, { maintenir = null, glisser = null }) {
 // (la carte touchée, par exemple), puis remontent jusqu'à la zone : elle les voit donc tous.
 
 const SEUIL_BALAYAGE = 60; // pixels à parcourir vers le haut pour valider
-const AMORTI = 0.35;       // la zone suit le doigt, mais de loin : un tiers de son trajet
+export const AMORTI = 0.35; // la zone suit le doigt, mais de loin : un tiers de son trajet (le tuto du filage aussi)
 const MARGE_BOUT = 40;     // pixels : à moins de cette distance du bas, l'écran est « en bas du journal »
 const DUREE_POURSUITE = 350; // millisecondes pour que l'écran, lancé par le doigt, atteigne la réplique suivante
 

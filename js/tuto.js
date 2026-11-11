@@ -10,6 +10,7 @@
 import { el } from './dom.js';
 import { t } from './langues.js';
 import { ECARTEMENT, RAPPROCHEMENT } from './pincement.js';
+import { AMORTI } from './gestes.js';
 import { changerReglage, lireReglages } from './stockage.js';
 
 const ARRET = Symbol('tuto arrêté');
@@ -30,6 +31,8 @@ const GLYPHES = {
   // Pincer : deux points en diagonale, des flèches qui vont vers le milieu ; écarter : vers les coins.
   pincer: '<svg class="glyphe-tuto" viewBox="0 0 24 24" aria-hidden="true"><circle class="point-glyphe" cx="5.5" cy="18.5" r="2.8"/><circle class="point-glyphe" cx="18.5" cy="5.5" r="2.8"/><path class="trait-glyphe" d="M9 15l3-3M15 9l-3 3M12 12h-3.2M12 12v3.2M12 12h3.2M12 12V8.8"/></svg>',
   ecarter: '<svg class="glyphe-tuto" viewBox="0 0 24 24" aria-hidden="true"><circle class="point-glyphe" cx="9" cy="15" r="2.8"/><circle class="point-glyphe" cx="15" cy="9" r="2.8"/><path class="trait-glyphe" d="M6.5 17.5l-3 3M20.5 3.5l-3 3M3.5 20.5h3.2M3.5 20.5v-3.2M20.5 3.5h-3.2M20.5 3.5v3.2"/></svg>',
+  // Balayer vers le haut : le point du doigt, et une flèche qui monte.
+  balayer: '<svg class="glyphe-tuto" viewBox="0 0 24 24" aria-hidden="true"><path class="trait-glyphe" d="M12 13V3.5M8.5 7 12 3.5 15.5 7"/><circle class="point-glyphe" cx="12" cy="17.5" r="3.6"/></svg>',
 };
 
 function glyphe(geste) {
@@ -38,14 +41,20 @@ function glyphe(geste) {
   return modele.content.firstChild;
 }
 
+// La pastille du tuto « nom » doit-elle être proposée ? Oui si les tutos sont allumés et qu'il n'a
+// pas encore été vu. Un écran s'en sert pour ne préparer la place de la pastille qu'au besoin.
+export function tutoAVoir(nom) {
+  const { tutos, tutosVus } = lireReglages();
+  return tutos && !tutosVus.includes(nom);
+}
+
 // Pose la pastille du tuto « nom » dans « ancre » (un élément en position: relative, qui contient
 // la carte), sauf si les tutos sont éteints ou si celui-ci a déjà été vu. montrer() joue la démo.
 // cote : 'droite' (le coin haut droit, d'habitude) ou 'gauche', quand un bouton occupe déjà la droite.
 // libelle : ce que dit la pastille à un lecteur d'écran (« les gestes de cet écran », pour un geste
 // qui se fait sur tout l'écran, comme le pincement).
 export function proposerTuto(nom, ancre, montrer, { cote = 'droite', libelle = t('Voir les gestes de cette carte') } = {}) {
-  const { tutos, tutosVus } = lireReglages();
-  if (!tutos || tutosVus.includes(nom)) return;
+  if (!tutoAVoir(nom)) return;
   ancre.classList.add('ancre-tuto'); // position: relative, pour que la pastille se pose à son coin
   const pastille = el('button', {
     type: 'button',
@@ -71,7 +80,9 @@ export function proposerTuto(nom, ancre, montrer, { cote = 'droite', libelle = t
 //   n'est pas la carte entière (un mot, un numéro), ou une fonction qui le trouve au moment voulu.
 //   agir() : ce que le geste fait pour de vrai, quand c'est sans risque (déplier une carte de la
 //   liste, passer à la grille...). Pour pincer et écarter, deux doigts au milieu de l'écran :
-//   suivre(rapport) fait suivre l'écran à leur écart, relacher() le remet en place.
+//   suivre(rapport) fait suivre l'écran à leur écart, relacher() le remet en place. Pour balayer
+//   (le filage) : journal, l'élément qui suit le doigt, et apercu(), la carte de la réplique
+//   suivante qui se devine pendant le geste (ou rien).
 // zoneArret : là où le vrai doigt arrête la démo (la carte, d'habitude ; tout l'écran, pour un pincement).
 // nettoyer() : appelée dans tous les cas, même si la démo s'arrête en route, pour retirer ce qu'elle
 // a seulement montré (une carte éclairée comme lue, dans le Script).
@@ -196,6 +207,46 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
     await animer(point, [{ scale: 0.82 }, { scale: 1 }], { duration: 200, easing: 'ease-out' });
   }
 
+  // Balayer vers le haut (le filage) : le doigt part un peu sous le milieu de la carte et monte de
+  // 100 px ; le journal le suit de loin, comme sous le vrai doigt (AMORTI, dans gestes.js). La carte
+  // de la réplique suivante, s'il y en a une, se devine sous la mienne pendant le geste (variante B,
+  // choisie par Louis le 2026-11-11). Puis le doigt se lève et tout retombe : le filage n'avance pas.
+  const apercusDeLaDemo = new Set();
+  async function balayer(etape) {
+    const { journal } = etape;
+    const montee = 100;
+    const depart = milieu(carte);
+    await aller(depart.x, depart.y + 30, 300);
+    const apercu = etape.apercu?.() ?? null;
+    if (apercu) {
+      apercu.classList.add('apercu-tuto');
+      apercu.setAttribute('aria-hidden', 'true');
+      apercu.style.opacity = '0';
+      journal.append(apercu);
+      apercusDeLaDemo.add(apercu);
+    }
+    const monte = { duration: 560, easing: DOUCE };
+    const haut = `translateY(${-montee * AMORTI}px)`;
+    // Le doigt est posé dans la carte, qui monte avec le journal : il ne fait lui-même que le reste du trajet.
+    await Promise.all([
+      aller(depart.x, depart.y + 30 - montee * (1 - AMORTI), 560),
+      animer(journal, [{ transform: 'translateY(0)' }, { transform: haut }], monte),
+      apercu && animer(apercu, [{ opacity: 0, transform: 'translateY(24px)' }, { opacity: 0.55, transform: 'translateY(0)' }], monte),
+    ]);
+    await pause(450);
+    await animer(doigt, [{ opacity: 1 }, { opacity: 0 }], { duration: 200 });
+    doigtVisible = false;
+    const retombe = { duration: 300, easing: FEUTRE };
+    await Promise.all([
+      animer(journal, [{ transform: haut }, { transform: 'translateY(0)' }], retombe),
+      apercu && animer(apercu, [{ opacity: 0.55, transform: 'translateY(0)' }, { opacity: 0, transform: 'translateY(24px)' }], retombe),
+    ]);
+    apercu?.remove();
+    apercusDeLaDemo.delete(apercu);
+    await animer(doigt, [{ opacity: 0 }, { opacity: 1 }], { duration: 200 });
+    doigtVisible = true;
+  }
+
   // Pincer ou écarter : deux doigts, en diagonale autour du milieu de l'écran, se rapprochent ou
   // s'éloignent. L'écran suit leur écart image par image, comme sous de vrais doigts (suivre). Dès
   // que l'écart franchit le même seuil que pour les vrais doigts (pincement.js), l'écran revient en
@@ -315,6 +366,11 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
         dire(etape).catch(() => {});
         await pincer(etape);
         await pause(1100);
+      } else if (etape.geste === 'balayer') {
+        await viser(carte, 0);
+        dire(etape).catch(() => {});
+        await balayer(etape);
+        await pause(500);
       } else if (etape.geste === 'glisser') {
         await viser(carte, 0);
         await dire(etape);
@@ -350,6 +406,7 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
     animations.forEach((animation) => animation.cancel());
     doigt.remove();
     doigtsDuPincement.forEach((unDoigt) => unDoigt.remove());
+    apercusDeLaDemo.forEach((apercu) => apercu.remove());
     legende.remove();
   }
 }
