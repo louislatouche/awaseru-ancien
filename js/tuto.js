@@ -73,10 +73,12 @@ export function proposerTuto(nom, ancre, montrer, { cote = 'droite', libelle = t
 //   liste, passer à la grille...). Pour pincer et écarter, deux doigts au milieu de l'écran :
 //   suivre(rapport) fait suivre l'écran à leur écart, relacher() le remet en place.
 // zoneArret : là où le vrai doigt arrête la démo (la carte, d'habitude ; tout l'écran, pour un pincement).
+// nettoyer() : appelée dans tous les cas, même si la démo s'arrête en route, pour retirer ce qu'elle
+// a seulement montré (une carte éclairée comme lue, dans le Script).
 //
 // Sinon, la démo ne fait rien pour de vrai : une réplique cachée le reste (la montrer gâcherait
 // l'exercice), rien ne se lit, rien n'est noté. Si le vrai doigt se pose sur la carte, elle s'arrête.
-export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin = null, zoneArret = carte }) {
+export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin = null, nettoyer = null, zoneArret = carte }) {
   const doigt = el('div', { className: 'doigt-tuto', 'aria-hidden': 'true' }, el('span', { className: 'doigt-point' }));
   doigt.insertAdjacentHTML('beforeend', '<svg class="doigt-anneau" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" pathLength="100"/></svg>');
   const anneau = doigt.querySelector('circle');
@@ -143,10 +145,11 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
       .finished.then(() => cercle.remove(), () => cercle.remove());
   }
 
-  // La cible s'enfonce un peu, comme sous un vrai doigt (un mot dans une phrase, lui, ne bouge pas).
+  // La cible s'enfonce un peu, comme sous un vrai doigt : à peine pour une carte, un peu plus pour un
+  // petit bouton comme un numéro (un mot dans une phrase, lui, ne bouge pas).
   async function toucher(cible) {
     onde();
-    cible.animate([{ scale: 1 }, { scale: cible === carte ? 0.975 : 0.94 }, { scale: 1 }], { duration: 260, easing: 'ease-out' });
+    cible.animate([{ scale: 1 }, { scale: cible.offsetWidth > 120 ? 0.975 : 0.94 }, { scale: 1 }], { duration: 260, easing: 'ease-out' });
     await animer(point, [{ scale: 1 }, { scale: 0.78 }, { scale: 1 }], { duration: 280, easing: 'ease-out', fill: 'none' });
   }
 
@@ -305,6 +308,7 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
     // doigt ni légende.
     zoneArret.removeEventListener('pointerdown', arreter);
     pincementEnCours?.relacher?.();
+    nettoyer?.();
     animations.forEach((animation) => animation.cancel());
     doigt.remove();
     doigtsDuPincement.forEach((unDoigt) => unDoigt.remove());

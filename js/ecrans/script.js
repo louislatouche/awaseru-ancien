@@ -12,6 +12,7 @@ import { brancherGestes } from '../gestes.js';
 import { lignesDe } from '../pieces.js';
 import { creerJaponais, texteAParler } from '../texte.js';
 import { lireReglages, lireSelection, lireStatuts } from '../stockage.js';
+import { montrerGestes, proposerTuto } from '../tuto.js';
 
 // Les mêmes respirations que le filage : un court silence entre deux répliques, et le temps de lire
 // une ligne qui n'est qu'une didascalie quand on ne les fait pas lire à voix haute.
@@ -137,6 +138,9 @@ export function afficherScript(racine, piece) {
   document.addEventListener('visibilitychange', surVisibilite);
 
   const rolesAvecLien = piece.roles.filter((role) => role.lien);
+  // La première réplique de la pièce, posée dans un cadre qui portera la pastille du tuto (plus bas) :
+  // la pastille est un bouton, et un bouton ne peut pas se trouver dans la carte, qui en est un aussi.
+  let cadreTuto = null;
 
   // L'accordéon du design kit : son corps s'ouvre en glissant, ce qu'un simple <details> ne fait pas.
   const apropos = el('div', { className: 'card acc-card' },
@@ -178,10 +182,42 @@ export function afficherScript(racine, piece) {
         // Garder le doigt sur une carte arrête toute la lecture, comme sur le bouton lecture.
         brancherGestes(carte, { maintenir: () => { if (carteActive) arreter(); } });
         cartes.set(ligne, carte);
-        return carte;
+        if (ligne !== lignes[0]) return carte;
+        cadreTuto = el('div', { className: 'cadre-tuto' }, carte);
+        return cadreTuto;
       }))),
   );
   cascade(racine);
+
+  // Le tuto (tuto.js) : une pastille « ? » au coin de la première réplique. Le doigt fantôme la
+  // touche (elle s'éclaire comme lue, sans qu'aucun son ne parte), la retouche (pause), touche la
+  // suivante (la lecture repart de là), puis garde le doigt dessus (arrêt). Si une vraie lecture
+  // est en cours, la démo n'éclaire rien, pour ne pas la brouiller.
+  if (cadreTuto) {
+    const premiere = cartes.get(lignes[0]);
+    const seconde = cartes.get(lignes[1]);
+    const cartesDeLaDemo = [premiere, seconde].filter(Boolean);
+    const eclairer = (carte) => {
+      if (carteActive) return;
+      for (const autre of cartesDeLaDemo) autre.classList.toggle('en-lecture', autre === carte);
+    };
+    // Après la démo, même interrompue : plus aucune carte éclairée, sauf celle qui se lit vraiment.
+    const eteindreLaDemo = () => {
+      for (const autre of cartesDeLaDemo) if (autre !== carteActive) autre.classList.remove('en-lecture');
+    };
+    proposerTuto('script', cadreTuto, () => montrerGestes({
+      carte: premiere,
+      cadre: cadreTuto,
+      ecran: racine,
+      etapes: [
+        { geste: 'toucher', titre: t('Toucher'), texte: t('écouter la réplique, puis les suivantes'), agir: () => eclairer(premiere) },
+        { geste: 'toucher', titre: t('Toucher encore'), texte: t('pause, ou reprendre') },
+        seconde && { geste: 'toucher', titre: t('Toucher une autre réplique'), texte: t('la lecture repart de là'), cible: seconde, agir: () => eclairer(seconde) },
+        { geste: 'maintenir', titre: t('Appui long'), texte: t("arrêter l'écoute"), cible: seconde ?? premiere, agir: () => eclairer(null) },
+      ].filter(Boolean),
+      nettoyer: eteindreLaDemo,
+    }));
+  }
 
   // Appelé par le routeur quand on quitte l'écran : la lecture en continu s'arrête.
   return () => {
