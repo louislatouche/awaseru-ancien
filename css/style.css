@@ -633,7 +633,7 @@ button.replique:disabled { cursor: default; }
   left: 12px;
   right: 12px;
   bottom: calc(var(--place-bas) + 12px);
-  z-index: 35;
+  z-index: 75; /* au-dessus des onglets (30) et même d'une feuille du bas (70), que le tuto peut ouvrir */
   width: fit-content;
   max-width: calc(100% - 24px);
   margin-inline: auto;
@@ -651,6 +651,8 @@ button.replique:disabled { cursor: default; }
   pointer-events: none;
 }
 .legende-tuto b { font-weight: 700; }
+/* Dans une feuille du bas (le menu de téléchargement) : la légende passe en haut de l'écran. */
+.legende-tuto.en-haut { top: calc(var(--safe-top) + 12px); bottom: auto; }
 .glyphe-tuto { flex: none; display: block; width: 24px; height: 24px; color: var(--star); }
 .point-glyphe { fill: currentColor; }
 .trait-glyphe { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }

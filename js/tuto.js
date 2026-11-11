@@ -19,6 +19,12 @@ const FEUTRE = 'cubic-bezier(.22, 1, .36, 1)'; // la même que --feutre dans sty
 const SEUIL = 0.3; // comme dans gestes.js : la part de la largeur qui fait partir la carte
 const ECART = 70; // de combien le doigt écarte la carte : assez pour voir l'indice, sans la faire partir
 
+// La vitesse des démos : 70 % de celle d'origine, toutes les durées et les pauses étant donc divisées
+// par 0,7 (« un peu rapides, réduis la vitesse de 30 % », Louis, 2026-11-11). Pour la changer
+// encore, il suffit de toucher à ce nombre : toutes les durées ci-dessous passent par lent().
+const VITESSE = 0.7;
+const lent = (millisecondes) => millisecondes / VITESSE;
+
 const mouvementReduit = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Les glyphes des gestes, dans la légende. Tous partent d'un point, le doigt : une onde autour pour
@@ -82,26 +88,29 @@ export function proposerTuto(nom, ancre, montrer, { cote = 'droite', libelle = t
 //   liste, passer à la grille...). Pour pincer et écarter, deux doigts au milieu de l'écran :
 //   suivre(rapport) fait suivre l'écran à leur écart, relacher() le remet en place. Pour balayer
 //   (le filage) : journal, l'élément qui suit le doigt, et apercu(), la carte de la réplique
-//   suivante qui se devine pendant le geste (ou rien).
+//   suivante qui se devine pendant le geste (ou rien). quitter : la démo s'arrête juste après ce
+//   geste, sans attendre, et passe à fin() (qui peut lancer la suite ailleurs : dans un menu ouvert).
 // zoneArret : là où le vrai doigt arrête la démo (la carte, d'habitude ; tout l'écran, pour un pincement).
 // nettoyer() : appelée dans tous les cas, même si la démo s'arrête en route, pour retirer ce qu'elle
 // a seulement montré (une carte éclairée comme lue, dans le Script).
+// dansUnMenu : la démo se passe dans une feuille du bas, posée sur l'écran : la légende va en haut
+// (la feuille occupe le bas), et l'écran derrière ne défile pas.
 //
 // Sinon, la démo ne fait rien pour de vrai : une réplique cachée le reste (la montrer gâcherait
 // l'exercice), rien ne se lit, rien n'est noté. Si le vrai doigt se pose sur la carte, elle s'arrête.
-export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin = null, nettoyer = null, zoneArret = carte }) {
+export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin = null, nettoyer = null, zoneArret = carte, dansUnMenu = false }) {
   const doigt = el('div', { className: 'doigt-tuto', 'aria-hidden': 'true' }, el('span', { className: 'doigt-point' }));
   doigt.insertAdjacentHTML('beforeend', '<svg class="doigt-anneau" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" pathLength="100"/></svg>');
   const anneau = doigt.querySelector('circle');
   const point = doigt.querySelector('.doigt-point');
-  const legende = el('div', { className: 'legende-tuto', role: 'status' });
+  const legende = el('div', { className: `legende-tuto${dansUnMenu ? ' en-haut' : ''}`, role: 'status' });
   const indiceDroite = cadre.querySelector('.indice-droite');
   const indiceGauche = cadre.querySelector('.indice-gauche');
   cadre.append(doigt);
   ecran.append(legende);
   // Une barre est collée en bas de l'écran (Réviser, l'explication d'un mot) : la légende se pose
   // juste au-dessus, pour ne pas la cacher.
-  const barre = ecran.querySelector('.commandes:not([hidden])');
+  const barre = dansUnMenu ? null : ecran.querySelector('.commandes:not([hidden])');
   if (barre) legende.style.bottom = `calc(var(--place-bas) + ${barre.offsetHeight + 12}px)`;
 
   // Toutes les animations de la démo, pour les défaire d'un coup à la fin.
@@ -113,7 +122,7 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
   // Une animation de la démo. fill: 'forwards' garde l'état d'arrivée jusqu'au nettoyage final.
   async function animer(element, images, options) {
     if (arrete || !cadre.isConnected) throw ARRET;
-    const animation = element.animate(images, { fill: 'forwards', ...options });
+    const animation = element.animate(images, { fill: 'forwards', ...options, duration: lent(options.duration ?? 0) });
     animations.add(animation);
     try {
       await animation.finished;
@@ -123,7 +132,7 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
     if (arrete || !cadre.isConnected) throw ARRET; // le doigt s'est posé, ou l'écran a changé
   }
   const pause = (ms) => new Promise((ok, ko) => {
-    setTimeout(() => (arrete || !cadre.isConnected ? ko(ARRET) : ok()), ms);
+    setTimeout(() => (arrete || !cadre.isConnected ? ko(ARRET) : ok()), lent(ms));
   });
 
   // Le doigt se déplace d'un point à un autre du cadre.
@@ -156,7 +165,7 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
   // Signalé par Louis le 2026-11-11 : dans le Script, la bulle passait sous le texte.
   // (À la fin de la démo, l'écran revient de toute façon là où il était.)
   async function rendreVisible(cible) {
-    if (!zoneQuiDefile) return;
+    if (!zoneQuiDefile || dansUnMenu) return; // une feuille du bas ne défile pas avec l'écran
     const r = cible.getBoundingClientRect();
     const y = r.top + r.height / 2; // là où le doigt se pose
     const bandeauxDuHaut = [document.querySelector('.app-header'), ecran.querySelector('.tete-collante')].filter(Boolean);
@@ -181,7 +190,7 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
   function onde() {
     const cercle = el('span', { className: 'doigt-onde' });
     doigt.append(cercle);
-    cercle.animate([{ scale: 0.6, opacity: 0.9 }, { scale: 2.1, opacity: 0 }], { duration: 560, easing: 'ease-out' })
+    cercle.animate([{ scale: 0.6, opacity: 0.9 }, { scale: 2.1, opacity: 0 }], { duration: lent(560), easing: 'ease-out' })
       .finished.then(() => cercle.remove(), () => cercle.remove());
   }
 
@@ -189,7 +198,7 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
   // petit bouton comme un numéro (un mot dans une phrase, lui, ne bouge pas).
   async function toucher(cible) {
     onde();
-    cible.animate([{ scale: 1 }, { scale: cible.offsetWidth > 120 ? 0.975 : 0.94 }, { scale: 1 }], { duration: 260, easing: 'ease-out' });
+    cible.animate([{ scale: 1 }, { scale: cible.offsetWidth > 120 ? 0.975 : 0.94 }, { scale: 1 }], { duration: lent(260), easing: 'ease-out' });
     await animer(point, [{ scale: 1 }, { scale: 0.78 }, { scale: 1 }], { duration: 280, easing: 'ease-out', fill: 'none' });
   }
 
@@ -292,7 +301,7 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
           ko(ARRET);
           return;
         }
-        const avance = Math.min((maintenant - debut) / 700, 1);
+        const avance = Math.min((maintenant - debut) / lent(700), 1);
         const courbe = avance < 0.5 ? 2 * avance * avance : 1 - (-2 * avance + 2) ** 2 / 2; // douce aux deux bouts
         const distance = de + (a - de) * courbe;
         placer(distance);
@@ -360,6 +369,7 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
       doigtVisible = true;
     }
 
+    let quitte = false; // une étape « quitter » a fini la démo plus tôt (voir plus haut)
     for (const etape of etapes) {
       const cible = (typeof etape.cible === 'function' ? etape.cible() : etape.cible) ?? carte;
       if (etape.geste === 'pincer' || etape.geste === 'ecarter') {
@@ -383,13 +393,19 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
         dire(etape).catch(() => {}); // la légende arrive pendant le geste (arrêtée, la démo s'en charge)
         await (etape.geste === 'maintenir' ? maintenir(cible) : toucher(cible));
         etape.agir?.();
+        if (etape.quitter) {
+          // Le temps de lire la légende, restée par-dessus ce que le geste vient d'ouvrir.
+          quitte = true;
+          await pause(900);
+          break;
+        }
         await pause(etape.geste === 'maintenir' ? 1100 : 1500);
       }
     }
 
     if (avecUnDoigt) await animer(doigt, [{ opacity: 1, scale: 1 }, { opacity: 0, scale: 0.8 }], { duration: 260, easing: 'ease' });
     doigtVisible = false;
-    await pause(700);
+    if (!quitte) await pause(700);
     await animer(legende, [{ opacity: 1 }, { opacity: 0 }], { duration: 220 });
     // Retour au point de départ : ce que la démo a changé pour de vrai est défait (fin), puis
     // l'écran revient, en douceur, là où il était.

@@ -139,7 +139,8 @@ export async function afficherBibliotheque(racine) {
       actualiserBouton();
     }
 
-    ouvrirFeuille({
+    // Renvoie la fonction qui referme le menu (le tuto s'en sert pour le refermer à la fin).
+    return ouvrirFeuille({
       titre: t('Télécharger des pièces'),
       corps: el('div', { className: 'pile' }, choix.map(({ ligne }) => ligne)),
       actions: (fermer) => [
@@ -167,18 +168,21 @@ export async function afficherBibliotheque(racine) {
         onclick: () => ouvrirMenu(fournies, retirees),
       }, t('Télécharger des pièces')),
     );
-    proposerTutoPieces();
+    proposerTutoPieces(fournies, retirees);
   }
 
   // Le tuto (tuto.js), demandé par Louis le 2026-11-11 : une pastille « ? » au coin de la première
   // pièce. Ici, rien n'est caché, tout se fait avec des boutons écrits : le doigt fantôme les touche
-  // un par un, et la légende dit ce que chacun fait. Rien ne se fait pour de vrai (ni ouverture, ni
-  // suppression, ni menu). Le doigt se pose dans la liste entière : le menu est sous les pièces.
-  function proposerTutoPieces() {
+  // un par un, et la légende dit ce que chacun fait. Ni la pièce ne s'ouvre, ni rien n'est supprimé.
+  // Le menu « Télécharger des pièces », lui, s'ouvre pour de vrai (Louis voulait le voir) : le doigt
+  // y montre comment cocher une pièce et la télécharger, sans rien cocher, puis le menu se referme.
+  // Le doigt se pose dans la liste entière : le bouton du menu est sous les pièces.
+  function proposerTutoPieces(fournies, retirees) {
     const premiere = zoneListe.querySelector('.carte-piece');
     if (!premiere) return;
     const suppression = premiere.querySelector('.action-discrete');
     const menu = zoneListe.querySelector('.ligne-menu');
+    let fermerMenu = null;
     proposerTuto('pieces', premiere, () => {
       zoneListe.classList.add('ancre-tuto');
       montrerGestes({
@@ -189,10 +193,38 @@ export async function afficherBibliotheque(racine) {
         etapes: [
           { geste: 'toucher', titre: t('Toucher une pièce'), texte: t("l'ouvrir et la travailler"), cible: premiere.querySelector('.carte-lien') },
           suppression && { geste: 'toucher', titre: suppression.textContent, texte: t('la retirer, sans perdre ta progression'), cible: suppression },
-          menu && { geste: 'toucher', titre: menu.textContent, texte: t('en ajouter, ou en retrouver une'), cible: menu },
+          menu && {
+            geste: 'toucher', titre: menu.textContent, texte: t('en ajouter, ou en retrouver une'), cible: menu,
+            agir: () => { fermerMenu = ouvrirMenu(fournies, retirees); },
+            quitter: true, // la suite se passe dans le menu (voir montrerLeMenu)
+          },
         ].filter(Boolean),
+        fin: () => { if (fermerMenu) montrerLeMenu(fermerMenu); },
         nettoyer: () => zoneListe.classList.remove('ancre-tuto'),
       });
+    });
+  }
+
+  // La suite du tuto, dans le menu ouvert : cocher une pièce, puis Télécharger, pour de faux. À la
+  // fin, le menu se referme : on revient à la liste, comme avant le tuto.
+  function montrerLeMenu(fermerMenu) {
+    const fond = [...document.querySelectorAll('.modal-overlay')].at(-1);
+    const feuille = fond?.querySelector('.modal-card');
+    const ligne = feuille?.querySelector('.ligne-telechargement');
+    const bouton = feuille?.querySelector('.modal-actions .btn');
+    if (!feuille || !ligne) return;
+    feuille.classList.add('ancre-tuto');
+    montrerGestes({
+      carte: feuille,
+      ecran: fond,
+      zoneArret: fond,
+      dansUnMenu: true,
+      etapes: [
+        { geste: 'toucher', titre: t('Cocher une pièce'), texte: t('la choisir'), cible: ligne.querySelector('input') ?? ligne },
+        bouton && { geste: 'toucher', titre: bouton.textContent, texte: t('la mettre sur ce téléphone'), cible: bouton },
+      ].filter(Boolean),
+      fin: fermerMenu,
+      nettoyer: () => feuille.classList.remove('ancre-tuto'),
     });
   }
 
