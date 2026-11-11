@@ -6,7 +6,7 @@ import {
 } from '../affichage.js';
 import { chargerLangue, langueActive, LANGUES, t, traduire } from '../langues.js';
 import { confirmer, ouvrirFeuille } from '../modale.js';
-import { lireSauvegarde, telechargerSauvegarde } from '../sauvegarde.js';
+import { exporterSauvegarde, lireSauvegarde } from '../sauvegarde.js';
 import { toutesLesPieces, trierParUtilisation } from '../pieces.js';
 import { texteBrut } from '../texte.js';
 import { changerReglage, effacerProgression, lireReglages, remplacerToutesLesDonnees } from '../stockage.js';
@@ -228,7 +228,7 @@ function creerSauvegarde() {
         // Le menu de partage du téléphone, ou un simple téléchargement là où il n'existe pas (voir
         // sauvegarde.js). Le message ne vient que pour le téléchargement : un partage se voit déjà.
         onclick: async () => {
-          if (await telechargerSauvegarde() === 'telechargee') signaler(t('Sauvegarde enregistrée dans tes téléchargements.'));
+          if (await exporterSauvegarde() === 'telechargee') signaler(t('Sauvegarde enregistrée dans tes téléchargements.'));
         },
       }, t('Sauvegarder')),
       el('button', { type: 'button', className: 'btn-ghost', onclick: choisirFichier }, t('Restaurer'))),

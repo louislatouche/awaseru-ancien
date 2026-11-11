@@ -184,7 +184,6 @@ export async function afficherBibliotheque(racine) {
     const menu = zoneListe.querySelector('.ligne-menu');
     let fermerMenu = null;
     proposerTuto('pieces', premiere, () => {
-      zoneListe.classList.add('ancre-tuto');
       montrerGestes({
         carte: premiere,
         cadre: zoneListe,
@@ -199,7 +198,6 @@ export async function afficherBibliotheque(racine) {
           },
         ].filter(Boolean),
         fin: () => { if (fermerMenu) montrerLeMenu(fermerMenu); },
-        nettoyer: () => zoneListe.classList.remove('ancre-tuto'),
       });
     });
   }
@@ -212,7 +210,6 @@ export async function afficherBibliotheque(racine) {
     const ligne = feuille?.querySelector('.ligne-telechargement');
     const bouton = feuille?.querySelector('.modal-actions .btn');
     if (!feuille || !ligne) return;
-    feuille.classList.add('ancre-tuto');
     montrerGestes({
       carte: feuille,
       ecran: fond,
@@ -222,7 +219,6 @@ export async function afficherBibliotheque(racine) {
         bouton && { geste: 'toucher', titre: bouton.textContent, texte: t('la mettre sur ce téléphone'), cible: bouton },
       ].filter(Boolean),
       fin: fermerMenu,
-      nettoyer: () => feuille.classList.remove('ancre-tuto'),
     });
   }
 

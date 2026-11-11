@@ -468,18 +468,22 @@ export function afficherFilage(racine, piece) {
       const suivante = cartes[cartes.indexOf(lue) + 1];
       const misEnPause = lectureComplete === 'lecture';
       if (misEnPause) pauseComplete();
-      racine.classList.add('ancre-tuto'); // le doigt se pose dans l'écran entier : la carte lue peut être loin
       montrerGestes({
         carte: lue,
-        cadre: racine,
+        cadre: racine, // le doigt se pose dans l'écran entier : la carte lue peut être loin
         ecran: racine,
         etapes: [
           { geste: 'toucher', titre: t('Toucher'), texte: t('pause, ou reprendre') },
           suivante && { geste: 'toucher', titre: t('Toucher une autre réplique'), texte: t('la lecture repart de là'), cible: suivante },
           { geste: 'maintenir', titre: t('Appui long'), texte: t("arrêter l'écoute") },
         ].filter(Boolean),
-        fin: () => { if (misEnPause && lectureComplete === 'pause') repriseComplete(); },
-        nettoyer: () => racine.classList.remove('ancre-tuto'),
+        // La voix du téléphone ne sait pas faire de pause : elle s'est arrêtée. La lecture repart
+        // alors du début de la réplique qui se lisait, comme après un toucher sur sa carte.
+        fin: () => {
+          if (!misEnPause) return;
+          if (lectureComplete === 'pause') repriseComplete();
+          else if (lectureComplete === 'arret') lireEnContinu(cartes.indexOf(lue));
+        },
       });
     });
   }

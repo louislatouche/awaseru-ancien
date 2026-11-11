@@ -50,8 +50,14 @@ function glyphe(geste) {
 // La pastille du tuto « nom » doit-elle être proposée ? Oui si les tutos sont allumés et qu'il n'a
 // pas encore été vu. Un écran s'en sert pour ne préparer la place de la pastille qu'au besoin.
 export function tutoAVoir(nom) {
-  const { tutos, tutosVus } = lireReglages();
-  return tutos && !tutosVus.includes(nom);
+  return lireReglages().tutos && !tutosVus().includes(nom);
+}
+
+// Les tutos déjà vus. Une sauvegarde restaurée peut contenir n'importe quoi à cet endroit : si ce
+// n'est pas une liste, on fait comme si aucun n'avait été vu, plutôt que de planter l'écran.
+function tutosVus() {
+  const vus = lireReglages().tutosVus;
+  return Array.isArray(vus) ? vus : [];
 }
 
 // Pose la pastille du tuto « nom » dans « ancre » (un élément en position: relative, qui contient
@@ -68,7 +74,7 @@ export function proposerTuto(nom, ancre, montrer, { cote = 'droite', libelle = t
     'aria-label': libelle,
     onclick: (evenement) => {
       evenement.stopPropagation(); // la carte qui la porte ne doit pas croire qu'on l'a touchée
-      changerReglage('tutosVus', [...lireReglages().tutosVus, nom]);
+      changerReglage('tutosVus', [...tutosVus(), nom]);
       pastille.remove();
       montrer();
     },
@@ -78,11 +84,12 @@ export function proposerTuto(nom, ancre, montrer, { cote = 'droite', libelle = t
 
 // Le doigt fantôme fait les gestes sur la carte, un par un, chacun avec sa légende.
 // carte : la vraie carte ; cadre : l'élément où se pose le doigt (il défile donc avec la carte) :
-// la carte elle-même, ou le cadre qui la contient avec ses indices de glissement ; ecran : où
+// la carte elle-même, ou ce qui la contient (le cadre de ses indices de glissement, une liste
+// entière quand le doigt va d'une carte à l'autre) ; ecran : où
 // poser la légende ; fin() : appelée quand la démo est allée jusqu'au bout, pour défaire ce qu'elle
 // a fait pour de vrai (replier une carte, revenir à la grille) : une démo finit là où elle a commencé.
-// etapes : [{ geste: 'toucher' | 'maintenir' | 'glisser' | 'pincer' | 'ecarter', sens: 1 (droite)
-//   ou -1, titre, texte, cible, agir, suivre, relacher }]. cible : ce que le doigt touche, si ce
+// etapes : [{ geste: 'toucher' | 'maintenir' | 'glisser' | 'pincer' | 'ecarter' | 'balayer', sens: 1
+//   (droite) ou -1, titre, texte, cible, agir, suivre, relacher, journal, apercu, quitter }]. cible : ce que le doigt touche, si ce
 //   n'est pas la carte entière (un mot, un numéro), ou une fonction qui le trouve au moment voulu.
 //   agir() : ce que le geste fait pour de vrai, quand c'est sans risque (déplier une carte de la
 //   liste, passer à la grille...). Pour pincer et écarter, deux doigts au milieu de l'écran :
@@ -106,6 +113,9 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
   const legende = el('div', { className: `legende-tuto${dansUnMenu ? ' en-haut' : ''}`, role: 'status' });
   const indiceDroite = cadre.querySelector('.indice-droite');
   const indiceGauche = cadre.querySelector('.indice-gauche');
+  // Le doigt se place par rapport au cadre : celui-ci doit être en position: relative (ancre-tuto).
+  const ancrePosee = !cadre.classList.contains('ancre-tuto');
+  cadre.classList.add('ancre-tuto');
   cadre.append(doigt);
   ecran.append(legende);
   // Une barre est collée en bas de l'écran (Réviser, l'explication d'un mot) : la légende se pose
@@ -119,6 +129,17 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
   // la démo, et le bouclier part avec elle.
   const bouclier = el('div', { className: 'bouclier-tuto', 'aria-hidden': 'true' });
   document.body.append(bouclier);
+
+  // L'écran de l'app, celui qui défile, et où il en était : une démo qui déplie une carte ou change
+  // de vue le fait défiler. À la fin, on y revient, pour retrouver l'écran tel qu'il était avant la
+  // démo (demande de Louis, 2026-11-11).
+  const zoneQuiDefile = document.getElementById('ecran');
+  const defilementDeDepart = zoneQuiDefile?.scrollTop ?? 0;
+  // Le doigt seul ne sert pas si la démo ne fait que pincer et écarter (ce sont deux autres doigts).
+  const avecUnDoigt = etapes.some(({ geste }) => geste !== 'pincer' && geste !== 'ecarter');
+  let doigtVisible = false; // le doigt est-il à l'écran en ce moment (voir rendreVisible)
+  // Ce que touche une étape : sa cible (ou ce que sa fonction trouve à cet instant), sinon la carte.
+  const cibleDe = (etape) => (typeof etape?.cible === 'function' ? etape.cible() : etape?.cible) ?? carte;
 
   // Toutes les animations de la démo, pour les défaire d'un coup à la fin.
   const animations = new Set();
@@ -279,7 +300,7 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
       etape.relacher?.();
       etape.agir?.();
     };
-    const visible = document.getElementById('ecran').getBoundingClientRect();
+    const visible = zoneQuiDefile.getBoundingClientRect();
     const centre = { x: visible.left + visible.width / 2, y: visible.top + visible.height / 2 };
     const doigts = [1, -1].map((signe) => {
       const unDoigt = el('div', { className: 'doigt-tuto doigt-fixe', 'aria-hidden': 'true' }, el('span', { className: 'doigt-point' }));
@@ -351,19 +372,10 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
     await animer(legende, [{ opacity: 0, translate: '0 6px' }, { opacity: 1, translate: '0 0' }], { duration: 260, easing: FEUTRE });
   }
 
-  // Le doigt seul ne sert pas si la démo ne fait que pincer et écarter (ce sont deux autres doigts).
-  const avecUnDoigt = etapes.some(({ geste }) => geste !== 'pincer' && geste !== 'ecarter');
-  let doigtVisible = false; // le doigt est-il à l'écran en ce moment (voir rendreVisible)
-  // Où en était l'écran : une démo qui déplie une carte ou change de vue le fait défiler. À la fin,
-  // on y revient, pour retrouver l'écran tel qu'il était avant la démo (demande de Louis, 2026-11-11).
-  const zoneQuiDefile = document.getElementById('ecran');
-  const defilementDeDepart = zoneQuiDefile?.scrollTop ?? 0;
-
   try {
     // Le doigt apparaît un peu au-dessus et à droite de ce qu'il va toucher en premier, puis s'y pose.
     // Au-dessus, et pas en dessous : en bas de l'écran, il serait apparu sous la légende.
-    const premiere = etapes[0];
-    const premiereCible = (typeof premiere?.cible === 'function' ? premiere.cible() : premiere?.cible) ?? carte;
+    const premiereCible = cibleDe(etapes[0]);
     if (avecUnDoigt) await rendreVisible(premiereCible);
     const depart = milieu(premiereCible);
     x = depart.x + 44;
@@ -376,7 +388,7 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
 
     let quitte = false; // une étape « quitter » a fini la démo plus tôt (voir plus haut)
     for (const etape of etapes) {
-      const cible = (typeof etape.cible === 'function' ? etape.cible() : etape.cible) ?? carte;
+      const cible = cibleDe(etape);
       if (etape.geste === 'pincer' || etape.geste === 'ecarter') {
         dire(etape).catch(() => {});
         await pincer(etape);
@@ -426,6 +438,7 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
     nettoyer?.();
     animations.forEach((animation) => animation.cancel());
     doigt.remove();
+    if (ancrePosee) cadre.classList.remove('ancre-tuto');
     doigtsDuPincement.forEach((unDoigt) => unDoigt.remove());
     apercusDeLaDemo.forEach((apercu) => apercu.remove());
     legende.remove();

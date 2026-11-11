@@ -26,7 +26,7 @@ const motValide = (etat) => estObjet(etat) && (etat.statut === 'a_revoir'
 // Fait le fichier de sauvegarde et le confie au téléphone. Renvoie ce qui s'est passé :
 // 'partagee' (le menu de partage l'a envoyé où tu as choisi), 'annulee' (tu as refermé ce menu),
 // ou 'telechargee' (enregistré dans les téléchargements, là où le partage n'existe pas).
-export async function telechargerSauvegarde() {
+export async function exporterSauvegarde() {
   const maintenant = new Date();
   const contenu = JSON.stringify({ type: TYPE, version: VERSION_DU_FORMAT, date: maintenant.toISOString(), donnees: toutesLesDonnees() });
   // sv-SE écrit les dates en AAAA-MM-JJ, à l'heure du téléphone. toISOString donnerait l'heure de

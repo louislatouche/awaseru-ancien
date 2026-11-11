@@ -12,7 +12,7 @@ import { brancherGestes } from '../gestes.js';
 import { lignesDe } from '../pieces.js';
 import { creerJaponais, texteAParler } from '../texte.js';
 import { lireReglages, lireSelection, lireStatuts } from '../stockage.js';
-import { montrerGestes, proposerTuto } from '../tuto.js';
+import { montrerGestes, proposerTuto, tutoAVoir } from '../tuto.js';
 
 // Les mêmes respirations que le filage : un court silence entre deux répliques, et le temps de lire
 // une ligne qui n'est qu'une didascalie quand on ne les fait pas lire à voix haute.
@@ -182,7 +182,7 @@ export function afficherScript(racine, piece) {
         // Garder le doigt sur une carte arrête toute la lecture, comme sur le bouton lecture.
         brancherGestes(carte, { maintenir: () => { if (carteActive) arreter(); } });
         cartes.set(ligne, carte);
-        if (ligne !== lignes[0]) return carte;
+        if (ligne !== lignes[0] || !tutoAVoir('script')) return carte;
         cadreTuto = el('div', { className: 'cadre-tuto' }, carte);
         return cadreTuto;
       }))),
@@ -191,8 +191,9 @@ export function afficherScript(racine, piece) {
 
   // Le tuto (tuto.js) : une pastille « ? » au coin de la première réplique. Le doigt fantôme la
   // touche (elle s'éclaire comme lue, sans qu'aucun son ne parte), la retouche (pause), touche la
-  // suivante (la lecture repart de là), puis garde le doigt dessus (arrêt). Si une vraie lecture
-  // est en cours, la démo n'éclaire rien, pour ne pas la brouiller.
+  // suivante (la lecture repart de là), puis garde le doigt dessus (arrêt). Une vraie lecture en
+  // cours se met en pause le temps de la démo (sinon elle ferait défiler l'écran, sans qu'on puisse
+  // l'arrêter), et reprend à la fin ; sa carte reste éclairée, la démo n'éclaire alors rien.
   if (cadreTuto) {
     const premiere = cartes.get(lignes[0]);
     const seconde = cartes.get(lignes[1]);
@@ -205,18 +206,30 @@ export function afficherScript(racine, piece) {
     const eteindreLaDemo = () => {
       for (const autre of cartesDeLaDemo) if (autre !== carteActive) autre.classList.remove('en-lecture');
     };
-    proposerTuto('script', cadreTuto, () => montrerGestes({
-      carte: premiere,
-      cadre: cadreTuto,
-      ecran: racine,
-      etapes: [
-        { geste: 'toucher', titre: t('Toucher'), texte: t('écouter la réplique, puis les suivantes'), agir: () => eclairer(premiere) },
-        { geste: 'toucher', titre: t('Toucher encore'), texte: t('pause, ou reprendre') },
-        seconde && { geste: 'toucher', titre: t('Toucher une autre réplique'), texte: t('la lecture repart de là'), cible: seconde, agir: () => eclairer(seconde) },
-        { geste: 'maintenir', titre: t('Appui long'), texte: t("arrêter l'écoute"), cible: seconde ?? premiere, agir: () => eclairer(null) },
-      ].filter(Boolean),
-      nettoyer: eteindreLaDemo,
-    }));
+    proposerTuto('script', cadreTuto, () => {
+      const lue = carteActive;
+      const misEnPause = etat === 'lecture';
+      if (misEnPause) mettreEnPause();
+      montrerGestes({
+        carte: premiere,
+        cadre: cadreTuto,
+        ecran: racine,
+        etapes: [
+          { geste: 'toucher', titre: t('Toucher'), texte: t('écouter la réplique, puis les suivantes'), agir: () => eclairer(premiere) },
+          { geste: 'toucher', titre: t('Toucher encore'), texte: t('pause, ou reprendre') },
+          seconde && { geste: 'toucher', titre: t('Toucher une autre réplique'), texte: t('la lecture repart de là'), cible: seconde, agir: () => eclairer(seconde) },
+          { geste: 'maintenir', titre: t('Appui long'), texte: t("arrêter l'écoute"), cible: seconde ?? premiere, agir: () => eclairer(null) },
+        ].filter(Boolean),
+        // La voix du téléphone ne sait pas faire de pause : elle s'est arrêtée. La lecture repart
+        // alors du début de la réplique qui se lisait, comme après un toucher sur sa carte.
+        fin: () => {
+          if (!misEnPause) return;
+          if (etat === 'pause') reprendre();
+          else if (etat === 'arret') lireAPartirDe([...cartes.values()].indexOf(lue));
+        },
+        nettoyer: eteindreLaDemo,
+      });
+    });
   }
 
   // Appelé par le routeur quand on quitte l'écran : la lecture en continu s'arrête.
