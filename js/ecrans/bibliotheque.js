@@ -11,6 +11,7 @@ import {
 } from '../pieces.js';
 import { noterUtilisation } from '../stockage.js';
 import { peutRetirer, piecesRetirees, retelechargerPiece, retirerPiece } from '../telechargement.js';
+import { montrerGestes, proposerTuto } from '../tuto.js';
 
 function texteProgression({ total, sues, aRevoir }) {
   if (total === 0) return t('Aucune réplique choisie');
@@ -166,6 +167,33 @@ export async function afficherBibliotheque(racine) {
         onclick: () => ouvrirMenu(fournies, retirees),
       }, t('Télécharger des pièces')),
     );
+    proposerTutoPieces();
+  }
+
+  // Le tuto (tuto.js), demandé par Louis le 2026-11-11 : une pastille « ? » au coin de la première
+  // pièce. Ici, rien n'est caché, tout se fait avec des boutons écrits : le doigt fantôme les touche
+  // un par un, et la légende dit ce que chacun fait. Rien ne se fait pour de vrai (ni ouverture, ni
+  // suppression, ni menu). Le doigt se pose dans la liste entière : le menu est sous les pièces.
+  function proposerTutoPieces() {
+    const premiere = zoneListe.querySelector('.carte-piece');
+    if (!premiere) return;
+    const suppression = premiere.querySelector('.action-discrete');
+    const menu = zoneListe.querySelector('.ligne-menu');
+    proposerTuto('pieces', premiere, () => {
+      zoneListe.classList.add('ancre-tuto');
+      montrerGestes({
+        carte: premiere,
+        cadre: zoneListe,
+        ecran: racine,
+        zoneArret: zoneListe,
+        etapes: [
+          { geste: 'toucher', titre: t('Toucher une pièce'), texte: t("l'ouvrir et la travailler"), cible: premiere.querySelector('.carte-lien') },
+          suppression && { geste: 'toucher', titre: suppression.textContent, texte: t('la retirer, sans perdre ta progression'), cible: suppression },
+          menu && { geste: 'toucher', titre: menu.textContent, texte: t('en ajouter, ou en retrouver une'), cible: menu },
+        ].filter(Boolean),
+        nettoyer: () => zoneListe.classList.remove('ancre-tuto'),
+      });
+    });
   }
 
   await rafraichir();
