@@ -2,15 +2,20 @@
 // d'exister quand la page est fermée. Il garde une copie de tous les fichiers de l'app et les
 // sert depuis cette copie (« cache-first »). C'est ce qui permet de fonctionner hors ligne.
 
-// >>> À AUGMENTER à chaque modification de l'app, y compris pour une nouvelle pièce. <<<
-// Le navigateur ne détecte une mise à jour que si ce fichier-ci change d'au moins un octet.
-// Sans cela, le téléphone continuerait de servir l'ancienne copie, indéfiniment.
-const VERSION = 130;
+// Deux numéros de version, pour que le code et les pièces vivent chacun leur vie :
+// - VERSION, ici : le code de l'app. >>> À AUGMENTER à chaque modification du code. <<<
+// - VERSION_PIECES, dans pieces/version.js : les pièces et les voix de la troupe.
+// Le navigateur ne détecte une mise à jour que si ce fichier-ci, ou un fichier qu'il charge avec
+// importScripts, change d'au moins un octet (Chrome le vérifie depuis sa version 78). Sans cela,
+// le téléphone continuerait de servir l'ancienne copie, indéfiniment.
+const VERSION = 131;
+importScripts('pieces/version.js'); // définit VERSION_PIECES
 
 // Sur GitHub Pages, tous tes projets partagent le même site, donc le même espace de caches.
 // Le préfixe nous permet de ne jamais toucher à ceux des autres.
 const PREFIXE = 'awaseru-v';
-const CACHE = `${PREFIXE}${VERSION}`;
+// « awaseru-v131.4 » : le code en version 131, les pièces en version 4 (voir js/version.js).
+const CACHE = `${PREFIXE}${VERSION}.${VERSION_PIECES}`;
 
 // Tous les fichiers de l'app. Les chemins sont relatifs à l'emplacement de sw.js.
 const FICHIERS = [

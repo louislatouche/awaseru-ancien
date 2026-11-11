@@ -8,7 +8,8 @@ Une application web installable (PWA) pour apprendre ses répliques de théâtre
 |---|---|
 | `index.html` | L'unique page de l'app : trois zones vides que le JavaScript remplit. |
 | `manifest.webmanifest` | La carte d'identité de l'app pour Android : nom, icônes, mode plein écran. |
-| `sw.js` | Le service worker : garde une copie de l'app pour le hors-ligne. Contient le numéro de version. |
+| `sw.js` | Le service worker : garde une copie de l'app pour le hors-ligne. Contient le numéro de version du code. |
+| `pieces/version.js` | Le numéro de version des pièces et de leurs voix, distinct de celui du code. |
 | `css/style.css` | Les styles propres à Awaseru, posés sur le design kit. |
 | `css/polices.css` | Déclare les polices rangées dans `polices/`. |
 | `design-kit/` | Copie exacte de `tokens.css` et `base.css` du design kit : couleurs, boutons, cartes. Ne pas les modifier ici. |
@@ -59,7 +60,7 @@ Pour changer une voix, modifie `pieces/audio/<id>/voix.json`, démarre AivisSpee
 node outils/generer-audio.mjs hanasaka-jiisan
 ```
 
-Pour ne refaire que quelques répliques, ajoute leurs numéros à la fin de la commande. Il faut que `ffmpeg` soit installé. Augmente ensuite `VERSION` dans `sw.js`, puis publie.
+Pour ne refaire que quelques répliques, ajoute leurs numéros à la fin de la commande. Il faut que `ffmpeg` soit installé. Augmente ensuite `VERSION_PIECES` dans `pieces/version.js`, puis publie.
 
 Le script garde les kanji, car le moteur reconnaît mieux les mots qu'avec des kana seuls. Il compare ensuite la lecture du moteur à tes furigana : là où elle diffère, il remplace ce kanji par sa lecture, puis le signale dans son rapport.
 
@@ -119,7 +120,7 @@ GitHub Pages héberge gratuitement l'app en HTTPS. Le dépôt doit être public 
 ### Publier une mise à jour
 
 1. Modifie les fichiers.
-2. **Augmente `VERSION` dans `sw.js`** (1 devient 2). Sans cela, le téléphone garde indéfiniment l'ancienne version : il ne détecte une mise à jour que si `sw.js` change.
+2. **Augmente le bon numéro de version** (1 devient 2) : `VERSION` dans `sw.js` si tu as changé le code, `VERSION_PIECES` dans `pieces/version.js` si tu as changé une pièce ou une voix. Sans cela, le téléphone garde indéfiniment l'ancienne version : il ne détecte une mise à jour que si l'un de ces deux fichiers change.
 3. Envoie les changements :
 
    ```bash
@@ -134,7 +135,7 @@ GitHub Pages héberge gratuitement l'app en HTTPS. Le dépôt doit être public 
    git push
    ```
 
-4. Sur le téléphone, ferme l'app et rouvre-la. Un bandeau « Nouvelle version prête » apparaît : touche-le. Le numéro de version est affiché en bas des Réglages.
+4. Sur le téléphone, ferme l'app et rouvre-la. Un bandeau « Nouvelle version prête » apparaît : touche-le. Le numéro de version est affiché en bas des Réglages : « 131.4 » veut dire le code en version 131 et les pièces en version 4.
 
 ## Installer sur Android
 
@@ -168,7 +169,7 @@ Les répliques choisies, la progression et les réglages restent sur le téléph
 1. Place le fichier dans `pieces/`.
 2. Ajoute son nom dans `pieces/index.json` : `["hanasaka-jiisan.json", "ma-piece.json"]`.
 3. Choisis les voix dans `pieces/audio/<id>/voix.json`, puis génère l'audio (voir « Les voix »).
-4. Augmente `VERSION` dans `sw.js`, puis publie.
+4. Augmente `VERSION_PIECES` dans `pieces/version.js`, puis publie.
 
 ### Format d'un fichier de pièce
 

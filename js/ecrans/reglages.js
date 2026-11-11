@@ -296,10 +296,11 @@ export async function afficherReglages(racine) {
   const { fournies, importees } = await toutesLesPieces();
 
   const version = el('p', { className: 'version' });
-  // La version du code qui tourne vraiment (voir version.js). Si une plus récente est déjà
-  // téléchargée et attend un rechargement, le bandeau le propose.
-  versionEnCours().then((numero) => {
-    if (numero !== null) version.textContent = t('Awaseru, version {n}', { n: numero });
+  // La version qui tourne vraiment (voir version.js) : « 131.4 » pour le code en version 131 et
+  // les pièces en version 4. Si une plus récente est déjà téléchargée et attend un rechargement,
+  // le bandeau le propose.
+  versionEnCours().then((enCours) => {
+    if (enCours !== null) version.textContent = t('Awaseru, version {n}', { n: enCours.texte });
   });
   nouvelleVersionEnAttente().then((enAttente) => {
     if (enAttente) proposerRechargement();

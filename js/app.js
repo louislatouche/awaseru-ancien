@@ -200,7 +200,10 @@ function enregistrerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
 
   // Chemin relatif : le service worker contrôlera uniquement ce dossier et ses sous-dossiers.
-  navigator.serviceWorker.register('sw.js').catch((erreur) => {
+  // updateViaCache 'none' : pour savoir s'il y a du nouveau, le navigateur relit sur le site sw.js
+  // ET pieces/version.js, qu'il charge. Par défaut, il prendrait ce dernier dans sa mémoire, que
+  // GitHub Pages autorise à garder 10 minutes : une nouvelle pièce arriverait en retard.
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch((erreur) => {
     console.warn("Service worker non enregistré :", erreur);
   });
 
