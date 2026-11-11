@@ -138,21 +138,32 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
     return aller(cx + decalage, cy);
   }
 
-  // Le doigt ne doit jamais passer sous la légende (ni sous l'en-tête) : si l'endroit à toucher est
-  // trop bas (ou trop haut), l'écran défile d'abord en douceur pour le remonter au-dessus de la
-  // légende. Signalé par Louis le 2026-11-11 : dans le Script, la bulle passait sous le texte.
+  // Le doigt ne doit jamais passer sous la légende, ni sous ce qui couvre le haut de l'écran (l'en-tête,
+  // le titre collé de Mes répliques) : si l'endroit à toucher est trop bas ou trop haut, l'écran
+  // défile d'abord en douceur pour l'amener entre les deux. La légende se pose déjà au-dessus de la
+  // barre du bas (Réviser, l'explication d'un mot) : la dépasser, c'est donc éviter la barre aussi.
+  // Signalé par Louis le 2026-11-11 : dans le Script, la bulle passait sous le texte.
   // (À la fin de la démo, l'écran revient de toute façon là où il était.)
   async function rendreVisible(cible) {
     if (!zoneQuiDefile) return;
     const r = cible.getBoundingClientRect();
     const y = r.top + r.height / 2; // là où le doigt se pose
-    const haut = (document.querySelector('.app-header')?.getBoundingClientRect().bottom ?? 0) + 44;
+    const bandeauxDuHaut = [document.querySelector('.app-header'), ecran.querySelector('.tete-collante')].filter(Boolean);
+    const haut = Math.max(0, ...bandeauxDuHaut.map((bandeau) => bandeau.getBoundingClientRect().bottom)) + 44;
     // Le haut de la légende, avec de quoi la loger sur deux lignes, et la place du doigt (44 px).
     const bas = window.innerHeight - parseFloat(getComputedStyle(legende).bottom) - 72 - 44;
     const ecart = y > bas ? y - bas : (y < haut ? y - haut : 0);
     if (Math.abs(ecart) < 4) return;
+    // Le doigt est posé dans la page : il défilerait avec elle, et passerait sous l'en-tête ou sous
+    // la légende. Il s'efface donc le temps du défilement, puis réapparaît près de sa nouvelle cible.
+    if (doigtVisible) await animer(doigt, [{ opacity: 1 }, { opacity: 0 }], { duration: 150 });
     zoneQuiDefile.scrollBy({ top: ecart, behavior: 'smooth' });
     await pause(420);
+    if (doigtVisible) {
+      const pres = milieu(cible);
+      await aller(pres.x + 44, pres.y - 24, 1);
+      await animer(doigt, [{ opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1 }], { duration: 260, easing: FEUTRE });
+    }
   }
 
   // Une onde qui s'élargit sous le doigt.
@@ -277,18 +288,26 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
 
   // Le doigt seul ne sert pas si la démo ne fait que pincer et écarter (ce sont deux autres doigts).
   const avecUnDoigt = etapes.some(({ geste }) => geste !== 'pincer' && geste !== 'ecarter');
+  let doigtVisible = false; // le doigt est-il à l'écran en ce moment (voir rendreVisible)
   // Où en était l'écran : une démo qui déplie une carte ou change de vue le fait défiler. À la fin,
   // on y revient, pour retrouver l'écran tel qu'il était avant la démo (demande de Louis, 2026-11-11).
   const zoneQuiDefile = document.getElementById('ecran');
   const defilementDeDepart = zoneQuiDefile?.scrollTop ?? 0;
 
   try {
-    // Le doigt arrive un peu en dessous du milieu de la carte, puis se place.
-    const depart = milieu(carte);
-    x = depart.x + 50;
-    y = depart.y + 50;
+    // Le doigt apparaît un peu au-dessus et à droite de ce qu'il va toucher en premier, puis s'y pose.
+    // Au-dessus, et pas en dessous : en bas de l'écran, il serait apparu sous la légende.
+    const premiere = etapes[0];
+    const premiereCible = (typeof premiere?.cible === 'function' ? premiere.cible() : premiere?.cible) ?? carte;
+    if (avecUnDoigt) await rendreVisible(premiereCible);
+    const depart = milieu(premiereCible);
+    x = depart.x + 44;
+    y = depart.y - 24;
     Object.assign(doigt.style, { left: `${x}px`, top: `${y}px` });
-    if (avecUnDoigt) await animer(doigt, [{ opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1 }], { duration: 320, easing: FEUTRE });
+    if (avecUnDoigt) {
+      await animer(doigt, [{ opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1 }], { duration: 320, easing: FEUTRE });
+      doigtVisible = true;
+    }
 
     for (const etape of etapes) {
       const cible = (typeof etape.cible === 'function' ? etape.cible() : etape.cible) ?? carte;
@@ -313,6 +332,7 @@ export async function montrerGestes({ carte, cadre = carte, ecran, etapes, fin =
     }
 
     if (avecUnDoigt) await animer(doigt, [{ opacity: 1, scale: 1 }, { opacity: 0, scale: 0.8 }], { duration: 260, easing: 'ease' });
+    doigtVisible = false;
     await pause(700);
     await animer(legende, [{ opacity: 1 }, { opacity: 0 }], { duration: 220 });
     // Retour au point de départ : ce que la démo a changé pour de vrai est défait (fin), puis

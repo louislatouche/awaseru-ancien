@@ -470,7 +470,7 @@ button.replique:disabled { cursor: default; }
 .tete-collante {
   position: sticky;
   top: 0; /* compté depuis l'intérieur de la marge de .app-main : donc juste sous l'en-tête */
-  z-index: 2;
+  z-index: 4; /* au-dessus de tout ce qui défile, pastille (2) et doigt fantôme (3) des tutos compris */
   margin: -20px calc(-1 * var(--marge)) 0;
   padding: 14px var(--marge);
   background: color-mix(in srgb, var(--bg) 92%, transparent);
@@ -660,7 +660,7 @@ button.replique:disabled { cursor: default; }
 .commandes {
   position: sticky;
   bottom: 0; /* compté depuis l'intérieur de la marge de .app-main : donc juste au-dessus des onglets */
-  z-index: 2;
+  z-index: 4; /* au-dessus de tout ce qui défile, pastille (2) et doigt fantôme (3) des tutos compris */
   display: flex;
   flex-direction: column;
   gap: 8px;
